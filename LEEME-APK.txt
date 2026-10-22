@@ -1,0 +1,24 @@
+YOS STREAMING — PROYECTO ANDROID
+
+Este ZIP es el proyecto fuente de Android Studio para empaquetar tu sitio YOS Streaming como aplicación Android.
+
+CÓMO GENERAR EL APK EN WINDOWS
+1. Instala Android Studio desde el sitio oficial: https://developer.android.com/studio
+2. Descomprime este ZIP.
+3. Abre Android Studio > Open y selecciona la carpeta YOSStreamingAndroid.
+4. Acepta la instalación de los componentes SDK sugeridos y espera a que termine Gradle Sync.
+5. En el menú, selecciona Build > Build Bundle(s) / APK(s) > Build APK(s).
+6. Cuando termine, pulsa “locate”. Normalmente el archivo estará en:
+   app/build/outputs/apk/debug/app-debug.apk
+7. Pasa app-debug.apk a tu teléfono Android, ábrelo y autoriza instalar aplicaciones de esa fuente si Android lo solicita.
+
+INCLUYE
+- La versión web YOS Streaming con TV en vivo, películas y series.
+- Fondo yos-laptop y estilos compactos.
+- WebView con JavaScript y almacenamiento local para fuentes/favoritos.
+- Permiso de Internet y compatibilidad básica con URLs HTTP de proveedores.
+
+IMPORTANTE
+- Este entorno no tiene Android SDK/Gradle configurado, por lo que se entrega el proyecto Android listo para abrir y compilar, no un APK ya compilado.
+- Las listas y transmisiones dependen de proveedores autorizados, URLs activas y compatibilidad del navegador. Algunas URLs HTTP o streams pueden fallar por CORS, DRM o restricciones del proveedor.
+- No compartas públicamente listas que contengan credenciales. El almacenamiento local de la aplicación guarda datos en tu dispositivo.

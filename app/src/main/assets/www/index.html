@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090b12">
+  <meta name="description" content="YOS Streaming: organiza y reproduce transmisiones autorizadas desde listas M3U.">
+  <title>YOS STREAMING — TV, Películas y Series</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"></script>
+</head>
+<body>
+  <header class="navbar">
+    <a class="logo" href="#inicio" aria-label="YOS inicio">YOS<span>.</span></a>
+    <nav aria-label="Navegación principal">
+      <a href="#inicio">Inicio</a>
+      <a href="#television">TV en vivo</a>
+      <a href="#favoritos">Favoritos <span id="fav-nav-count" class="nav-count">0</span></a>
+    </nav>
+    <button id="open-admin" class="admin-button" type="button">⚙ Fuentes</button>
+  </header>
+
+  <main>
+    <section class="hero" id="inicio">
+      <div class="hero-content">
+        <span class="badge"><span class="live-dot"></span> TU ENTRETENIMIENTO, EN UN SOLO LUGAR</span>
+        <h1>Todo en vivo.<br><span>A tu manera.</span></h1>
+        <p>Organiza TV en vivo, películas y series desde tus listas M3U autorizadas, en una sola interfaz.</p>
+        <div class="hero-actions">
+          <a class="primary-button" href="#television">▶ Ver canales ahora</a>
+          <span class="hero-note">YOS · Live TV</span>
+        </div>
+      </div>
+      <div class="hero-art" aria-hidden="true"><div class="orb orb-one"></div><div class="orb orb-two"></div><div class="hero-watermark">YOS</div><div class="art-card"><span>● EN VIVO</span><b>Tu mundo<br>en streaming</b><small>Canales · Noticias · Cultura</small></div></div>
+    </section>
+
+    <section class="tv-section" id="television">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">DESCUBRE TU CONTENIDO</span>
+          <h2>Televisión en vivo</h2>
+          <p>Filtra la lista y selecciona una transmisión.</p>
+        </div>
+        <div class="search-wrap"><span>⌕</span><input id="search" type="search" placeholder="Buscar canal..." aria-label="Buscar canal" disabled></div>
+      </div>
+
+      <div class="playlist-box">
+        <div class="playlist-title"><div><span class="eyebrow">TUS LISTAS</span><h3>Fuentes M3U</h3></div><span id="source-status" class="source-status"><i></i> Lista pendiente</span></div>
+        <div class="playlist-row">
+          <input id="playlist-url" type="url" value="https://iptv-org.github.io/iptv/index.m3u" spellcheck="false" aria-label="URL de lista M3U">
+          <button id="load-playlist" class="primary-button" type="button">↻ Reemplazar lista</button>
+          <button id="append-playlist" class="secondary-button" type="button">＋ Añadir canales</button>
+          <button id="open-admin-inline" class="secondary-button" type="button">☷ Mis listas</button>
+        </div>
+        <div class="playlist-foot"><p id="load-message" role="status">Pega una URL M3U o guarda varias desde “Mis listas”.</p><span id="last-updated">Sin actualizar</span></div>
+        <div id="quick-sources" class="quick-sources" aria-label="Fuentes guardadas"></div>
+      </div>
+
+      <div class="media-tabs" role="tablist" aria-label="Tipo de contenido">
+        <button class="media-tab active" type="button" data-media="live" role="tab" aria-selected="true">📡 TV en vivo</button>
+        <button class="media-tab" type="button" data-media="movie" role="tab" aria-selected="false">🎬 Películas</button>
+        <button class="media-tab" type="button" data-media="series" role="tab" aria-selected="false">📺 Series</button>
+        <button class="media-tab" type="button" data-media="all" role="tab" aria-selected="false">▦ Todo</button>
+      </div>
+
+      <div class="filters">
+        <label>País<select id="country-filter" disabled><option value="">Todos los países</option></select></label>
+        <label>Categoría<select id="category-filter" disabled><option value="">Todas las categorías</option></select></label>
+        <label>Orden<select id="sort-filter"><option value="name">Nombre A–Z</option><option value="country">País</option><option value="category">Categoría</option></select></label>
+        <button id="clear-filters" class="secondary-button" type="button">Limpiar filtros</button>
+      </div>
+
+      <div class="content-grid">
+        <section class="player-card" aria-label="Reproductor de vídeo">
+          <div class="video-container">
+            <video id="video" controls playsinline></video>
+            <div id="player-placeholder">
+              <div class="play-icon">▶</div>
+              <span class="placeholder-kicker">YOS PLAYER</span>
+              <h3>Tu próxima experiencia comienza aquí</h3>
+              <p>Selecciona un canal de la lista.</p>
+            </div>
+            <div class="player-top-badge"><span class="live-dot"></span> EN VIVO</div>
+          </div>
+          <div class="player-info">
+            <div class="channel-current-icon" id="current-icon">Y</div>
+            <div class="current-copy"><span class="eyebrow">REPRODUCIENDO AHORA</span><h3 id="channel-title">Ningún canal seleccionado</h3><p id="channel-description">Carga una lista y elige una transmisión.</p></div>
+            <button id="fullscreen-button" class="icon-button" type="button" aria-label="Pantalla completa" title="Pantalla completa">⛶</button>
+          </div>
+          <p id="player-message" class="player-message" role="status">Reproductor listo.</p>
+        </section>
+
+        <aside class="channel-panel">
+          <div class="channel-panel-header"><div><span class="eyebrow">TU SELECCIÓN</span><h3>Canales</h3></div><span id="channel-count" class="count-pill">0</span></div>
+          <div id="channel-list" class="channel-list"><p class="empty-message">Carga una lista M3U para ver los canales.</p></div>
+          <div class="list-footer" id="list-footer">Los canales dependen de la fuente seleccionada.</div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="favorites-section" id="favoritos">
+      <div class="section-heading compact-heading"><div><span class="eyebrow">ACCESO RÁPIDO</span><h2>Tus favoritos</h2><p>Canales guardados en este navegador.</p></div></div>
+      <div id="favorites-list" class="favorites-grid"><p class="empty-message">Todavía no tienes favoritos.</p></div>
+    </section>
+  </main>
+
+  <footer><a class="logo" href="#inicio">YOS<span>.</span></a><p>Tu espacio para explorar transmisiones.</p><small>Utiliza solo fuentes y contenidos que tengas autorización para reproducir o distribuir.</small></footer>
+
+  <dialog id="admin-dialog" class="admin-dialog">
+    <form method="dialog" class="dialog-top"><div><span class="eyebrow">CONFIGURACIÓN</span><h2>Gestionar fuentes</h2><p>Guarda direcciones M3U para cargarlas después en este navegador.</p></div><button class="icon-button" aria-label="Cerrar">✕</button></form>
+    <div class="admin-note">Este panel es local: no tiene usuarios, contraseña ni servidor. Las fuentes se guardan solo en este navegador.</div>
+    <label class="field-label" for="source-name">Nombre de la fuente</label><input id="source-name" type="text" placeholder="Ej. Mi lista autorizada">
+    <label class="field-label" for="source-url">Dirección M3U (URL)</label><input id="source-url" type="url" placeholder="https://ejemplo.com/lista.m3u">
+    <label class="field-label" for="source-type">Tipo de contenido</label>
+    <select id="source-type" class="source-type-select">
+      <option value="auto">Detectar automáticamente</option>
+      <option value="live">TV en vivo</option>
+      <option value="movie">Películas</option>
+      <option value="series">Series</option>
+    </select>
+    <div class="dialog-actions"><button id="save-source" class="primary-button" type="button">＋ Guardar fuente</button><button id="load-default" class="secondary-button" type="button">Restaurar lista inicial</button></div>
+    <h3 class="saved-heading">Fuentes guardadas</h3><div id="saved-sources" class="saved-sources"></div>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>

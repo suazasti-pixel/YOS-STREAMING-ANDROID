@@ -1,0 +1,27 @@
+{
+  "id": "./",
+  "name": "YOS STREAMING",
+  "short_name": "YOS",
+  "description": "Organiza y reproduce tus listas M3U autorizadas.",
+  "lang": "es",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#03070b",
+  "theme_color": "#05090d",
+  "icons": [
+    {
+      "src": "icons/app-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/app-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

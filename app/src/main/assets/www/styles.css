@@ -3,3 +3,87 @@
 @media(min-width:1100px){.source{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}.source-actions{justify-content:flex-end;margin:0}.source-info{max-width:100%}}
 @media(max-width:1000px){.topbar{gap:12px}.brand{padding-right:12px}.brand-mark{width:40px;height:40px}.topbar nav{gap:12px}.topbar nav a{font-size:9px}.showcase{grid-template-columns:1fr}.feature{min-height:230px}.watch{grid-template-columns:1fr 1fr}}
 @media(max-width:680px){.topbar{height:auto;min-height:68px;flex-wrap:wrap;padding:10px 12px;gap:10px}.brand{border:0;flex:1}.brand-mark{width:36px;height:36px}.topbar nav{order:3;width:100%;justify-content:space-around;border-top:1px solid var(--line)}.topbar nav a{padding:12px 0}.search{order:4;flex-basis:100%;max-width:none;margin:0;height:38px}.topbar>.button{padding:0 9px}main{padding:12px}.feature{min-height:235px;padding:24px 18px}.feature h1{font-size:31px}.watermark{font-size:90px;bottom:-5px}.manager{padding:14px}#source-form{grid-template-columns:1fr}#source-url,#source-type,.actions{grid-column:1}.watch{grid-template-columns:1fr}.section-head{align-items:start}.filters select{flex:1;max-width:none}.filters .button{flex:1}.source-actions .small{flex:1}footer{flex-direction:column}.channel-panel #channel-list{max-height:350px}}
+
+.settings-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.settings-actions .button{flex:1 1 180px}#backup-message{min-height:18px;margin:8px 0}
+
+#add-public-lists{width:100%;margin:0 0 10px}.channel-panel-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}.channel-panel-head h3{margin:2px 0 5px}.channel-panel-head p{font-size:10px;color:#8999a6;margin:0 0 4px}.channel-action{flex:0 0 28px;min-height:28px;padding:3px 6px;font-size:12px}.channel-item{gap:6px}.channel-item .star{padding:0 3px}.channel-panel-head .small{font-size:9px;min-height:32px}#channel-dialog{width:min(520px,calc(100% - 24px))}#channel-form{display:grid;gap:12px}#channel-form label{display:grid;gap:6px;color:#b7c3cc;font-size:11px;font-weight:700}#channel-form input,#channel-form select{height:40px;width:100%;border:1px solid #344450;border-radius:8px;background:#121e28;color:white;padding:0 11px;font:inherit}.channel-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}#channel-form .dialog-head{margin-bottom:4px}#channel-form .dialog-head h2{margin:0;font-size:17px}
+
+.downloads{margin-top:14px;padding-top:12px;border-top:1px solid #263541}.downloads h3{margin:0 0 9px;font-size:11px;letter-spacing:1px;color:#ff5275}.download-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.download-link{display:flex;align-items:center;justify-content:center;min-height:36px;padding:8px;border:1px solid #344653;border-radius:7px;background:#111c26;color:#f5f8fa;text-align:center;font-size:9px;font-weight:800}.download-link:hover{border-color:#ff1749;background:#27111a}.download-link.featured{grid-column:1/-1;background:linear-gradient(120deg,#ff1749,#d90036);border-color:transparent}
+.install-button{background:#17252e}.install-steps{margin-top:16px}.install-steps h3{margin:15px 0 4px;font-size:13px;color:#ff6682}.install-steps p{margin:4px 0 10px;color:#b1bec8;font-size:12px;line-height:1.55}
+
+/* YOS cinematic refresh */
+:root{--line:#26313a;--panel:#10151b;--red:#e50925;--radius:16px}
+body{background-color:#030609;background-image:linear-gradient(180deg,rgba(3,6,9,.80),rgba(3,6,9,.93) 62%,rgba(3,6,9,.97)),url("assets/yos-laptop.png");background-position:center,center 5vh;background-size:cover,cover;background-attachment:fixed,fixed}
+.topbar{height:68px;padding-inline:clamp(16px,3vw,48px);background:rgba(4,7,10,.84);border-color:#ffffff15}
+.brand{font-size:22px}.brand-mark{border-width:2px;width:40px;height:40px;font-size:24px}.topbar nav a{padding-block:25px}
+main{max-width:1600px;margin:auto;padding:18px clamp(16px,3vw,48px) 32px}
+.showcase{grid-template-columns:minmax(0,1.35fr) minmax(300px,.72fr);gap:14px}
+.feature{min-height:230px;padding:26px 4%;background:linear-gradient(90deg,rgba(4,8,12,.93) 0%,rgba(4,8,12,.78) 44%,rgba(4,8,12,.16) 100%),url("assets/yos-laptop.png") center 48%/cover;border-color:#ffffff24;box-shadow:0 16px 42px #0006}
+.feature:after{background:linear-gradient(130deg,transparent 38%,#e5092512 100%)}
+.feature h1{font-size:clamp(28px,3vw,42px);margin:12px 0 18px;letter-spacing:-1.2px}
+.feature em{color:#f05b70}.feature .button{margin-top:0}.watermark{display:none}
+.manager{min-height:230px;padding:18px;background:linear-gradient(145deg,rgba(17,24,31,.94),rgba(7,10,14,.96));border-color:#ffffff20;box-shadow:0 16px 42px #0005}
+.manager-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.manager h2{font-size:20px;letter-spacing:-.5px;margin:0 0 14px}
+.manager-primary{width:100%;min-height:46px;justify-content:center;font-size:11px}
+.manager-more{margin-top:13px;border-top:1px solid #ffffff16;padding-top:10px}
+.manager-more summary{cursor:pointer;list-style:none;color:#c0c8d0;font-size:11px;font-weight:800;letter-spacing:.3px}
+.manager-more summary::-webkit-details-marker{display:none}
+.manager-more summary:after{content:"＋";float:right;color:#f05b70}
+.manager-more[open] summary:after{content:"−"}
+.manager-tools{padding-top:12px}
+#add-public-lists{min-height:36px;margin-bottom:8px}
+.sources{max-height:180px}
+.downloads{margin-top:12px}
+.section{margin-top:22px}
+.section-head{margin-bottom:10px}.section-head h2,.section h2{font-size:20px;letter-spacing:-.4px}
+.filters{gap:6px;margin-bottom:9px}.filters select,.filters .button{height:35px;min-height:35px}
+.watch{grid-template-columns:minmax(0,1.32fr) minmax(300px,.78fr);gap:14px}
+.player,.channel-panel{background:rgba(9,13,17,.91);border-color:#ffffff1b;box-shadow:0 12px 36px #0005}
+.video-frame{min-height:0}.player-info{padding:10px 13px}
+.channel-panel{padding:12px}.channel-panel #channel-list{max-height:390px}
+.channel-item{padding:7px 8px}.channel-icon{width:34px;height:34px}
+.favorites{gap:6px}.favorite{padding:8px 10px}
+footer{max-width:1600px;margin:auto;padding:16px clamp(16px,3vw,48px);border-color:#ffffff15}
+@media(max-width:1000px){.showcase{grid-template-columns:minmax(0,1.1fr) minmax(280px,.9fr)}.watch{grid-template-columns:1fr}.channel-panel #channel-list{max-height:320px}}
+@media(max-width:680px){html{scroll-padding-top:155px}body{background-position:center,center top;background-size:auto,auto 100vh;background-attachment:scroll,scroll}.topbar{height:auto;min-height:60px;padding:8px 12px}.brand{font-size:19px}.topbar nav a{padding:10px 0}.topbar nav{border-color:#ffffff14}main{padding:10px 12px 24px}.showcase{grid-template-columns:1fr;gap:10px}.feature{min-height:174px;padding:20px 17px;background-image:linear-gradient(90deg,rgba(4,8,12,.97),rgba(4,8,12,.65)),url("assets/yos-laptop.png");background-position:center,left center;background-size:cover,auto 230%}.feature h1{font-size:29px;margin:9px 0 14px}.feature .tag{font-size:9px}.manager{min-height:0;padding:15px}.manager-head{margin-bottom:10px}.manager h2{font-size:17px;margin-bottom:10px}.manager-primary{min-height:42px}.section{margin-top:18px}.watch{grid-template-columns:1fr;gap:10px}.video-frame{min-height:0}.channel-panel #channel-list{max-height:300px}.filters{gap:5px}.filters select{flex:1 1 42%;max-width:none}.filters .button{flex:1 1 30%;padding-inline:8px;font-size:9px}.section-head h2,.section h2{font-size:18px}}
+
+/* Compact viewing layout while keeping every list action available. */
+main{max-width:1200px;padding-top:12px;padding-bottom:24px}
+.showcase{gap:10px}
+.feature,.manager{min-height:205px}
+.manager{padding:15px}
+.section{margin-top:14px}
+.section-head{margin-bottom:6px}
+.section-head h2,.section h2{margin-top:3px}
+.filters{gap:5px;margin-bottom:6px}
+.watch{gap:8px}
+.player,.channel-panel{border-radius:12px}
+.channel-panel{padding:9px}
+.channel-panel-head{margin-bottom:4px}
+.channel-panel-head h3{margin:1px 0 3px}
+.channel-item{gap:5px;padding:5px 6px}
+.channel-icon{width:30px;height:30px}
+.channel-info{gap:2px}
+.player-info{gap:9px;padding:8px 10px}
+.player-info>b{width:36px;height:36px}
+.player>.status{padding:0 10px 8px}
+.section:last-of-type{margin-top:14px}
+@media(min-width:681px) and (max-width:1000px){main{max-width:920px}.watch{grid-template-columns:minmax(0,1.2fr) minmax(270px,.8fr)}.channel-panel #channel-list{max-height:390px}}
+@media(max-width:680px){main{max-width:none;padding:9px 10px 20px}.feature,.manager{min-height:0}.feature{min-height:164px}.manager{padding:13px}.manager-head{margin-bottom:8px}.manager h2{margin-bottom:8px}.section{margin-top:12px}.watch{gap:8px}.channel-panel{padding:8px}.channel-item{padding:4px 5px}.channel-panel #channel-list{max-height:270px}.section-head{margin-bottom:5px}.section:last-of-type{margin-top:12px}}
+
+.services-promo{position:relative;overflow:hidden;display:grid;grid-template-columns:minmax(220px,.72fr) minmax(0,1.6fr);align-items:center;gap:18px;margin:12px 0;padding:14px 17px;border:1px solid #ffffff1c;border-radius:14px;background:linear-gradient(110deg,rgba(24,9,17,.96),rgba(9,14,19,.96) 50%,rgba(10,16,22,.94));box-shadow:0 10px 28px #0004}
+.services-promo:after{content:"";position:absolute;right:-70px;top:-90px;width:240px;height:240px;border-radius:50%;background:#e5092512;filter:blur(22px);pointer-events:none}
+.services-copy,.service-chips{position:relative;z-index:1}
+.services-copy .tag{font-size:9px}
+.services-copy h2{margin:5px 0 4px;font-size:16px;letter-spacing:.3px}
+.services-copy p{margin:0;color:#aeb9c2;font-size:10px;line-height:1.45}
+.services-copy p strong{color:#f5f7f9}
+.service-chips{display:flex;flex-wrap:wrap;gap:6px}
+.service-chips span{padding:6px 9px;border:1px solid #ffffff17;border-radius:999px;background:linear-gradient(135deg,#17212a,#0c1117);color:#e2e7eb;font-size:8px;font-weight:800;letter-spacing:.45px;white-space:nowrap}
+.service-chips .more{border-color:#e5092555;background:#e509251c;color:#ff8293}
+@media(max-width:760px){.services-promo{grid-template-columns:1fr;gap:10px;margin:10px 0;padding:12px}.services-copy h2{font-size:15px}.service-chips{gap:5px}.service-chips span{padding:5px 8px;font-size:8px}}
+
+/* Keep the brand banner compact when list management is expanded. */
+@media(min-width:681px){main{max-width:1100px}.showcase{grid-template-columns:minmax(0,1.18fr) minmax(320px,.82fr);align-items:start;gap:10px}.feature{min-height:260px}.manager{max-height:410px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#39434c transparent}#source-form{grid-template-columns:1fr}.source{display:block}.source-info small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal}.source-actions{justify-content:flex-start;gap:4px;margin-top:6px}.source-actions .small{min-height:27px;padding:5px 6px;font-size:8px}.sources{max-height:170px}}
+@media(max-width:680px){.manager{max-height:none;overflow:visible}.feature{min-height:164px}}

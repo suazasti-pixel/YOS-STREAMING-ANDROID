@@ -80,9 +80,9 @@ main{max-width:1200px;padding-top:12px;padding-bottom:24px}
 .services-copy p{margin:0;color:#aeb9c2;font-size:10px;line-height:1.45}
 .services-copy p strong{color:#f5f7f9}
 .service-chips{display:flex;flex-wrap:wrap;gap:6px}
-.service-chips span{padding:6px 9px;border:1px solid #ffffff17;border-radius:999px;background:linear-gradient(135deg,#17212a,#0c1117);color:#e2e7eb;font-size:8px;font-weight:800;letter-spacing:.45px;white-space:nowrap}
+.service-chips>.service-chip{padding:6px 9px;border:1px solid #ffffff17;border-radius:999px;background:linear-gradient(135deg,#17212a,#0c1117);color:#e2e7eb;font-size:8px;font-weight:800;letter-spacing:.45px;white-space:nowrap}
 .service-chips .more{border-color:#e5092555;background:#e509251c;color:#ff8293}
-@media(max-width:760px){.services-promo{grid-template-columns:1fr;gap:10px;margin:10px 0;padding:12px}.services-copy h2{font-size:15px}.service-chips{gap:5px}.service-chips span{padding:5px 8px;font-size:8px}}
+@media(max-width:760px){.services-promo{grid-template-columns:1fr;gap:10px;margin:10px 0;padding:12px}.services-copy h2{font-size:15px}.service-chips{gap:5px}.service-chips>.service-chip{padding:5px 8px;font-size:8px}}
 
 /* Keep the brand banner compact when list management is expanded. */
 @media(min-width:681px){main{max-width:1100px}.showcase{grid-template-columns:minmax(0,1.18fr) minmax(320px,.82fr);gap:10px}.feature{min-height:260px}.manager{max-height:410px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#39434c transparent}#source-form{grid-template-columns:1fr}.source{display:block}.source-info small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal}.source-actions{justify-content:flex-start;gap:4px;margin-top:6px}.source-actions .small{min-height:27px;padding:5px 6px;font-size:8px}.sources{max-height:170px}}
@@ -99,3 +99,12 @@ main{max-width:1200px;padding-top:12px;padding-bottom:24px}
 #iptv-source-form input,#iptv-source-form select{width:100%;min-width:0;height:38px;border:1px solid #344450;border-radius:8px;background:#121e28;color:white;padding:0 10px;font-size:11px}
 #iptv-source-form small{color:#9eacb7;font-size:9px;line-height:1.45}
 #iptv-source-form .actions{grid-column:1;display:flex;gap:7px}#iptv-source-form .actions .button{flex:1}
+
+.service-chip{display:inline-flex;align-items:center;gap:6px;min-height:28px}
+.service-chip img{width:13px;height:13px;object-fit:contain;flex:0 0 13px}
+.service-inline-icon{width:14px;height:14px;fill:none;stroke:#e2e7eb;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:0 0 14px}
+.service-chip.more span{color:#ff8293;font-size:12px;line-height:1}
+.services-contact{grid-column:1/-1;justify-self:end;display:inline-flex;align-items:center;gap:7px;position:relative;z-index:1;padding:7px 11px;border:1px solid #25d36655;border-radius:999px;background:#25d36612;color:#b9ffd1;font-size:9px;font-weight:900;letter-spacing:.35px;white-space:nowrap}
+.services-contact img{width:14px;height:14px}
+.services-contact:hover{border-color:#25d366;background:#25d36624}
+@media(max-width:760px){.services-contact{justify-self:start;font-size:8px;padding:7px 9px}}

@@ -103,6 +103,11 @@ public class MainActivity extends Activity {
 
     private final class NativeBridge {
         @JavascriptInterface
+        public boolean isTelevision() {
+            return getPackageManager().hasSystemFeature("android.software.leanback");
+        }
+
+        @JavascriptInterface
         public String downloadPlaylist(String rawUrl) {
             JSONObject result = new JSONObject();
             try {

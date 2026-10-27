@@ -76,3 +76,33 @@ main{max-width:1200px;padding-top:12px;padding-bottom:24px}
 /* Keep the brand banner compact when list management is expanded. */
 @media(min-width:681px){main{max-width:1100px}.showcase{grid-template-columns:minmax(0,1.18fr) minmax(320px,.82fr);align-items:start;gap:10px}.feature{min-height:260px}.manager{max-height:410px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#39434c transparent}#source-form{grid-template-columns:1fr}.source{display:block}.source-info small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal}.source-actions{justify-content:flex-start;gap:4px;margin-top:6px}.source-actions .small{min-height:27px;padding:5px 6px;font-size:8px}.sources{max-height:170px}}
 @media(max-width:680px){.manager{max-height:none;overflow:visible}.feature{min-height:164px}}
+
+/* Navegación por flechas y foco amplio para controles de TV Box. */
+body.tv-remote button,body.tv-remote a,body.tv-remote summary,body.tv-remote select{min-height:44px}
+body.tv-remote .channel-item{min-height:54px;padding:9px 10px}
+body.tv-remote :focus-visible,body.tv-remote .remote-focus{outline:4px solid #ff4169!important;outline-offset:3px!important;box-shadow:0 0 0 5px #ff416933,0 0 18px #ff174988!important;position:relative;z-index:3}
+body.tv-remote .channel-item:focus-visible{background:#35101d;border-color:#ff4169}
+
+/* Reduce altura y márgenes muertos sin comprimir el reproductor ni el foco del TV. */
+.topbar{height:60px;gap:16px}
+.topbar nav a{padding-block:20px}
+main{padding-top:8px;padding-bottom:16px}
+.showcase{gap:8px}
+.feature{min-height:190px;padding:20px 3.5%}
+.feature h1{margin:8px 0 12px;font-size:clamp(26px,2.8vw,36px)}
+.feature .button{min-height:38px}
+.manager{min-height:190px;padding:13px}
+.manager-head{margin-bottom:9px}
+.manager h2{margin-bottom:8px}
+.manager-primary{min-height:40px}
+.manager-more{margin-top:9px;padding-top:8px}
+.section{margin-top:10px}
+.section-head{margin-bottom:5px}
+.filters{margin-bottom:5px}
+.channel-panel #channel-list{max-height:340px}
+footer{padding-top:12px;padding-bottom:12px}
+@media(max-width:680px){.topbar{height:auto;min-height:56px;padding:6px 10px;gap:7px}.topbar nav a{padding:8px 0}.feature{min-height:150px;padding:16px}.feature h1{font-size:27px;margin:7px 0 10px}.manager{min-height:0;padding:11px}.section{margin-top:9px}.channel-panel #channel-list{max-height:250px}}
+@media(min-width:681px){main{padding-top:8px}.feature{min-height:190px}}
+body.tv-remote .feature .button{min-height:48px}
+.remote-hint{display:none}
+body.tv-remote .remote-hint{display:block;margin-top:3px;color:#ff9aaf;font-size:10px;line-height:1.4}

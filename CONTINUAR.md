@@ -4,7 +4,9 @@
 
 - GitHub: https://github.com/suazasti-pixel/YOS-STREAMING-ANDROID
 - Rama activa: main
-- Último cambio guardado: bce8c5d — eliminación de la franja promocional y mejora de importación IPTV.
+- Último cambio funcional: 7075498 — al agregar una lista M3U, el nombre es opcional y la carga inicia automáticamente.
+- APK #20 compilada correctamente: https://github.com/suazasti-pixel/YOS-STREAMING-ANDROID/actions/runs/40447664230#artifacts.
+- Historial reciente: eliminar la franja promocional, mejorar importación IPTV y guardar la PWA en web/.
 - La compilación Android se ejecuta automáticamente en GitHub Actions al subir cambios a main.
 
 ## Estructura

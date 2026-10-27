@@ -182,7 +182,7 @@ public class MainActivity extends Activity {
                 ((bytes[0] & 0xff) == 192 && (bytes[1] & 0xff) == 168) ||
                 ((bytes[0] & 0xff) == 172 && (bytes[1] & 0xff) >= 16 && (bytes[1] & 0xff) <= 31) ||
                 ((bytes[0] & 0xff) == 169 && (bytes[1] & 0xff) == 254) ||
-                ((bytes[0] & 0xff) == 100 && (bytes[1] & 0xc0) == 64);
+                ((bytes[0] & 0xff) == 100 && (bytes[1] & 0xc0) == 64));
             boolean privateIpv6 = bytes.length == 16 && ((bytes[0] & 0xfe) == 0xfc);
             if (address.isAnyLocalAddress() || address.isLoopbackAddress() || address.isLinkLocalAddress() ||
                 address.isSiteLocalAddress() || address.isMulticastAddress() || privateIpv4 || privateIpv6)

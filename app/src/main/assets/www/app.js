@@ -38,4 +38,35 @@ async function openFavorite(c){let channel=channels.find(x=>x.id===c.id||x.url==
 function renderFavs(){let ids=favs(),metadata=read("yos-favorite-channels-v1"),byId=new Map(metadata.filter(c=>c?.id).map(c=>[c.id,c]));channels.forEach(c=>{if(ids.includes(c.id))byId.set(c.id,channelSnapshot(c))});metadata=ids.map(id=>byId.get(id)).filter(Boolean);localStorage.setItem("yos-favorite-channels-v1",JSON.stringify(metadata));let arr=ids.map(id=>byId.get(id)).filter(Boolean);e.favorites.replaceChildren();if(!arr.length){e.favorites.innerHTML='<p class="empty">'+(ids.length?"Abre la lista de tus favoritos para cargarlos.":"Todavía no tienes favoritos. Marca la estrella de un canal.")+'</p>';return}arr.slice(0,40).forEach(c=>{let b=document.createElement("button");b.type="button";b.className="favorite";b.textContent="★ "+c.name;b.setAttribute("aria-label","Reproducir favorito "+c.name);b.onclick=()=>openFavorite(c);e.favorites.append(b)})}
 function play(c){rememberChannel(c);playBase(c)}
 document.querySelectorAll(".service-chip img,.services-contact img").forEach(icon=>icon.addEventListener("error",()=>icon.remove(),{once:true}));$("continue-watching").onclick=continueRecent;renderContinue();
+
+// Navegación espacial para mandos D-pad en Android TV / TV Box.
+if(/Android/i.test(navigator.userAgent)){
+  const focusSelector='a[href],button:not(:disabled),input:not(:disabled):not([type="hidden"]),select:not(:disabled),summary,[tabindex="0"]';
+  const getFocusable=()=>[...new Set(document.querySelectorAll(focusSelector))].filter(el=>{
+    const style=getComputedStyle(el),rect=el.getBoundingClientRect();
+    return style.display!=="none"&&style.visibility!=="hidden"&&rect.width>0&&rect.height>0&&el.getAttribute("aria-hidden")!=="true";
+  });
+  const markFocus=el=>{document.querySelectorAll(".remote-focus").forEach(item=>item.classList.remove("remote-focus"));el.classList.add("remote-focus")};
+  document.addEventListener("focusin",event=>{if(event.target.matches(focusSelector))markFocus(event.target)});
+  document.addEventListener("keydown",event=>{
+    const direction={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]}[event.key];
+    if(!direction)return;
+    const active=document.activeElement;
+    if(active instanceof HTMLSelectElement)return;
+    if(active instanceof HTMLVideoElement)return;
+    if(active instanceof HTMLInputElement&&["ArrowLeft","ArrowRight"].includes(event.key))return;
+    const items=getFocusable(),current=items.includes(active)?active:null;
+    if(!current){if(items[0]){event.preventDefault();items[0].focus();items[0].scrollIntoView({block:"nearest",inline:"nearest"})}return}
+    const from=current.getBoundingClientRect(),cx=from.left+from.width/2,cy=from.top+from.height/2,dx=direction[0],dy=direction[1];
+    let best=null,bestScore=Infinity;
+    for(const item of items){
+      if(item===current)continue;
+      const rect=item.getBoundingClientRect(),x=rect.left+rect.width/2-cx,y=rect.top+rect.height/2-cy,primary=x*dx+y*dy;
+      if(primary<=4)continue;
+      const cross=Math.abs(x*dy-y*dx),score=primary+cross*2.2;
+      if(score<bestScore){best=item;bestScore=score}
+    }
+    if(best){event.preventDefault();best.focus({preventScroll:true});best.scrollIntoView({block:"nearest",inline:"nearest"})}
+  });
+}
 })();

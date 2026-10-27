@@ -108,3 +108,8 @@ main{max-width:1200px;padding-top:12px;padding-bottom:24px}
 .services-contact img{width:14px;height:14px}
 .services-contact:hover{border-color:#25d366;background:#25d36624}
 @media(max-width:760px){.services-contact{justify-self:start;font-size:8px;padding:7px 9px}}
+
+/* Foco grande y visible al navegar con el control remoto del TV Box. */
+.remote-focus{outline:4px solid #ff4169!important;outline-offset:3px!important;box-shadow:0 0 0 5px #ff416933,0 0 18px #ff174988!important;position:relative;z-index:2;scroll-margin:24px}
+.channel-item.remote-focus,.small.remote-focus,.favorite.remote-focus{background:#35101d!important;border-color:#ff4169!important}
+.topbar nav a.remote-focus,.button.remote-focus,.round.remote-focus{transform:scale(1.04)}

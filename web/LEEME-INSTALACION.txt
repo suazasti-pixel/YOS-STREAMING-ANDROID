@@ -1,0 +1,15 @@
+YOS STREAMING — versión instalable para celular
+
+Este paquete es una aplicación web instalable (PWA), no un APK.
+Para que el botón de instalación funcione, publica el contenido de esta carpeta en un alojamiento web HTTPS.
+
+Android:
+1. Abre la dirección HTTPS de la app en Chrome.
+2. Toca el menú ⋮ y elige “Instalar aplicación” o “Añadir a pantalla principal”.
+
+iPhone:
+1. Abre la dirección HTTPS en Safari.
+2. Toca Compartir y elige “Añadir a pantalla de inicio”.
+
+La configuración y listas que guardes se almacenan en cada dispositivo. Usa “ABRIR LISTA · 100” para cargar la lista ligera incluida.
+Los canales necesitan conexión a Internet.

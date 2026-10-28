@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE = "yos-streaming-shell-v30";
+const CACHE = "yos-streaming-shell-v31";
 const SHELL = [
   "./",
   "./index.html",
@@ -14,6 +14,7 @@ const SHELL = [
   "./listas_m3u/YOS_100_Canales.m3u",
   "./listas_m3u/YOS_Premium_Latino.m3u",
   "./listas_m3u/YOS_Premium_Deportes_Cine.m3u",
+  "./listas_m3u/YOS_Premium_Verificada.m3u",
   "./assets/yos-laptop.png",
   "./assets/yos-logo-header.png"
 ];

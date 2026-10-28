@@ -49,3 +49,10 @@ No guardar usuarios, contraseñas ni enlaces privados en el código, en commits,
 - Son fuentes públicas/gratuitas. Geobloqueos, cambios de URLs y rendimiento dependen del emisor y región; no se certifica disponibilidad continua.
 
 
+
+
+## Verificación de listas públicas (2026-10-28)
+
+- Se sondearon 81 entradas de las dos listas Premium previas. 79 manifiestos respondieron como M3U accesible; 2 fallaron por corresponder a Teledeporte (un mismo enlace duplicado).
+- Se generó `web/listas_m3u/YOS_Premium_Verificada.m3u` con 53 URLs únicas accesibles; el catálogo depura repeticiones y excluye Teledeporte, que no respondió durante la prueba.
+- La lista está disponible en **Listas recomendadas** y se incluye también en los assets Android y el precache PWA. El sondeo confirma solamente que el manifiesto respondió; no garantiza reproducción continua, geodisponibilidad ni rapidez.

@@ -2,6 +2,7 @@ package com.yos.streaming;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.View;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
@@ -99,6 +100,21 @@ public class MainActivity extends Activity {
         } else {
             webView.loadUrl("https://appassets.androidplatform.net/assets/www/index.html");
         }
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event.getAction() == KeyEvent.ACTION_DOWN && webView != null) {
+            String remoteKey = null;
+            if (event.getKeyCode() == KeyEvent.KEYCODE_CHANNEL_UP) remoteKey = "ChannelUp";
+            else if (event.getKeyCode() == KeyEvent.KEYCODE_CHANNEL_DOWN) remoteKey = "ChannelDown";
+            if (remoteKey != null) {
+                String script = "document.dispatchEvent(new KeyboardEvent('keydown',{key:'" + remoteKey + "',bubbles:true,cancelable:true}))";
+                webView.evaluateJavascript(script, null);
+                return true;
+            }
+        }
+        return super.dispatchKeyEvent(event);
     }
 
     private final class NativeBridge {

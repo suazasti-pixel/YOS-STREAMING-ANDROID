@@ -98,6 +98,10 @@ body.tv-remote button,body.tv-remote a,body.tv-remote summary,body.tv-remote sel
 body.tv-remote .channel-item{min-height:54px;padding:9px 10px}
 body.tv-remote :focus-visible,body.tv-remote .remote-focus{outline:4px solid #ff4169!important;outline-offset:3px!important;box-shadow:0 0 0 5px #ff416933,0 0 18px #ff174988!important;position:relative;z-index:3}
 body.tv-remote .channel-item:focus-visible{background:#35101d;border-color:#ff4169}
+/* Cada fila es un solo paso del control remoto; edición y favoritos quedan fuera del recorrido. */
+body.tv-remote .channel-item .channel-action,body.tv-remote .channel-item .star{display:none!important}
+body.tv-remote .remote-action{min-width:44px;min-height:44px;flex:0 0 44px}
+body.tv-remote .remote-action:disabled{opacity:.38}
 /* Reduce altura y márgenes muertos sin comprimir el reproductor ni el foco del TV. */
 .topbar{height:60px;gap:16px}
 .topbar nav a{padding-block:20px}

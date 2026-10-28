@@ -121,7 +121,7 @@ public final class PlayerActivity extends Activity {
 
             @Override public void onPlayerError(PlaybackException error) {
                 errorPanel.setVisibility(View.VISIBLE);
-                errorText.setText("No se pudo reproducir este canal (" + error.errorCodeName + ").");
+                errorText.setText("No se pudo reproducir este canal. Revisa el enlace o vuelve a intentarlo.");
                 retryButton.requestFocus();
             }
         });

@@ -20,6 +20,7 @@ import androidx.media3.common.MediaMetadata;
 import androidx.media3.common.MimeTypes;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
+import androidx.media3.exoplayer.DefaultLoadControl;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.ui.PlayerView;
 
@@ -105,7 +106,12 @@ public final class PlayerActivity extends Activity {
         startIndex = getIntent().getIntExtra(EXTRA_INDEX, 0);
         selectedUrl = getIntent().getStringExtra(EXTRA_URL);
         selectedTitle = getIntent().getStringExtra(EXTRA_TITLE);
-        player = new ExoPlayer.Builder(this).build();
+        DefaultLoadControl loadControl = new DefaultLoadControl.Builder()
+            // Start sooner on live channels, while keeping a useful buffer after playback begins.
+            .setBufferDurationsMs(15000, 50000, 500, 1200)
+            .setPrioritizeTimeOverSizeThresholds(true)
+            .build();
+        player = new ExoPlayer.Builder(this).setLoadControl(loadControl).build();
         playerView.setPlayer(player);
         player.addListener(new Player.Listener() {
             @Override public void onPlaybackStateChanged(int playbackState) {

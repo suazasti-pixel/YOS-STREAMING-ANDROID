@@ -40,3 +40,12 @@ La carpeta web/ conserva la versión PWA separada y la carpeta app/ conserva la 
 ## Datos IPTV y privacidad
 
 No guardar usuarios, contraseñas ni enlaces privados en el código, en commits, en respaldos públicos ni en capturas. Las cuentas IPTV se agregan desde la interfaz y quedan guardadas localmente en el dispositivo del usuario. Para probarlas se necesita una lista o enlace oficial autorizado del proveedor.
+
+## Listas compactas públicas
+
+- `web/listas_m3u/YOS_Premium_Latino.m3u`: 42 señales combinadas de cine, series, deportes y canales abiertos latinoamericanos.
+- `web/listas_m3u/YOS_Premium_Deportes_Cine.m3u`: 39 señales de deportes internacionales, cine y series en español.
+- Ambas se pueden agregar desde **Listas recomendadas**; están duplicadas en `app/src/main/assets/www/listas_m3u/` y precargadas por el service worker.
+- Son fuentes públicas/gratuitas. Geobloqueos, cambios de URLs y rendimiento dependen del emisor y región; no se certifica disponibilidad continua.
+
+

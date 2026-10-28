@@ -56,3 +56,10 @@ No guardar usuarios, contraseñas ni enlaces privados en el código, en commits,
 - Se sondearon 81 entradas de las dos listas Premium previas. 79 manifiestos respondieron como M3U accesible; 2 fallaron por corresponder a Teledeporte (un mismo enlace duplicado).
 - Se generó `web/listas_m3u/YOS_Premium_Verificada.m3u` con 53 URLs únicas accesibles; el catálogo depura repeticiones y excluye Teledeporte, que no respondió durante la prueba.
 - La lista está disponible en **Listas recomendadas** y se incluye también en los assets Android y el precache PWA. El sondeo confirma solamente que el manifiesto respondió; no garantiza reproducción continua, geodisponibilidad ni rapidez.
+
+
+## Lista Colombia y Latinoamérica (2026-10-28)
+
+- Se creó `YOS_Colombia_Latino_Deportes.m3u` con 200 URLs únicas: 60 señales de Colombia, 50 de deportes internacionales, 35 de películas, 30 de series y 25 de animación.
+- La selección se basa en catálogos públicos de iptv-org; se excluyeron entradas marcadas como geobloqueadas o no 24/7.
+- Está en **Listas recomendadas**, sincronizada entre `web/` y Android, y añadida al precache de ambos service workers. El filtrado no prueba la reproducción individual ni asegura disponibilidad futura.

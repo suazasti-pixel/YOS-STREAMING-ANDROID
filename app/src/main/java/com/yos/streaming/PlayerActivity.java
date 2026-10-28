@@ -111,7 +111,7 @@ public final class PlayerActivity extends Activity {
         selectedTitle = getIntent().getStringExtra(EXTRA_TITLE);
         DefaultLoadControl loadControl = new DefaultLoadControl.Builder()
             // Start sooner on live channels, while keeping a useful buffer after playback begins.
-            .setBufferDurationsMs(15000, 50000, 500, 1200)
+            .setBufferDurationsMs(20000, 60000, 1000, 3000)
             .setPrioritizeTimeOverSizeThresholds(true)
             .build();
         player = new ExoPlayer.Builder(this).setLoadControl(loadControl).build();

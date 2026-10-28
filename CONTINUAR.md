@@ -8,7 +8,7 @@
 - APK #20 compilada correctamente: https://github.com/suazasti-pixel/YOS-STREAMING-ANDROID/actions/runs/40447664230#artifacts.
 - Historial reciente: eliminar la franja promocional, mejorar importación IPTV y guardar la PWA en web/.
 - La compilación Android se ejecuta automáticamente en GitHub Actions al subir cambios a main.
-- Versión de trabajo actual: 1.6. Marca horizontal con WhatsApp en el encabezado y reproductor Android nativo Media3 con inicio de reproducción más rápido, guía XMLTV opcional y carga progresiva de canales.
+- Versión de trabajo actual: 1.7. Marca horizontal con WhatsApp en el encabezado y reproductor Android nativo Media3 con inicio rápido con búfer de reproducción más estable, recuperación automática de errores HLS, guía XMLTV opcional y carga progresiva de canales.
 - Para activar la guía, el usuario debe ingresar en Configuración una URL XMLTV proporcionada por su proveedor. La guía se asocia mediante `tvg-id`, `tvg-name` o nombre del canal.
 - En Android, los canales se abren en PlayerActivity con botones de reproducción del sistema, cambio CH+/CH- y hasta 21 canales cercanos de la lista actual. En navegador/PWA se conserva el reproductor web.
 - La pantalla de inicio prioriza TV en vivo y el reproductor; el banner se quitó, favoritos quedaron plegados y la administración de listas está en el botón LISTAS. La app restaura la última lista abierta, carga automáticamente la lista ligera local en una instalación nueva y ofrece continuar con el último canal.

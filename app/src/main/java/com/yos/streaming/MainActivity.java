@@ -13,6 +13,7 @@ import android.webkit.WebResourceResponse;
 import android.webkit.JavascriptInterface;
 import android.widget.FrameLayout;
 import android.content.pm.ActivityInfo;
+import android.content.Intent;
 import androidx.webkit.WebViewAssetLoader;
 import org.json.JSONObject;
 import java.io.ByteArrayOutputStream;
@@ -27,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
 public class MainActivity extends Activity {
+    private static final int PLAYER_REQUEST = 41;
     private WebView webView;
     private View customView;
     private WebChromeClient.CustomViewCallback customViewCallback;
@@ -124,6 +126,19 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
+        public void playNative(String streamUrl, String title, String queueJson, int startIndex) {
+            if (streamUrl == null || !(streamUrl.startsWith("http://") || streamUrl.startsWith("https://"))) return;
+            runOnUiThread(() -> {
+                Intent intent = new Intent(MainActivity.this, PlayerActivity.class);
+                intent.putExtra(PlayerActivity.EXTRA_URL, streamUrl);
+                intent.putExtra(PlayerActivity.EXTRA_TITLE, title == null ? "YOS STREAMING" : title);
+                intent.putExtra(PlayerActivity.EXTRA_QUEUE, queueJson);
+                intent.putExtra(PlayerActivity.EXTRA_INDEX, startIndex);
+                startActivityForResult(intent, PLAYER_REQUEST);
+            });
+        }
+
+        @JavascriptInterface
         public String downloadPlaylist(String rawUrl) {
             JSONObject result = new JSONObject();
             try {
@@ -140,6 +155,17 @@ public class MainActivity extends Activity {
             }
             return result.toString();
         }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode != PLAYER_REQUEST || data == null || webView == null) return;
+        String url = data.getStringExtra(PlayerActivity.RESULT_URL);
+        String title = data.getStringExtra(PlayerActivity.RESULT_TITLE);
+        if (url == null) return;
+        webView.evaluateJavascript("window.YOSNativePlaybackClosed&&window.YOSNativePlaybackClosed(" +
+            JSONObject.quote(url) + "," + JSONObject.quote(title == null ? "YOS STREAMING" : title) + ")", null);
     }
 
     private String downloadPlaylistText(String rawUrl) throws Exception {

@@ -125,3 +125,5 @@ footer{padding-top:12px;padding-bottom:12px}
 body.tv-remote .feature .button{min-height:48px}
 .remote-hint{display:none}
 body.tv-remote .remote-hint{display:block;margin-top:3px;color:#ff9aaf;font-size:10px;line-height:1.4}
+
+.epg-settings{display:grid;gap:8px;margin:16px 0;padding:14px;border:1px solid var(--line);border-radius:10px;background:#0c151d}.epg-settings h3{margin:0;color:#ff5275;font-size:12px;letter-spacing:1px}.epg-settings label{color:#b7c3cc;font-size:11px}.epg-settings input{height:42px;width:100%;border:1px solid #344450;border-radius:8px;background:#121e28;color:white;padding:0 11px}.channel-program{color:#8fe0ba!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.channel-more{padding:12px;text-align:center;background:#111c26;border-radius:8px}

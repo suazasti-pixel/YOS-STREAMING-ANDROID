@@ -8,6 +8,10 @@
 - APK #20 compilada correctamente: https://github.com/suazasti-pixel/YOS-STREAMING-ANDROID/actions/runs/40447664230#artifacts.
 - Historial reciente: eliminar la franja promocional, mejorar importación IPTV y guardar la PWA en web/.
 - La compilación Android se ejecuta automáticamente en GitHub Actions al subir cambios a main.
+- Versión de trabajo actual: 1.1. Reproductor Android nativo Media3, guía XMLTV opcional y carga progresiva de canales en la app Android.
+- Para activar la guía, el usuario debe ingresar en Configuración una URL XMLTV proporcionada por su proveedor. La guía se asocia mediante `tvg-id`, `tvg-name` o nombre del canal.
+- En Android, los canales se abren en PlayerActivity con botones de reproducción del sistema, cambio CH+/CH- y hasta 101 canales cercanos de la lista actual. En navegador/PWA se conserva el reproductor web.
+- El build local no está instalado en todos los entornos; revisar la última ejecución de GitHub Actions antes de entregar un APK.
 
 ## Estructura
 

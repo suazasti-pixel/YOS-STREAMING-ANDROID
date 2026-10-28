@@ -4,11 +4,11 @@
 
 - GitHub: https://github.com/suazasti-pixel/YOS-STREAMING-ANDROID
 - Rama activa: main
-- Último cambio funcional: 7075498 — al agregar una lista M3U, el nombre es opcional y la carga inicia automáticamente.
-- APK #20 compilada correctamente: https://github.com/suazasti-pixel/YOS-STREAMING-ANDROID/actions/runs/40447664230#artifacts.
+- Último cambio funcional: 142c07c — búfer HLS más estable y recuperación automática limitada de errores temporales; builds en web/PWA y Android.
+- APK versión 1.7 (versionCode 8) compilada correctamente: https://github.com/suazasti-pixel/YOS-STREAMING-ANDROID/actions/runs/40705240200#artifacts.
 - Historial reciente: eliminar la franja promocional, mejorar importación IPTV y guardar la PWA en web/.
 - La compilación Android se ejecuta automáticamente en GitHub Actions al subir cambios a main.
-- Versión de trabajo actual: 1.7. Marca horizontal con WhatsApp en el encabezado y reproductor Android nativo Media3 con inicio rápido con búfer de reproducción más estable, recuperación automática de errores HLS, guía XMLTV opcional y carga progresiva de canales.
+- Versión de trabajo actual: 1.7. Logo YOS de alta resolución y WhatsApp en el encabezado. Reproductor Android Media3 con cola de 21 canales cercanos, búfer de 20–60 segundos y reproducción tras rebuffer a 3 segundos. Web/PWA usa hls.js con low-latency desactivado, hasta 30 segundos de búfer y hasta 3 intentos de recuperación de red / 2 de medios. Caracol en la lista abre la señal oficial web y no usa el búfer interno. Los enlaces de streaming externos dependen de su proveedor y de la conexión; no se ha certificado la reproducción continua de los 100 canales.
 - Para activar la guía, el usuario debe ingresar en Configuración una URL XMLTV proporcionada por su proveedor. La guía se asocia mediante `tvg-id`, `tvg-name` o nombre del canal.
 - En Android, los canales se abren en PlayerActivity con botones de reproducción del sistema, cambio CH+/CH- y hasta 21 canales cercanos de la lista actual. En navegador/PWA se conserva el reproductor web.
 - La pantalla de inicio prioriza TV en vivo y el reproductor; el banner se quitó, favoritos quedaron plegados y la administración de listas está en el botón LISTAS. La app restaura la última lista abierta, carga automáticamente la lista ligera local en una instalación nueva y ofrece continuar con el último canal.

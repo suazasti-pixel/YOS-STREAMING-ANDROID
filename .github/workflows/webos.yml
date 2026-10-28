@@ -1,0 +1,40 @@
+name: Crear app YOS para LG webOS
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "web/**"
+      - "webos/**"
+      - "scripts/build-webos.sh"
+      - ".github/workflows/webos.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  package-webos:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar proyecto
+        uses: actions/checkout@v4
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Instalar herramientas oficiales webOS
+        run: npm install --global @webos-tools/cli@3.2.6 esbuild@0.25.5
+
+      - name: Crear paquete IPK
+        run: bash scripts/build-webos.sh
+
+      - name: Guardar instalador para TV LG
+        uses: actions/upload-artifact@v4
+        with:
+          name: YOS-STREAMING-LG-webOS-IPK
+          path: build/webos-package/*.ipk
+          if-no-files-found: error
+          retention-days: 30

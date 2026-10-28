@@ -1,0 +1,12 @@
+{
+  "id": "com.yos.streaming.tv",
+  "version": "1.0.0",
+  "vendor": "YOS STREAMING",
+  "type": "web",
+  "main": "index.html",
+  "title": "YOS STREAMING",
+  "icon": "icon.png",
+  "largeIcon": "largeIcon.png",
+  "iconColor": "#03070b",
+  "appDescription": "Reproductor de listas M3U para YOS STREAMING"
+}

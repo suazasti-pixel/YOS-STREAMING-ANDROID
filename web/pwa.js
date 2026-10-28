@@ -3,7 +3,10 @@
 (() => {
   const dialog = document.getElementById("install-dialog");
   const installButton = document.getElementById("install-app");
+  const webOSTV = /web0s|webos/i.test(navigator.userAgent);
   let installPrompt = null;
+
+  if (webOSTV) document.getElementById("open-install").classList.add("hidden");
 
   document.getElementById("open-install").addEventListener("click", () => dialog.showModal());
 

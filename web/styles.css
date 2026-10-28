@@ -191,3 +191,11 @@ main{padding-top:6px;padding-bottom:8px;gap:0}
 .whatsapp-label b{font-size:10px;letter-spacing:.1px}
 @media(max-width:1000px){.topbar{gap:8px;padding-inline:12px}.brand{gap:8px;padding-right:10px}.brand-logo-window{flex-basis:52px;width:52px;height:50px}.brand-wordmark{font-size:22px}.whatsapp-contact{padding-inline:8px}.whatsapp-label b{font-size:9px}}
 @media(max-width:680px){.topbar{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:7px;padding:8px 10px}.brand{grid-column:1;grid-row:1;padding:0;border:0;font-size:22px}.brand-logo-window{width:50px;height:48px;flex-basis:50px}.brand-wordmark{font-size:21px}.topbar #open-settings{grid-column:3;grid-row:1}.whatsapp-contact{grid-column:1/-1;grid-row:2;justify-self:stretch;min-height:38px}.whatsapp-label{display:flex;align-items:center;gap:8px}.whatsapp-label small{font-size:9px}.whatsapp-label b{font-size:11px}.topbar .search{grid-column:1/-1;grid-row:3;width:100%;max-width:none;min-width:0;height:36px;margin:0}.topbar .install-button{grid-column:1;grid-row:4;justify-self:stretch}.topbar #open-admin{grid-column:2/-1;grid-row:4;justify-self:stretch}.topbar nav{display:none}}
+
+
+/* Reproduce el logotipo original sin aplastarlo y déjalo visible como marca de fondo. */
+body{background-image:linear-gradient(180deg,rgba(3,6,9,.70),rgba(3,6,9,.86) 62%,rgba(3,6,9,.92)),url("assets/yos-laptop.png");background-position:center,center 4vh;background-size:cover,cover;background-attachment:fixed,fixed}
+.brand{gap:0;padding-right:16px}
+.brand-lockup{display:block;flex:0 0 auto;width:232px;height:60px;object-fit:contain;filter:drop-shadow(0 2px 12px #ffffff26)}
+@media(max-width:1000px){.brand-lockup{width:206px;height:54px}}
+@media(max-width:680px){.brand{padding:0}.brand-lockup{width:188px;height:50px}.topbar{background:rgba(4,7,10,.94)}}

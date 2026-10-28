@@ -27,6 +27,9 @@ import androidx.media3.ui.PlayerView;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public final class PlayerActivity extends Activity {
     public static final String EXTRA_URL = "stream_url";
     public static final String EXTRA_TITLE = "stream_title";
@@ -146,6 +149,7 @@ public final class PlayerActivity extends Activity {
             catch (Exception ignored) { }
             startIndex = 0;
         }
+        List<MediaItem> mediaItems = new ArrayList<>(queue.length());
         for (int i = 0; i < queue.length(); i++) {
             JSONObject item = queue.optJSONObject(i);
             if (item == null) continue;
@@ -158,13 +162,14 @@ public final class PlayerActivity extends Activity {
             String lower = url.toLowerCase();
             if (lower.contains("output=m3u8") || lower.matches(".*\\.m3u8([?#].*)?$")) media.setMimeType(MimeTypes.APPLICATION_M3U8);
             else if (lower.matches(".*\\.mpd([?#].*)?$")) media.setMimeType(MimeTypes.APPLICATION_MPD);
-            player.addMediaItem(media.build());
+            mediaItems.add(media.build());
         }
-        if (player.getMediaItemCount() == 0) {
+        if (mediaItems.isEmpty()) {
             errorPanelFallback("El enlace del canal no es válido.");
             return;
         }
-        player.seekTo(Math.max(0, Math.min(startIndex, player.getMediaItemCount() - 1)), 0);
+        int safeStartIndex = Math.max(0, Math.min(startIndex, mediaItems.size() - 1));
+        player.setMediaItems(mediaItems, safeStartIndex, 0L);
         player.prepare();
         player.play();
     }

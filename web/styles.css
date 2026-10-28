@@ -173,3 +173,21 @@ main{padding-top:6px;padding-bottom:8px;gap:0}
 @media(max-width:1000px){.watch{grid-template-columns:minmax(0,1fr) minmax(300px,.86fr)}.video-frame{max-height:calc(100vh - 190px)}.channel-panel #channel-list{max-height:calc(100vh - 220px)}}
 @media(max-width:680px){main{padding:5px 8px 8px}.watch{grid-template-columns:1fr;gap:7px}.video-frame{max-height:42vh;aspect-ratio:16/9}.channel-panel #channel-list{max-height:34vh}.section-head{align-items:center}.section-head h2{font-size:18px}.filters{gap:4px}.filters select,.filters .button{height:32px;min-height:32px}.favorites-details>summary{min-height:42px}.source-actions .small{min-height:36px}}
 @media(min-width:681px) and (max-height:700px){.topbar{height:52px}.topbar nav{display:none}main{padding-top:4px}.watch{grid-template-columns:minmax(0,1.02fr) minmax(360px,.98fr)}.video-frame{max-height:calc(100vh - 160px)}.channel-panel #channel-list{max-height:calc(100vh - 195px)}.player-info{padding:5px 8px}.section-head{margin-bottom:3px}.filters{margin-bottom:4px}.favorites-details{margin-top:4px}}
+
+
+/* Marca horizontal YOS con contacto directo accesible desde celular y TV Box. */
+.topbar{height:68px;padding-inline:clamp(12px,2.8vw,42px);gap:clamp(8px,1.1vw,16px)}
+.brand{flex:0 0 auto;gap:11px;padding-right:18px;border-right:1px solid #ffffff24;font-size:26px;line-height:.9}
+.brand-logo-window{display:grid;place-items:center;flex:0 0 60px;width:60px;height:58px;overflow:hidden;border:1px solid #ffffff70;border-radius:13px;background:#020407;box-shadow:0 0 18px #ffffff26}
+.brand-mark{display:block;width:100%;height:100%;object-fit:cover;object-position:center 50%;transform:scale(1.55);border:0;border-radius:0;background:#020407;filter:contrast(1.15)}
+.brand-wordmark{font-size:26px;letter-spacing:.2px;color:#fff;text-shadow:0 2px 12px #ffffff24}
+.brand-wordmark small{font-size:9px;letter-spacing:3.4px;margin-top:6px;color:#dce4eb}
+.search{max-width:290px;min-width:120px}
+.whatsapp-contact{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;padding:0 11px;border-color:#137b4e;background:linear-gradient(120deg,#0b241b,#10251e);color:#a8f2c7;box-shadow:0 0 14px #22c87514}
+.whatsapp-contact:hover,.whatsapp-contact:focus-visible{border-color:#36dc89;background:#123526;color:#dcffeb}
+.whatsapp-symbol{display:grid;place-items:center;width:19px;height:19px;border:1px solid #35dc89;border-radius:50%;font-size:12px;line-height:1;color:#35dc89}
+.whatsapp-label{display:grid;gap:2px;text-align:left;white-space:nowrap}
+.whatsapp-label small{font-size:8px;letter-spacing:1.1px;color:#65d99c}
+.whatsapp-label b{font-size:10px;letter-spacing:.1px}
+@media(max-width:1000px){.topbar{gap:8px;padding-inline:12px}.brand{gap:8px;padding-right:10px}.brand-logo-window{flex-basis:52px;width:52px;height:50px}.brand-wordmark{font-size:22px}.whatsapp-contact{padding-inline:8px}.whatsapp-label b{font-size:9px}}
+@media(max-width:680px){.topbar{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:7px;padding:8px 10px}.brand{grid-column:1;grid-row:1;padding:0;border:0;font-size:22px}.brand-logo-window{width:50px;height:48px;flex-basis:50px}.brand-wordmark{font-size:21px}.topbar #open-settings{grid-column:3;grid-row:1}.whatsapp-contact{grid-column:1/-1;grid-row:2;justify-self:stretch;min-height:38px}.whatsapp-label{display:flex;align-items:center;gap:8px}.whatsapp-label small{font-size:9px}.whatsapp-label b{font-size:11px}.topbar .search{grid-column:1/-1;grid-row:3;width:100%;max-width:none;min-width:0;height:36px;margin:0}.topbar .install-button{grid-column:1;grid-row:4;justify-self:stretch}.topbar #open-admin{grid-column:2/-1;grid-row:4;justify-self:stretch}.topbar nav{display:none}}

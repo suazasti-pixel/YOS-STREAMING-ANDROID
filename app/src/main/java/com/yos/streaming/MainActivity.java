@@ -14,6 +14,7 @@ import android.webkit.JavascriptInterface;
 import android.widget.FrameLayout;
 import android.content.pm.ActivityInfo;
 import android.content.Intent;
+import android.net.Uri;
 import androidx.webkit.WebViewAssetLoader;
 import org.json.JSONObject;
 import java.io.ByteArrayOutputStream;
@@ -120,6 +121,15 @@ public class MainActivity extends Activity {
     }
 
     private final class NativeBridge {
+        @JavascriptInterface
+        public void openWhatsApp() {
+            runOnUiThread(() -> {
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/573124610877"));
+                try { startActivity(intent); }
+                catch (Exception ignored) { }
+            });
+        }
+
         @JavascriptInterface
         public boolean isTelevision() {
             return getPackageManager().hasSystemFeature("android.software.leanback");

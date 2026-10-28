@@ -106,3 +106,32 @@ footer{padding-top:12px;padding-bottom:12px}
 body.tv-remote .feature .button{min-height:48px}
 .remote-hint{display:none}
 body.tv-remote .remote-hint{display:block;margin-top:3px;color:#ff9aaf;font-size:10px;line-height:1.4}
+
+
+/* Pantalla principal de reproducción, navegación directa a contenido y banner de marca compacto. */
+main{display:flex;flex-direction:column;gap:0;max-width:1440px;padding-top:8px}
+.showcase{display:contents}
+#television{order:0;scroll-margin-top:72px}
+.feature{order:1;min-height:112px;margin-top:18px;padding:13px clamp(16px,3vw,34px);border-color:#ffffff18;background:linear-gradient(105deg,#120910,#09131b 70%)}
+.feature h1{font-size:clamp(21px,2.1vw,29px);line-height:1.08;letter-spacing:-.7px;margin:5px 0 6px}
+.feature .tag{font-size:9px}
+.feature .button{min-height:34px;margin:2px 0 0;padding-inline:11px}
+.watermark{font-size:clamp(70px,10vw,128px);bottom:-26px;right:5%;color:#ffffff0a}
+.section:not(#television){order:2;margin-top:14px}
+.manager{order:3;align-self:center;width:min(100%,980px);max-height:none;min-height:0;margin:18px auto 0;padding:14px}
+.section-meta{display:flex;align-items:center;justify-content:flex-end;gap:10px}
+.section-meta #channel-count{font-size:11px;color:#a9b6c1;white-space:nowrap}
+.continue-inline{min-height:34px;padding-inline:12px;color:#ff9aaf;border-color:#6f2739;background:#211018}
+.section-head{margin-bottom:8px}
+.section-head h2{letter-spacing:-.5px}
+.filters{margin-bottom:8px}
+.watch{grid-template-columns:minmax(0,1.25fr) minmax(310px,.75fr);gap:12px}
+.channel-panel #channel-list{max-height:clamp(300px,54vh,600px)}
+.channel-item{min-height:48px;padding:6px 8px}
+.channel-icon{width:36px;height:36px}
+.channel-info strong{font-size:12px}
+.channel-info small{font-size:10px}
+body.tv-remote .channel-item{min-height:58px;padding:9px 10px}
+body.tv-remote .channel-panel #channel-list{max-height:58vh}
+@media(max-width:1000px){.watch{grid-template-columns:minmax(0,1.1fr) minmax(280px,.9fr)}.channel-panel #channel-list{max-height:48vh}}
+@media(max-width:680px){main{padding-top:6px}.section-head{align-items:center}.section-head h2{font-size:20px}.section-meta{gap:6px;flex-wrap:wrap}.section-meta #channel-count{font-size:10px}.continue-inline{min-height:34px;font-size:9px;padding-inline:8px}.watch{grid-template-columns:1fr}.feature{min-height:102px;margin-top:12px;padding:12px 14px}.feature h1{font-size:21px}.feature .button{min-height:32px;font-size:9px}.watermark{font-size:76px;bottom:-15px}.manager{margin-top:12px}.channel-panel #channel-list{max-height:48vh}}

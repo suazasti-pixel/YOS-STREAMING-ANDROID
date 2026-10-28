@@ -11,6 +11,8 @@
 - Versión de trabajo actual: 1.1. Reproductor Android nativo Media3, guía XMLTV opcional y carga progresiva de canales en la app Android.
 - Para activar la guía, el usuario debe ingresar en Configuración una URL XMLTV proporcionada por su proveedor. La guía se asocia mediante `tvg-id`, `tvg-name` o nombre del canal.
 - En Android, los canales se abren en PlayerActivity con botones de reproducción del sistema, cambio CH+/CH- y hasta 101 canales cercanos de la lista actual. En navegador/PWA se conserva el reproductor web.
+- La pantalla de inicio ahora prioriza TV en vivo y el reproductor; la marca y administración quedan más abajo, sin quitar controles para listas. La app restaura la última lista abierta, carga automáticamente la lista ligera local en una instalación nueva y ofrece continuar con el último canal.
+- El orden inicial de canales respeta el orden del proveedor M3U; desde el selector se puede cambiar a nombre, país o categoría.
 - El build local no está instalado en todos los entornos; revisar la última ejecución de GitHub Actions antes de entregar un APK.
 
 ## Estructura

@@ -1,11 +1,11 @@
 "use strict";
 
-const CACHE = "yos-streaming-shell-v31";
+const CACHE = "yos-streaming-shell-v32";
 const SHELL = [
   "./",
   "./index.html",
-  "./styles.css?v=25",
-  "./app.js?v=24",
+  "./styles.css?v=26",
+  "./app.js?v=25",
   "./pwa.js?v=10",
   "./manifest.webmanifest",
   "./icons/app-icon.svg",

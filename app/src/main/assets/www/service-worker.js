@@ -1,10 +1,10 @@
 "use strict";
 
-const CACHE = "yos-streaming-shell-v36";
+const CACHE = "yos-streaming-shell-v37";
 const SHELL = [
   "./",
   "./index.html",
-  "./styles.css?v=30",
+  "./styles.css?v=31",
   "./app.js?v=27",
   "./pwa.js?v=10",
   "./manifest.webmanifest",
@@ -14,8 +14,7 @@ const SHELL = [
   "./icons/app-icon-192.png",
   "./icons/app-icon-512.png",
   "./listas_m3u/YOS_100_Canales.m3u",
-  "./assets/yos-laptop.png",
-  "./assets/yos-horizontal-logo.svg"
+  "./assets/yos-laptop.png"
 ];
 
 self.addEventListener("install", event => {

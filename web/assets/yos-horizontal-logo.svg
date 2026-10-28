@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="900" height="230" viewBox="0 0 900 230">
-  <rect width="900" height="230" rx="18" fill="#030609"/>
-  <svg x="8" y="8" width="214" height="214" viewBox="570 120 520 520" preserveAspectRatio="xMidYMid meet">
-    <image href="yos-laptop.png" x="0" y="0" width="1672" height="940"/>
-  </svg>
-  <svg x="220" y="25" width="670" height="180" viewBox="550 595 585 190" preserveAspectRatio="xMidYMid meet">
-    <image href="yos-laptop.png" x="0" y="0" width="1672" height="940"/>
-  </svg>
-</svg>

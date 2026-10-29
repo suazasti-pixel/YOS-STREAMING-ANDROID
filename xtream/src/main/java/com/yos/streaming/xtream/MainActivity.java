@@ -179,7 +179,8 @@ public class MainActivity extends Activity {
                 getSharedPreferences(PREFS, MODE_PRIVATE).edit().putString("credentials", Base64.encodeToString(packed, Base64.NO_WRAP)).apply();
                 result.put("ok", true);
             } catch (Exception e) {
-                result.put("ok", false).put("error", "No se pudieron guardar las credenciales de forma segura.");
+                try { result.put("ok", false).put("error", "No se pudieron guardar las credenciales de forma segura."); }
+                catch (Exception ignored) { return "{\"ok\":false}"; }
             }
             return result.toString();
         }

@@ -6,7 +6,7 @@ Estas son las tres ediciones principales que vamos a mantener y actualizar por s
 |---|---|---|---|
 | **1.1** | Celular Android | `YOS-1.1-CELULAR-APK` | YOS Streaming, listas M3U |
 | **2.2** | Celular Android y Android TV Box | `YOS-2.2-XTREAM-ANDROID-APK` | YOS Xtream Android |
-| **3.1** | Televisor LG webOS | `YOS-3.1-LG-webOS-IPK` | YOS Xtream para webOS |
+| **3.2** | Televisor LG webOS | `YOS-3.2-LG-webOS-IPK` | YOS Xtream para webOS |
 
 ## Regla de numeración
 

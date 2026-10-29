@@ -4,6 +4,7 @@
 
 - GitHub: https://github.com/suazasti-pixel/YOS-STREAMING-ANDROID
 - Rama activa: main
+- Estado guardado el 2026-10-29: copia local limpia y sincronizada con `origin/main`; último commit `9252882` (`Handle secure credential storage errors`).
 - Último cambio funcional: 142c07c — búfer HLS más estable y recuperación automática limitada de errores temporales; builds en web/PWA y Android.
 - APK versión 1.7 (versionCode 8) compilada correctamente: https://github.com/suazasti-pixel/YOS-STREAMING-ANDROID/actions/runs/40705240200#artifacts.
 - Historial reciente: eliminar la franja promocional, mejorar importación IPTV y guardar la PWA en web/.
@@ -39,6 +40,14 @@ El mismo build genera también `xtream/build/outputs/apk/debug/xtream-debug.apk`
 El repositorio es la copia principal del proyecto. Otra cuenta puede abrir o clonar el repositorio público. Para subir cambios desde esa cuenta, el propietario debe agregarla como colaboradora o transferir el repositorio desde GitHub.
 
 La carpeta web/ conserva la versión PWA separada y la carpeta app/ conserva la versión instalable Android. Al cambiar la interfaz, revisar si el cambio debe aplicarse a ambas.
+
+### Punto actual: instalación en TV LG webOS
+
+- La aplicación para LG es el paquete webOS de `webos/`; el APK de Android no se instala en televisores LG webOS.
+- El usuario activó Developer Mode y Key Server en el televisor. En la pantalla, `IP Address (wired): disconnected` solo indica que el cable Ethernet no está conectado; se debe usar la IP que aparece en `IP Address (wireless)` si la TV está por Wi-Fi. La computadora y el televisor deben estar en la misma red.
+- En Windows, usar los comandos `.cmd` de webOS CLI para evitar el bloqueo de scripts `.ps1` de PowerShell: `ares-setup-device.cmd`, `ares-novacom.cmd --device myTV --getkey`, `ares-install.cmd --device myTV "RUTA\A\APP.ipk"` y `ares-launch.cmd --device myTV com.yos.streaming.tv`.
+- Al ejecutar `ares-novacom.cmd --device myTV --getkey`, escribir la passphrase vigente del Developer Mode en el prompt `Input passphrase:` y pulsar Enter. No se incluye ni se guarda esa clave en este repositorio. Si no avanza, recoger el texto exacto del prompt/error ocultando la passphrase.
+- Mantener Developer Mode activo durante la instalación y pruebas. Revisar `webos/LEEME-INSTALACION.md` y el artefacto `YOS-STREAMING-LG-webOS-IPK` de GitHub Actions para obtener el `.ipk`.
 
 ## Segunda app YOS Xtream
 

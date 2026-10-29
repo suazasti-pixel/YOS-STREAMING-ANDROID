@@ -59,6 +59,17 @@ public class MainActivity extends Activity {
         webView = new WebView(this);
         root.addView(webView, new FrameLayout.LayoutParams(-1, -1));
         setContentView(root);
+        // Android 15 edge-to-edge can place the WebView beneath the status bar.
+        // Keep the web header below the system icons without shrinking fullscreen video.
+        root.setOnApplyWindowInsetsListener((view, insets) -> {
+            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) webView.getLayoutParams();
+            int topInset = insets.getSystemWindowInsetTop();
+            if (params.topMargin != topInset) {
+                params.topMargin = topInset;
+                webView.setLayoutParams(params);
+            }
+            return insets;
+        });
 
         WebViewAssetLoader loader = new WebViewAssetLoader.Builder()
             .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(this))

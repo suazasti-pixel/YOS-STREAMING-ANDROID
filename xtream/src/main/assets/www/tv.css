@@ -226,6 +226,41 @@ body.tv-remote .season-title {
   font-size: 16px;
 }
 
+body.tv-remote .favorite-toggle {
+  top: 14px;
+  right: 14px;
+  width: 52px;
+  min-height: 52px;
+  font-size: 30px;
+}
+
+body.tv-remote .guide-panel {
+  grid-template-columns: minmax(240px, .55fr) minmax(0, 1.45fr);
+  gap: 22px;
+  margin-bottom: 18px;
+  padding: 20px 24px;
+}
+
+body.tv-remote .guide-heading strong {
+  font-size: 22px;
+}
+
+body.tv-remote .guide-programs {
+  gap: 16px;
+}
+
+body.tv-remote .guide-programs article {
+  padding: 12px 16px;
+}
+
+body.tv-remote .guide-programs article span {
+  font-size: 13px;
+}
+
+body.tv-remote .guide-programs article p {
+  font-size: 17px;
+}
+
 body.tv-remote .status {
   font-size: 15px;
 }

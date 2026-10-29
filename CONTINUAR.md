@@ -86,3 +86,10 @@ No guardar usuarios, contraseñas ni enlaces privados en el código, en commits,
 - Se creó `YOS_Colombia_Latino_Deportes.m3u` con 200 URLs únicas: 60 señales de Colombia, 50 de deportes internacionales, 35 de películas, 30 de series y 25 de animación.
 - La selección se basa en catálogos públicos de iptv-org; se excluyeron entradas marcadas como geobloqueadas o no 24/7.
 - Está en **Listas recomendadas**, sincronizada entre `web/` y Android, y añadida al precache de ambos service workers. El filtrado no prueba la reproducción individual ni asegura disponibilidad futura.
+
+## YOS Xtream 1.4.0: favoritos y guía en vivo
+
+- Se añadieron favoritos de canales, películas y series, guardados localmente por servidor y usuario; no se suben al repositorio.
+- En TV en vivo, enfocar un canal muestra una guía breve **Ahora / Sigue** cuando la API del proveedor ofrece get_short_epg. Si no hay datos, el canal se sigue pudiendo reproducir.
+- La estrella y el panel EPG tienen controles más amplios para TV Box y navegación con control remoto.
+- Android ersionCode 5, versión 1.4.0. GitHub Actions genera el APK actualizado.

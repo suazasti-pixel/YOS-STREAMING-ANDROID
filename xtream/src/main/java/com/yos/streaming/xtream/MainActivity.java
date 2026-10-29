@@ -45,7 +45,7 @@ public class MainActivity extends Activity {
     private static final String PREFS = "yos_xtream_secure_store";
     private static final Set<String> ACTIONS = new HashSet<>(Arrays.asList(
         "", "get_live_categories", "get_live_streams", "get_vod_categories",
-        "get_vod_streams", "get_series_categories", "get_series", "get_series_info"
+        "get_vod_streams", "get_series_categories", "get_series", "get_series_info", "get_short_epg"
     ));
     private final ExecutorService requests = Executors.newFixedThreadPool(3);
     private WebView webView;
@@ -235,6 +235,9 @@ public class MainActivity extends Activity {
         if (action != null && !action.isEmpty()) builder.appendQueryParameter("action", action);
         if (categoryId != null && !categoryId.isEmpty()) builder.appendQueryParameter("category_id", categoryId);
         if ("get_series_info".equals(action) && itemId != null && !itemId.isEmpty()) builder.appendQueryParameter("series_id", itemId);
+        if ("get_short_epg".equals(action) && itemId != null && !itemId.isEmpty()) {
+            builder.appendQueryParameter("stream_id", itemId).appendQueryParameter("limit", "2");
+        }
         URL url = new URL(builder.build().toString());
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setConnectTimeout(12000);

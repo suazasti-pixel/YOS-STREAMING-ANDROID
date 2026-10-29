@@ -2,3 +2,17 @@
 /* Ayuda compacta debajo del campo de servidor en la pantalla de conexión. */
 .login-card form > .fine-print { font-size: 11px; margin: -5px 0 3px; }
 .poster-placeholder { background: radial-gradient(circle at 50% 25%, #2a3542, #121820 70%); color: #ff5276; letter-spacing: 1px; }
+.content-card-wrap { position: relative; min-width: 0; }
+.content-card-wrap .content-card { width: 100%; height: 100%; }
+.favorite-toggle { position: absolute; top: 9px; right: 9px; z-index: 1; width: 42px; min-height: 42px; padding: 0; border: 1px solid #ffffff55; border-radius: 50%; background: #071018dd; color: #ffd65c; font-size: 25px; line-height: 1; cursor: pointer; }
+.favorite-toggle[aria-pressed="true"] { color: #ffcf35; }
+.filters.favorites-mode > label, .filters.favorites-mode > #category { display: none; }
+.guide-panel { display: grid; grid-template-columns: minmax(180px,.65fr) minmax(0,1.35fr); gap: 16px; margin: 0 0 14px; padding: 15px 18px; border: 1px solid #344450; border-radius: 14px; background: linear-gradient(110deg,#111b24,#0a1118); }
+.guide-heading { display: grid; align-content: center; gap: 5px; min-width: 0; }
+.guide-heading strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px; }
+.guide-programs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.guide-programs article { min-width: 0; padding: 9px 12px; border-left: 2px solid #ff4169; background: #ffffff05; }
+.guide-programs article span { color: #ff809b; font-size: 10px; font-weight: 900; letter-spacing: 1px; }
+.guide-programs article p { margin: 4px 0 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+.empty-state { grid-column: 1/-1; padding: 18px; }
+@media(max-width:650px){.guide-panel{grid-template-columns:1fr;gap:8px;padding:12px}.guide-programs article p{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}.favorite-toggle{width:38px;min-height:38px;font-size:22px}}

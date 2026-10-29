@@ -50,6 +50,7 @@
         <button class="tab active" data-kind="live">TV EN VIVO</button>
         <button class="tab" data-kind="movie">PELÍCULAS</button>
         <button class="tab" data-kind="series">SERIES</button>
+        <button id="favorites-tab" class="tab" type="button">☆ FAVORITOS</button>
       </nav>
       <div class="filters">
         <label class="sr-only" for="category">Categoría</label>
@@ -57,6 +58,13 @@
         <span id="catalog-count" class="muted"></span>
       </div>
       <p id="catalog-status" class="status" role="status" aria-live="polite">Elige una categoría para cargar su contenido.</p>
+      <section id="guide-panel" class="guide-panel" aria-live="polite" hidden>
+        <div class="guide-heading"><span class="eyebrow">GUÍA EN VIVO</span><strong id="guide-channel"></strong></div>
+        <div class="guide-programs">
+          <article><span>AHORA</span><p id="guide-now">Consultando programación…</p></article>
+          <article><span>SIGUE</span><p id="guide-next">Consultando programación…</p></article>
+        </div>
+      </section>
       <div id="content-grid" class="content-grid"></div>
       <button id="load-more" class="button subtle load-more" hidden>CARGAR MÁS</button>
     </section>

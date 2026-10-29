@@ -3,7 +3,7 @@
 const $ = id => document.getElementById(id);
 const PAGE_SIZE = 60;
 const ITEM_CACHE_LIMIT = 3;
-const state = { credentials: null, kind: "live", categories: [], items: [], filtered: [], limit: PAGE_SIZE, series: null };
+const state = { credentials: null, kind: "live", categories: [], items: [], filtered: [], limit: PAGE_SIZE, series: null, showFavorites: false };
 const kinds = {
   live: { title: "Canales en vivo", categories: "get_live_categories", items: "get_live_streams", singular: "live" },
   movie: { title: "Películas", categories: "get_vod_categories", items: "get_vod_streams", singular: "movie" },
@@ -13,15 +13,78 @@ let requestSequence = 0;
 let categoryRequestSequence = 0;
 let itemRequestSequence = 0;
 let searchTimer = 0;
+let guideTimer = 0;
+let guideRequestSequence = 0;
 const pending = new Map();
 const categoryCache = new Map();
 const itemCache = new Map();
 const seriesCache = new Map();
+const guideCache = new Map();
+const guidePending = new Map();
 
 function cacheItems(key, rows) {
   itemCache.delete(key);
   itemCache.set(key, rows);
   while (itemCache.size > ITEM_CACHE_LIMIT) itemCache.delete(itemCache.keys().next().value);
+}
+
+function providerStoreKey() {
+  const account = state.credentials;
+  return account ? "yos-xtream-favorites-v1:" + encodeURIComponent(account.server + "|" + account.username) : "";
+}
+
+function favoriteId(item, kind) {
+  const id = kind === "series" ? (item.series_id || item.id) : item.stream_id;
+  return kind + ":" + String(id == null ? "" : id);
+}
+
+function readFavorites() {
+  try {
+    const key = providerStoreKey();
+    const rows = key ? JSON.parse(localStorage.getItem(key) || "[]") : [];
+    return Array.isArray(rows) ? rows : [];
+  } catch { return []; }
+}
+
+function saveFavorites(rows) {
+  const key = providerStoreKey();
+  try { if (key) localStorage.setItem(key, JSON.stringify(rows)); }
+  catch { setStatus("catalog-status", "No se pudieron guardar los favoritos en este dispositivo.", "error"); }
+}
+
+function makeFavorite(item, kind) {
+  return {
+    favoriteId: favoriteId(item, kind), _kind: kind,
+    stream_id: item.stream_id, series_id: item.series_id, id: item.id,
+    container_extension: item.container_extension, name: item.name || item.title || "Sin título",
+    category_name: item.category_name, stream_icon: item.stream_icon, cover: item.cover
+  };
+}
+
+function toggleFavorite(item, kind) {
+  const id = favoriteId(item, kind);
+  const rows = readFavorites();
+  const index = rows.findIndex(row => row.favoriteId === id);
+  if (index >= 0) rows.splice(index, 1);
+  else rows.unshift(makeFavorite(item, kind));
+  saveFavorites(rows);
+  if (state.showFavorites) applySearch();
+  else renderItems();
+}
+
+function showFavoritesView() {
+  state.showFavorites = true;
+  state.items = [];
+  state.filtered = readFavorites();
+  state.limit = PAGE_SIZE;
+  $("search").value = "";
+  $("favorites-tab").classList.add("active");
+  document.querySelectorAll(".tab[data-kind]").forEach(tab => tab.classList.remove("active"));
+  $("category").closest(".filters").classList.add("favorites-mode");
+  $("catalog-title").textContent = "Favoritos";
+  $("guide-panel").hidden = true;
+  setStatus("catalog-status", state.filtered.length ? "Tus canales, películas y series guardados." : "Agrega favoritos con ☆ en una tarjeta.");
+  applySearch();
 }
 
 function setStatus(id, message, type = "") {
@@ -121,6 +184,8 @@ $("login-form").addEventListener("submit", async event => {
     categoryCache.clear();
     itemCache.clear();
     seriesCache.clear();
+    guideCache.clear();
+    guidePending.clear();
     $("login-view").hidden = true;
     $("catalog-view").hidden = false;
     $("logout").hidden = false;
@@ -138,6 +203,10 @@ async function loadCategories(kind) {
   const requestId = ++categoryRequestSequence;
   itemRequestSequence++;
   state.kind = kind;
+  state.showFavorites = false;
+  $("favorites-tab").classList.remove("active");
+  $("category").closest(".filters").classList.remove("favorites-mode");
+  $("guide-panel").hidden = true;
   state.categories = [];
   state.items = [];
   state.filtered = [];
@@ -231,7 +300,8 @@ async function loadItems(categoryId) {
 
 function applySearch() {
   const q = $("search").value.trim().toLocaleLowerCase();
-  state.filtered = q ? state.items.filter(item => String(item.name || "").toLocaleLowerCase().includes(q)) : [...state.items];
+  const source = state.showFavorites ? readFavorites() : state.items;
+  state.filtered = q ? source.filter(item => String(item.name || "").toLocaleLowerCase().includes(q)) : [...source];
   state.limit = PAGE_SIZE;
   renderItems();
 }
@@ -240,7 +310,17 @@ function renderItems() {
   const box = $("content-grid");
   box.replaceChildren();
   const page = state.filtered.slice(0, state.limit);
+  const favoriteIds = new Set(readFavorites().map(row => row.favoriteId));
+  if (!page.length) {
+    const empty = document.createElement("p");
+    empty.className = "muted empty-state";
+    empty.textContent = state.showFavorites ? "Todavía no tienes favoritos." : "No se encontraron elementos en esta categoría.";
+    box.append(empty);
+  }
   for (const item of page) {
+    const kind = item._kind || state.kind;
+    const wrapper = document.createElement("article");
+    wrapper.className = "content-card-wrap";
     const button = document.createElement("button");
     button.className = "content-card";
     button.type = "button";
@@ -265,11 +345,24 @@ function renderItems() {
     title.textContent = item.name || "Sin título";
     const meta = document.createElement("div");
     meta.className = "card-meta";
-    meta.textContent = item.category_name || (state.kind === "live" ? "TV en vivo" : state.kind === "movie" ? "Película" : "Serie");
+    meta.textContent = item.category_name || (kind === "live" ? "TV en vivo" : kind === "movie" ? "Película" : "Serie");
     body.append(title, meta);
     button.append(poster, body);
     button.addEventListener("click", () => selectItem(item));
-    box.append(button);
+    if (kind === "live") button.addEventListener("focus", () => {
+      clearTimeout(guideTimer);
+      guideTimer = setTimeout(() => showProgramGuide(item), 220);
+    });
+    const favorite = document.createElement("button");
+    favorite.type = "button";
+    favorite.className = "favorite-toggle";
+    const favored = favoriteIds.has(favoriteId(item, kind));
+    favorite.textContent = favored ? "★" : "☆";
+    favorite.setAttribute("aria-pressed", String(favored));
+    favorite.setAttribute("aria-label", (favored ? "Quitar de favoritos " : "Agregar a favoritos ") + (item.name || "contenido"));
+    favorite.addEventListener("click", () => toggleFavorite(item, kind));
+    wrapper.append(button, favorite);
+    box.append(wrapper);
   }
   $("catalog-count").textContent = state.filtered.length ? state.filtered.length + " elementos" : "";
   $("load-more").hidden = page.length >= state.filtered.length;
@@ -281,6 +374,41 @@ function posterPlaceholder(name) {
   placeholder.setAttribute("aria-hidden", "true");
   placeholder.textContent = String(name || "YOS").trim().slice(0, 2).toUpperCase() || "Y";
   return placeholder;
+}
+
+async function showProgramGuide(item) {
+  const kind = item._kind || state.kind;
+  if (kind !== "live" || item.stream_id == null) {
+    $("guide-panel").hidden = true;
+    return;
+  }
+  const requestId = ++guideRequestSequence;
+  const key = String(item.stream_id);
+  $("guide-panel").hidden = false;
+  $("guide-channel").textContent = item.name || "Canal en vivo";
+  $("guide-now").textContent = "Consultando programación…";
+  $("guide-next").textContent = "Consultando programación…";
+  try {
+    let programs = guideCache.get(key);
+    if (!programs) {
+      let pendingGuide = guidePending.get(key);
+      if (!pendingGuide) {
+        pendingGuide = callApi("get_short_epg", "", key).finally(() => guidePending.delete(key));
+        guidePending.set(key, pendingGuide);
+      }
+      const response = await pendingGuide;
+      programs = Array.isArray(response) ? response : (Array.isArray(response?.epg_list) ? response.epg_list : []);
+      guideCache.set(key, programs);
+      while (guideCache.size > 80) guideCache.delete(guideCache.keys().next().value);
+    }
+    if (requestId !== guideRequestSequence) return;
+    $("guide-now").textContent = programs[0]?.title || "El proveedor no ofrece datos de programación.";
+    $("guide-next").textContent = programs[1]?.title || "Sin siguiente programa disponible.";
+  } catch {
+    if (requestId !== guideRequestSequence) return;
+    $("guide-now").textContent = "Guía no disponible para este canal.";
+    $("guide-next").textContent = "La reproducción del canal sigue disponible.";
+  }
 }
 
 function streamUrl(kind, item) {
@@ -301,11 +429,14 @@ function playItems(items, kind, index = 0) {
 }
 
 async function selectItem(item) {
-  if (state.kind === "series") return showEpisodes(item);
-  const streamKey = state.kind === "live" ? "stream_id" : "stream_id";
-  const queueItems = state.filtered.filter(row => row[streamKey] != null);
+  const kind = item._kind || state.kind;
+  if (kind === "live") showProgramGuide(item);
+  if (kind === "series") return showEpisodes(item);
+  const streamKey = "stream_id";
+  const source = state.showFavorites ? readFavorites() : state.filtered;
+  const queueItems = source.filter(row => (row._kind || state.kind) === kind && row[streamKey] != null);
   const index = queueItems.findIndex(row => String(row[streamKey]) === String(item[streamKey]));
-  playItems(queueItems, state.kind, Math.max(0, index));
+  playItems(queueItems, kind, Math.max(0, index));
 }
 
 async function showEpisodes(series) {
@@ -355,10 +486,11 @@ function renderEpisodes(episodes) {
   });
 }
 
-document.querySelectorAll(".tab").forEach(button => button.addEventListener("click", () => {
+document.querySelectorAll(".tab[data-kind]").forEach(button => button.addEventListener("click", () => {
   document.querySelectorAll(".tab").forEach(tab => tab.classList.toggle("active", tab === button));
   loadCategories(button.dataset.kind);
 }));
+$("favorites-tab").addEventListener("click", showFavoritesView);
 $("category").addEventListener("change", () => loadItems($("category").value));
 $("search").addEventListener("input", () => {
   clearTimeout(searchTimer);
@@ -370,6 +502,7 @@ $("episodes-dialog").addEventListener("click", event => { if (event.target === $
 $("logout").addEventListener("click", () => {
   state.credentials = null; state.items = []; state.filtered = [];
   categoryCache.clear(); itemCache.clear(); seriesCache.clear();
+  guideCache.clear(); guidePending.clear(); state.showFavorites = false;
   $("catalog-view").hidden = true; $("logout").hidden = true; $("login-view").hidden = false;
   $("password").value = ""; setStatus("login-status", "Sesión cerrada."); $("server").focus();
 });

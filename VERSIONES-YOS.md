@@ -5,10 +5,14 @@ Estas son las tres ediciones principales que vamos a mantener y actualizar por s
 | Edición | Dispositivo | Instalador en GitHub Actions | Proyecto |
 |---|---|---|---|
 | **1.1** | Celular Android | `YOS-1.1-CELULAR-APK` | YOS Streaming, listas M3U |
-| **2.1** | Android TV Box | `YOS-2.1-TV-BOX-APK` | YOS Xtream Android |
+| **2.1** | Celular Android y Android TV Box | `YOS-2.1-XTREAM-ANDROID-APK` | YOS Xtream Android |
 | **3.1** | Televisor LG webOS | `YOS-3.1-LG-webOS-IPK` | YOS Xtream para webOS |
 
-Las actualizaciones de cada edición avanzan por separado: 1.2, 1.3…; 2.2, 2.3…; 3.2, 3.3… YOS Play sigue siendo un proyecto Android adicional y no forma parte de esta lista de tres instaladores.
+## Regla de numeración
+
+Cada edición avanza por separado: celular **1.1 → 1.2 → 1.3**, Xtream Android **2.1 → 2.2 → 2.3** y LG webOS **3.1 → 3.2 → 3.3**. Cuando un cambio afecte varias ediciones, incrementaremos la serie de cada una de ellas. Así cada instalador y sus notas de cambios indicarán qué versión recibió la mejora.
+
+YOS Play sigue siendo un proyecto Android adicional y no forma parte de esta lista de tres instaladores.
 
 ## Cómo descargar
 

@@ -52,13 +52,41 @@ function setHttpWarning() {
   $("http-warning").hidden = !/^http:\/\//i.test(value);
 }
 
+function readConnectionFields() {
+  let server = $("server").value.trim().replace(/\/+$/, "");
+  let username = $("username").value.trim();
+  let password = $("password").value;
+  try {
+    const parsed = new URL(server);
+    if (/\/get\.php\/?$/i.test(parsed.pathname)) {
+      const linkUsername = parsed.searchParams.get("username");
+      const linkPassword = parsed.searchParams.get("password");
+      if (!linkUsername || !linkPassword) {
+        throw new Error("El enlace get.php debe incluir username y password.");
+      }
+      const basePath = parsed.pathname.replace(/\/get\.php\/?$/i, "").replace(/\/+$/, "");
+      server = parsed.origin + basePath;
+      username = linkUsername;
+      password = linkPassword;
+      $("server").value = server;
+      $("username").value = username;
+      $("password").value = password;
+      setHttpWarning();
+    }
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith("El enlace get.php")) throw error;
+  }
+  return { server, username, password };
+}
+
 $("server").addEventListener("input", setHttpWarning);
 
 $("login-form").addEventListener("submit", async event => {
   event.preventDefault();
-  const server = $("server").value.trim().replace(/\/+$/, "");
-  const username = $("username").value.trim();
-  const password = $("password").value;
+  let connection;
+  try { connection = readConnectionFields(); }
+  catch (error) { setStatus("login-status", error.message, "error"); return; }
+  const { server, username, password } = connection;
   if (!/^https?:\/\/[^/]+(?::\d+)?(?:\/[^?#]*)?$/i.test(server)) {
     setStatus("login-status", "Escribe el servidor con http:// o https:// y su puerto si aplica.", "error");
     return;

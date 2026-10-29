@@ -57,6 +57,7 @@ La carpeta web/ conserva la versión PWA separada y la carpeta app/ conserva la 
 - Si se marca **Recordar esta cuenta**, servidor, usuario y contraseña se cifran con AES-GCM usando Android Keystore. No se guardan en archivos del proyecto ni en GitHub.
 - Proveedores que solo entregan M3U, deshabilitan la API Xtream o usan rutas incompatibles no podrán iniciar sesión en esta app. HTTP no cifra credenciales durante el transporte; la app muestra un aviso y recomienda HTTPS si el proveedor lo ofrece.
 - Mejora de interfaz para Android TV/TV Box: `xtream/src/main/assets/www/tv.css` aumenta tamaños de letra, tarjetas y controles. La navegación con flechas usa el foco espacial, enfoca la categoría al cargar y el primer resultado al elegirla; en series enfoca el primer episodio. Los cambios están pendientes de validar en un TV Box real.
+- La pantalla de acceso acepta ahora el host o el enlace completo `get.php`; cuando el enlace incluye `username` y `password`, los extrae y consulta la API Xtream. Versión preparada: 1.2.0 (versionCode 3).
 
 ## Datos IPTV y privacidad
 

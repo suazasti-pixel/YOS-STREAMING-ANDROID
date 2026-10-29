@@ -75,6 +75,11 @@ body.tv-remote .warning {
   font-size: 16px;
 }
 
+body.tv-remote .login-card form > .fine-print {
+  margin: -4px 0 4px;
+  font-size: 14px;
+}
+
 body.tv-remote form > label:not(.remember),
 body.tv-remote .remember {
   font-size: 16px;

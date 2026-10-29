@@ -1,0 +1,307 @@
+/* Interfaz para distancia de sala y navegación con Magic Remote. */
+body.tv-remote {
+  font-size: 20px;
+  line-height: 1.45;
+}
+
+body.tv-remote .topbar {
+  height: 92px;
+  padding-inline: 3vw;
+  gap: 18px;
+}
+
+body.tv-remote .brand-logo-window {
+  width: 72px;
+  height: 68px;
+  flex-basis: 72px;
+}
+
+body.tv-remote .brand-wordmark,
+body.tv-remote .brand {
+  font-size: 30px;
+}
+
+body.tv-remote .brand-wordmark small {
+  font-size: 11px;
+}
+
+body.tv-remote .search {
+  max-width: 480px;
+  height: 58px;
+  font-size: 30px;
+}
+
+body.tv-remote .search input {
+  font-size: 19px;
+}
+
+body.tv-remote .topbar .button,
+body.tv-remote .topbar .round {
+  min-height: 58px;
+  font-size: 15px;
+  padding-inline: 18px;
+}
+
+body.tv-remote .topbar .round {
+  width: 58px;
+  padding-inline: 0;
+  font-size: 25px;
+}
+
+body.tv-remote main {
+  width: 100%;
+  max-width: none;
+  padding: 20px 3vw 24px;
+}
+
+body.tv-remote .section-head {
+  margin-bottom: 12px;
+}
+
+body.tv-remote .section-head h2 {
+  font-size: 32px;
+}
+
+body.tv-remote .section-head small,
+body.tv-remote .section-meta #channel-count {
+  font-size: 16px;
+}
+
+body.tv-remote .section-meta {
+  gap: 14px;
+}
+
+body.tv-remote .continue-inline {
+  min-height: 54px;
+  font-size: 15px;
+  padding-inline: 18px;
+}
+
+body.tv-remote .filters {
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+body.tv-remote .filters select,
+body.tv-remote .filters .button {
+  height: 54px;
+  min-height: 54px;
+  max-width: none;
+  padding-inline: 16px;
+  font-size: 15px;
+}
+
+body.tv-remote .watch {
+  grid-template-columns: minmax(0, 1.15fr) minmax(420px, .85fr);
+  gap: 16px;
+}
+
+body.tv-remote .player,
+body.tv-remote .channel-panel {
+  border-radius: 16px;
+}
+
+body.tv-remote .video-frame {
+  max-height: 62vh;
+  min-height: 300px;
+}
+
+body.tv-remote .player-info {
+  padding: 16px;
+  gap: 14px;
+}
+
+body.tv-remote .player-info > b {
+  width: 54px;
+  height: 54px;
+  font-size: 26px;
+}
+
+body.tv-remote .player-info small {
+  font-size: 13px;
+}
+
+body.tv-remote .player-info h3 {
+  font-size: 21px;
+}
+
+body.tv-remote .player-info p,
+body.tv-remote .player > .status {
+  font-size: 15px;
+}
+
+body.tv-remote .player > .status {
+  padding: 0 16px 14px;
+}
+
+body.tv-remote .player-info .round {
+  width: 58px;
+  height: 58px;
+  font-size: 26px;
+}
+
+body.tv-remote .channel-panel {
+  padding: 16px;
+}
+
+body.tv-remote .channel-panel-head {
+  margin-bottom: 10px;
+}
+
+body.tv-remote .channel-panel h3 {
+  font-size: 22px;
+}
+
+body.tv-remote .channel-panel > p,
+body.tv-remote .remote-hint {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+body.tv-remote .channel-panel .small {
+  min-height: 50px;
+  padding: 10px 14px;
+  font-size: 14px;
+}
+
+body.tv-remote .channel-panel #channel-list {
+  max-height: 62vh;
+}
+
+body.tv-remote .channel-item {
+  min-height: 70px;
+  gap: 13px;
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+
+body.tv-remote .channel-icon {
+  width: 50px;
+  height: 50px;
+  font-size: 14px;
+}
+
+body.tv-remote .channel-info {
+  gap: 4px;
+}
+
+body.tv-remote .channel-info strong {
+  font-size: 17px;
+}
+
+body.tv-remote .channel-info small {
+  font-size: 13px;
+}
+
+body.tv-remote .channel-item .small,
+body.tv-remote .channel-item .star {
+  min-width: 48px;
+  min-height: 48px;
+  font-size: 20px;
+}
+
+body.tv-remote .channel-item:focus-visible,
+body.tv-remote .channel-item.remote-focus,
+body.tv-remote :focus-visible,
+body.tv-remote .remote-focus {
+  outline: 4px solid #ff4169 !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 6px #ff416944, 0 0 24px #ff1749aa !important;
+  position: relative;
+  z-index: 3;
+}
+
+body.tv-remote .channel-item:focus-visible,
+body.tv-remote .channel-item.remote-focus {
+  background: #35101d;
+  border-color: #ff4169;
+}
+
+body.tv-remote .favorites-details > summary {
+  min-height: 54px;
+  padding: 14px 18px;
+  font-size: 16px;
+}
+
+body.tv-remote dialog {
+  width: min(1100px, 92vw);
+  max-height: 88vh;
+  padding: 24px;
+  font-size: 18px;
+}
+
+body.tv-remote dialog .dialog-head h2,
+body.tv-remote #admin-dialog .dialog-head h2 {
+  font-size: 26px;
+}
+
+body.tv-remote #admin-dialog #listas {
+  padding-top: 12px;
+}
+
+body.tv-remote #admin-dialog .manager-more > summary,
+body.tv-remote #admin-dialog .favorites-details > summary {
+  min-height: 58px;
+  padding: 16px;
+  font-size: 17px;
+}
+
+body.tv-remote #admin-dialog #source-form input,
+body.tv-remote #admin-dialog #source-form select,
+body.tv-remote #admin-dialog #iptv-source-form input,
+body.tv-remote #admin-dialog #iptv-source-form select,
+body.tv-remote #admin-dialog #iptv-source-form textarea {
+  min-height: 56px;
+  font-size: 17px;
+  padding: 12px 14px;
+}
+
+body.tv-remote #admin-dialog .actions .button,
+body.tv-remote #admin-dialog .manager-tools > .button,
+body.tv-remote #admin-dialog #add-light-list {
+  min-height: 58px;
+  font-size: 16px;
+}
+
+body.tv-remote #admin-dialog .source-info strong {
+  font-size: 17px;
+}
+
+body.tv-remote #admin-dialog .source-info small,
+body.tv-remote #admin-dialog .source-info em,
+body.tv-remote #admin-dialog .source-actions .small {
+  font-size: 13px;
+}
+
+body.tv-remote #admin-dialog .source-actions .small {
+  min-height: 44px;
+  padding: 9px 12px;
+}
+
+@media (max-width: 1100px) {
+  body.tv-remote .watch {
+    grid-template-columns: minmax(0, 1fr) minmax(360px, .9fr);
+  }
+}
+
+@media (max-width: 760px) {
+  body.tv-remote .topbar {
+    height: auto;
+    min-height: 82px;
+    flex-wrap: wrap;
+    padding: 10px 16px;
+  }
+
+  body.tv-remote .watch {
+    grid-template-columns: 1fr;
+  }
+
+  body.tv-remote .video-frame {
+    min-height: 0;
+    max-height: 48vh;
+  }
+
+  body.tv-remote .channel-panel #channel-list {
+    max-height: 42vh;
+  }
+}

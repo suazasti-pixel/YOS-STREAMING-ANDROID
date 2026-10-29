@@ -48,6 +48,7 @@ La carpeta web/ conserva la versión PWA separada y la carpeta app/ conserva la 
 - En Windows, usar los comandos `.cmd` de webOS CLI para evitar el bloqueo de scripts `.ps1` de PowerShell: `ares-setup-device.cmd`, `ares-novacom.cmd --device myTV --getkey`, `ares-install.cmd --device myTV "RUTA\A\APP.ipk"` y `ares-launch.cmd --device myTV com.yos.streaming.tv`.
 - Al ejecutar `ares-novacom.cmd --device myTV --getkey`, escribir la passphrase vigente del Developer Mode en el prompt `Input passphrase:` y pulsar Enter. No se incluye ni se guarda esa clave en este repositorio. Si no avanza, recoger el texto exacto del prompt/error ocultando la passphrase.
 - Mantener Developer Mode activo durante la instalación y pruebas. Revisar `webos/LEEME-INSTALACION.md` y el artefacto `YOS-STREAMING-LG-webOS-IPK` de GitHub Actions para obtener el `.ipk`.
+- Ajuste de legibilidad para TV en curso: `web/tv.css` aumenta tamaños y espacios cuando se detecta un control remoto (`body.tv-remote`) y marca el foco con un contorno rojo. Solo se carga desde la PWA/webOS, no desde los assets Android.
 
 ## Segunda app YOS Xtream
 

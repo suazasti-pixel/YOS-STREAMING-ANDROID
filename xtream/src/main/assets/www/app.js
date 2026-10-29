@@ -114,6 +114,7 @@ async function loadCategories(kind) {
       option.textContent = row.category_name || "Categoría";
       $("category").append(option);
     }
+    if (document.body.classList.contains("tv-remote")) requestAnimationFrame(() => $("category").focus());
     setStatus("catalog-status", rows.length ? "Elige una categoría para cargar el contenido." : "El proveedor no devolvió categorías para esta sección.");
   } catch (error) {
     $("category").innerHTML = '<option value="">Sin categorías</option>';
@@ -139,6 +140,9 @@ async function loadItems(categoryId) {
     state.limit = 100;
     applySearch();
     setStatus("catalog-status", rows.length ? "Selecciona un elemento para reproducir." : "Esta categoría no tiene contenido.", rows.length ? "ok" : "");
+    if (rows.length && document.body.classList.contains("tv-remote")) {
+      requestAnimationFrame(() => document.querySelector(".content-card")?.focus());
+    }
   } catch (error) {
     state.items = [];
     state.filtered = [];
@@ -227,6 +231,7 @@ async function showEpisodes(series) {
     renderEpisodes(episodes);
     $("episodes-title").textContent = series.name || "Episodios";
     $("episodes-dialog").showModal();
+    if (document.body.classList.contains("tv-remote")) requestAnimationFrame(() => $("episode-list").querySelector("button")?.focus());
     setStatus("catalog-status", "");
   } catch (error) { setStatus("catalog-status", error.message, "error"); }
 }
@@ -293,7 +298,44 @@ try {
 try {
   if (bridge()?.isTelevision()) {
     document.body.classList.add("tv-remote");
-    window.addEventListener("keydown", event => {
+    document.addEventListener("keydown", event => {
+      const direction = {
+        ArrowLeft: [-1, 0], ArrowRight: [1, 0],
+        ArrowUp: [0, -1], ArrowDown: [0, 1]
+      }[event.key];
+      const active = document.activeElement;
+      const editing = active && (/^(INPUT|TEXTAREA|SELECT)$/.test(active.tagName) || active.isContentEditable);
+      if (direction && !editing) {
+        const [dx, dy] = direction;
+        const origin = active && active !== document.body ? active.getBoundingClientRect() : null;
+        const cx = origin ? origin.left + origin.width / 2 : innerWidth / 2;
+        const cy = origin ? origin.top + origin.height / 2 : innerHeight / 2;
+        const candidates = [...document.querySelectorAll("a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex='-1'])")]
+          .filter(element => element !== active && !element.closest("[hidden],[inert]") && getComputedStyle(element).visibility !== "hidden")
+          .map(element => ({ element, rect: element.getBoundingClientRect() }))
+          .filter(candidate => candidate.rect.width > 0 && candidate.rect.height > 0);
+        let best = null;
+        let bestScore = Infinity;
+        for (const candidate of candidates) {
+          const x = candidate.rect.left + candidate.rect.width / 2;
+          const y = candidate.rect.top + candidate.rect.height / 2;
+          const primary = dx ? (x - cx) * dx : (y - cy) * dy;
+          if (primary < 5) continue;
+          const cross = dx ? Math.abs(y - cy) : Math.abs(x - cx);
+          const score = primary + cross * 1.7;
+          if (score < bestScore) { best = candidate.element; bestScore = score; }
+        }
+        if (best) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          best.focus({ preventScroll: true });
+          best.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
+          document.querySelectorAll(".remote-focus").forEach(element => element.classList.remove("remote-focus"));
+          best.classList.add("remote-focus");
+          setTimeout(() => best.classList.remove("remote-focus"), 1100);
+          return;
+        }
+      }
       if (event.key === "ChannelUp" || event.key === "ChannelDown") {
         const cards = [...document.querySelectorAll(".content-card")];
         const index = cards.indexOf(document.activeElement);

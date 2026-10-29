@@ -1,0 +1,265 @@
+/* Aumenta la legibilidad y el área de selección en Android TV / TV Box. */
+body.tv-remote {
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+body.tv-remote .topbar {
+  height: 82px;
+  gap: 22px;
+  padding-inline: 3vw;
+}
+
+body.tv-remote .brand {
+  min-width: 190px;
+}
+
+body.tv-remote .brand-mark {
+  width: 54px;
+  height: 54px;
+  font-size: 30px;
+}
+
+body.tv-remote .brand b {
+  font-size: 25px;
+}
+
+body.tv-remote .brand small {
+  font-size: 11px;
+}
+
+body.tv-remote .header-caption {
+  font-size: 13px;
+}
+
+body.tv-remote .topbar .button,
+body.tv-remote .login-card input,
+body.tv-remote .login-card .button,
+body.tv-remote .search-box input,
+body.tv-remote .filters select,
+body.tv-remote .tab,
+body.tv-remote .load-more {
+  min-height: 58px;
+  font-size: 17px;
+}
+
+body.tv-remote main {
+  width: 92vw;
+  max-width: 1800px;
+  margin: 26px auto;
+}
+
+body.tv-remote .login-wrap {
+  min-height: calc(100vh - 150px);
+}
+
+body.tv-remote .login-card {
+  width: min(680px, 76vw);
+  padding: 38px 44px;
+  border-radius: 22px;
+}
+
+body.tv-remote .login-card h1,
+body.tv-remote .catalog-head h1 {
+  font-size: 38px;
+}
+
+body.tv-remote .eyebrow {
+  font-size: 13px;
+}
+
+body.tv-remote .intro,
+body.tv-remote .muted,
+body.tv-remote .fine-print,
+body.tv-remote .warning {
+  font-size: 16px;
+}
+
+body.tv-remote form > label:not(.remember),
+body.tv-remote .remember {
+  font-size: 16px;
+}
+
+body.tv-remote .login-card input:not([type="checkbox"]) {
+  min-height: 62px;
+  padding-inline: 17px;
+  font-size: 19px;
+}
+
+body.tv-remote .login-card input[type="checkbox"] {
+  width: 24px;
+  height: 24px;
+}
+
+body.tv-remote .button.primary {
+  min-height: 62px;
+  font-size: 17px;
+}
+
+body.tv-remote .catalog-head {
+  align-items: center;
+}
+
+body.tv-remote .catalog-head h1 {
+  margin-top: 5px;
+}
+
+body.tv-remote .search-box {
+  width: min(480px, 36vw);
+}
+
+body.tv-remote .search-box span {
+  font-size: 30px;
+}
+
+body.tv-remote .search-box input {
+  min-height: 56px;
+}
+
+body.tv-remote .tabs {
+  gap: 12px;
+  padding: 18px 0;
+}
+
+body.tv-remote .tab {
+  min-width: 190px;
+  padding-inline: 24px;
+  font-size: 16px;
+}
+
+body.tv-remote .filters {
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+body.tv-remote .filters select {
+  min-width: min(420px, 40vw);
+  padding-inline: 16px;
+}
+
+body.tv-remote .content-grid {
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 18px;
+}
+
+body.tv-remote .content-card {
+  border-radius: 15px;
+  transition: outline-color .12s, border-color .12s, transform .12s;
+}
+
+body.tv-remote .poster {
+  aspect-ratio: 16 / 10;
+  font-size: 42px;
+}
+
+body.tv-remote .card-body {
+  padding: 15px;
+}
+
+body.tv-remote .card-title {
+  min-height: 54px;
+  font-size: 17px;
+}
+
+body.tv-remote .card-meta {
+  font-size: 14px;
+}
+
+body.tv-remote .catalog-head,
+body.tv-remote .tabs,
+body.tv-remote .filters,
+body.tv-remote .content-grid,
+body.tv-remote #load-more {
+  scroll-margin-block: 28px;
+}
+
+body.tv-remote :focus-visible,
+body.tv-remote .remote-focus {
+  outline: 4px solid #ff5276 !important;
+  outline-offset: 4px !important;
+  box-shadow: 0 0 0 7px #ff174d40, 0 0 24px #ff174d99 !important;
+  position: relative;
+  z-index: 3;
+}
+
+body.tv-remote .content-card:focus-visible,
+body.tv-remote .content-card.remote-focus,
+body.tv-remote .tab:focus-visible,
+body.tv-remote .tab.remote-focus {
+  border-color: #ff5276;
+  background-color: #26111a;
+  transform: scale(1.025);
+}
+
+body.tv-remote .episodes-dialog {
+  width: min(1000px, 88vw);
+  max-height: 86vh;
+  padding: 26px;
+}
+
+body.tv-remote .dialog-head h2 {
+  font-size: 28px;
+}
+
+body.tv-remote .icon-button {
+  width: 58px;
+  height: 58px;
+  font-size: 36px;
+}
+
+body.tv-remote .episode-list {
+  max-height: 66vh;
+  gap: 10px;
+}
+
+body.tv-remote .episode-button {
+  min-height: 60px;
+  font-size: 17px;
+}
+
+body.tv-remote .season-title {
+  font-size: 16px;
+}
+
+body.tv-remote .status {
+  font-size: 15px;
+}
+
+@media (max-width: 760px) {
+  body.tv-remote .topbar {
+    height: auto;
+    min-height: 72px;
+    padding: 10px 4vw;
+  }
+
+  body.tv-remote .header-caption {
+    display: none;
+  }
+
+  body.tv-remote main {
+    width: 94vw;
+    margin: 18px auto;
+  }
+
+  body.tv-remote .login-card {
+    width: 100%;
+    padding: 26px 22px;
+  }
+
+  body.tv-remote .catalog-head {
+    align-items: stretch;
+  }
+
+  body.tv-remote .search-box {
+    width: 100%;
+  }
+
+  body.tv-remote .content-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  body.tv-remote .tab {
+    min-width: 160px;
+  }
+}

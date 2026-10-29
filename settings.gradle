@@ -6,4 +6,4 @@ dependencyResolutionManagement {
     repositories { google(); mavenCentral() }
 }
 rootProject.name = "YOSStreamingAndroid"
-include(":app", ":xtream")
+include(":app", ":xtream", ":yosplay")

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07090d">
+  <title>YOS Play</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="tv.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#inicio" aria-label="YOS Play inicio">
+      <span class="brand-logo-window"><img class="brand-mark" src="yos-logo-header.png" alt=""></span><span class="brand-wordmark">YOS<small>PLAY</small></span>
+    </a>
+    <span class="header-caption">TU CONTENIDO, EN UN SOLO LUGAR</span>
+    <button id="logout" class="button subtle" hidden>CERRAR SESIÓN</button>
+  </header>
+
+  <main>
+    <section id="login-view" class="login-wrap">
+      <div class="login-card">
+        <span class="eyebrow">YOS STREAMING</span>
+        <h1>Conecta tu cuenta</h1>
+        <p class="intro">Ingresa los datos Xtream entregados por tu proveedor autorizado.</p>
+        <form id="login-form" autocomplete="on">
+          <label for="server">Servidor</label>
+          <input id="server" name="server" type="url" inputmode="url" placeholder="Servidor o enlace completo get.php" autocomplete="url" required>
+          <small class="fine-print">Puedes pegar el servidor (http://servidor:puerto) o el enlace M3U get.php completo.</small>
+          <label for="username">Usuario</label>
+          <input id="username" name="username" type="text" autocomplete="username" required>
+          <label for="password">Contraseña</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required>
+          <label class="remember"><input id="remember" type="checkbox"><span>Recordar esta cuenta en este dispositivo</span></label>
+          <p id="http-warning" class="warning" hidden>Este servidor usa HTTP: usuario y contraseña viajan sin cifrado. Si tu proveedor ofrece HTTPS, úsalo.</p>
+          <button id="login-button" class="button primary" type="submit">INICIAR SESIÓN</button>
+        </form>
+        <button id="clear-saved" class="text-button" type="button" hidden>Quitar cuenta guardada</button>
+        <p id="login-status" class="status" role="status" aria-live="polite"></p>
+        <p class="fine-print">Las credenciales recordadas se cifran en este dispositivo. Se envían al servidor que escribas al iniciar sesión.</p>
+      </div>
+    </section>
+
+    <section id="catalog-view" hidden>
+      <div class="catalog-head">
+        <div><span class="eyebrow">TU BIBLIOTECA</span><h1 id="catalog-title">Canales en vivo</h1><p id="account-summary" class="muted"></p></div>
+        <label class="search-box"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Buscar contenido" autocomplete="off"></label>
+      </div>
+      <nav class="tabs" aria-label="Tipo de contenido">
+        <button class="tab active" data-kind="live">TV EN VIVO</button>
+        <button class="tab" data-kind="movie">PELÍCULAS</button>
+        <button class="tab" data-kind="series">SERIES</button>
+        <button id="favorites-tab" class="tab" type="button">☆ FAVORITOS</button>
+      </nav>
+      <div class="filters">
+        <label class="sr-only" for="category">Categoría</label>
+        <select id="category"><option value="">Selecciona una categoría</option></select>
+        <span id="catalog-count" class="muted"></span>
+      </div>
+      <p id="catalog-status" class="status" role="status" aria-live="polite">Elige una categoría para cargar su contenido.</p>
+      <section id="guide-panel" class="guide-panel" aria-live="polite" hidden>
+        <div class="guide-heading"><span class="eyebrow">GUÍA EN VIVO</span><strong id="guide-channel"></strong></div>
+        <div class="guide-programs">
+          <article><span>AHORA</span><p id="guide-now">Consultando programación…</p></article>
+          <article><span>SIGUE</span><p id="guide-next">Consultando programación…</p></article>
+        </div>
+      </section>
+      <div id="content-grid" class="content-grid"></div>
+      <button id="load-more" class="button subtle load-more" hidden>CARGAR MÁS</button>
+    </section>
+  </main>
+
+  <dialog id="episodes-dialog" class="episodes-dialog">
+    <div class="dialog-head"><div><span class="eyebrow">SERIE</span><h2 id="episodes-title">Episodios</h2></div><button id="close-episodes" class="icon-button" aria-label="Cerrar">×</button></div>
+    <div id="episode-list" class="episode-list"></div>
+  </dialog>
+  <script src="app.js"></script>
+</body>
+</html>

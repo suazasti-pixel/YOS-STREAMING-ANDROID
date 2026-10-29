@@ -1,4 +1,4 @@
-name: Crear APK YOS Streaming
+name: Compilar aplicaciones Android YOS
 
 on:
   workflow_dispatch:
@@ -38,4 +38,11 @@ jobs:
         with:
           name: YOS-XTREAM-APK
           path: xtream/build/outputs/apk/debug/xtream-debug.apk
+          if-no-files-found: error
+
+      - name: Guardar APK YOS Play para descargar
+        uses: actions/upload-artifact@v4
+        with:
+          name: YOS-PLAY-APK
+          path: yosplay/build/outputs/apk/debug/yosplay-debug.apk
           if-no-files-found: error

@@ -99,3 +99,11 @@ No guardar usuarios, contraseñas ni enlaces privados en el código, en commits,
 - Se corrigió el encabezado de YOS Xtream para usar la imagen yos-logo-header.png del paquete, en vez de una letra Y genérica.
 - Se unificó el tratamiento del logo de la página web y de la app Android YOS Streaming: tamaño horizontal más visible, imagen completa sin recorte y caché renovada.
 - Android YOS Streaming actualizado a versión 1.8 (versionCode 9); GitHub Actions publica ambos APK.
+
+## Tercera app independiente: YOS Play
+
+- El módulo yosplay/ es una app separada con paquete Android com.yos.streaming.yosplay y datos de cuenta independientes.
+- Basada en el reproductor Media3 y las funciones autorizadas de YOS Xtream: acceso Xtream, canales, películas, series, favoritos locales y EPG disponible del proveedor.
+- No integra credenciales ni listas preconfiguradas. Mantiene marca YOS y su propio APK.
+- GitHub Actions publica el artefacto YOS-PLAY-APK además de los dos APK existentes.
+- No se pudo compilar localmente porque Gradle no está instalado en este equipo; la compilación automatizada se ejecutará en Actions al subir el commit.

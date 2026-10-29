@@ -217,3 +217,8 @@ main{padding-top:6px;padding-bottom:8px;gap:0}
 /* Reproduce el logotipo original sin aplastarlo y déjalo visible como marca de fondo. */
 body{background-image:linear-gradient(180deg,rgba(3,6,9,.70),rgba(3,6,9,.86) 62%,rgba(3,6,9,.92)),url("assets/yos-laptop.png");background-position:center,center 4vh;background-size:cover,cover;background-attachment:fixed,fixed}
 .brand{gap:11px;padding-right:16px}.brand-logo-window{display:grid;place-items:center;flex:0 0 60px;width:60px;height:58px;overflow:hidden;border:1px solid #ffffff70;border-radius:13px;background:#020407;box-shadow:0 0 18px #ffffff26}.brand-mark{display:block;width:100%;height:100%;object-fit:contain;object-position:center;transform:none;border:0;border-radius:0;background:#020407;filter:contrast(1.15)}.brand-wordmark{font-size:26px;letter-spacing:.2px;color:#fff;text-shadow:0 2px 12px #ffffff24}.brand-wordmark small{font-size:9px;letter-spacing:3.4px;margin-top:6px;color:#dce4eb}@media(max-width:1000px){.brand-logo-window{flex-basis:56px;width:56px;height:54px}.brand-wordmark{font-size:24px}}@media(max-width:680px){.brand{padding:0;gap:8px}.brand-logo-window{width:50px;height:48px;flex-basis:50px}.brand-wordmark{font-size:21px}}
+
+/* Logotipo completo, sin recorte ni compresión. */
+.brand-logo-window{flex-basis:68px;width:68px;height:64px}
+.brand-mark{object-fit:contain;object-position:center;transform:none}
+@media(max-width:1000px){.brand-logo-window{flex-basis:58px;width:58px;height:56px}}

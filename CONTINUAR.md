@@ -93,3 +93,9 @@ No guardar usuarios, contraseñas ni enlaces privados en el código, en commits,
 - En TV en vivo, enfocar un canal muestra una guía breve **Ahora / Sigue** cuando la API del proveedor ofrece get_short_epg. Si no hay datos, el canal se sigue pudiendo reproducir.
 - La estrella y el panel EPG tienen controles más amplios para TV Box y navegación con control remoto.
 - Android ersionCode 5, versión 1.4.0. GitHub Actions genera el APK actualizado.
+
+## Encabezado y logotipo YOS (2026-10-29)
+
+- Se corrigió el encabezado de YOS Xtream para usar la imagen yos-logo-header.png del paquete, en vez de una letra Y genérica.
+- Se unificó el tratamiento del logo de la página web y de la app Android YOS Streaming: tamaño horizontal más visible, imagen completa sin recorte y caché renovada.
+- Android YOS Streaming actualizado a versión 1.8 (versionCode 9); GitHub Actions publica ambos APK.

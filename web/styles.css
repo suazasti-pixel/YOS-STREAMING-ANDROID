@@ -199,3 +199,8 @@ body{background-image:linear-gradient(180deg,rgba(3,6,9,.70),rgba(3,6,9,.86) 62%
 
 /* Mantener la marca nítida en WebView, navegador y PWA. */
 .brand-mark{transform:none;object-fit:contain;object-position:center}
+
+/* Logotipo completo, sin recorte ni compresión. */
+.brand-logo-window{flex-basis:68px;width:68px;height:64px}
+.brand-mark{object-fit:contain;object-position:center;transform:none}
+@media(max-width:1000px){.brand-logo-window{flex-basis:58px;width:58px;height:56px}}

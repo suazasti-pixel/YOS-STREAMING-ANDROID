@@ -303,3 +303,7 @@ body.tv-remote .status {
     min-width: 160px;
   }
 }
+
+body.tv-remote .brand-logo-window{flex-basis:68px;width:68px;height:64px}
+body.tv-remote .brand-wordmark{font-size:28px}
+body.tv-remote .brand-wordmark small{font-size:12px}

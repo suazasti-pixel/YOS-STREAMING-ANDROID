@@ -16,3 +16,11 @@
 .guide-programs article p { margin: 4px 0 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
 .empty-state { grid-column: 1/-1; padding: 18px; }
 @media(max-width:650px){.guide-panel{grid-template-columns:1fr;gap:8px;padding:12px}.guide-programs article p{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}.favorite-toggle{width:38px;min-height:38px;font-size:22px}}
+
+/* Logo YOS completo y legible en el encabezado Xtream. */
+.brand{gap:11px;min-width:190px;padding-right:16px;border-right:1px solid #ffffff24}
+.brand-logo-window{display:grid;place-items:center;flex:0 0 64px;width:64px;height:60px;overflow:hidden;border:1px solid #ffffff70;border-radius:12px;background:#020407;box-shadow:0 0 18px #ffffff26}
+.brand-mark{display:block;width:100%;height:100%;object-fit:contain;object-position:center;transform:none;border:0;border-radius:0;background:#020407;filter:contrast(1.12)}
+.brand-wordmark{font-size:25px;letter-spacing:.2px;color:#fff;text-shadow:0 2px 12px #ffffff24}
+.brand-wordmark small{display:block;font-size:9px;letter-spacing:3.4px;margin-top:5px;color:#dce4eb}
+@media(max-width:650px){.brand{min-width:0}.brand-logo-window{flex-basis:52px;width:52px;height:50px}.brand-wordmark{font-size:21px}}

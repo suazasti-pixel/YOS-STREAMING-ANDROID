@@ -17,6 +17,31 @@
 .empty-state { grid-column: 1/-1; padding: 18px; }
 @media(max-width:650px){.guide-panel{grid-template-columns:1fr;gap:8px;padding:12px}.guide-programs article p{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}.favorite-toggle{width:38px;min-height:38px;font-size:22px}}
 
+/* Inicio de sesión compacto para teléfonos; tv.css conserva el tamaño de TV Box. */
+@media(max-width:650px){
+  .topbar{height:56px;gap:8px;padding:0 12px}
+  .brand{gap:8px;min-width:0;padding-right:0;border-right:0}
+  .brand-logo-window{flex-basis:40px;width:40px;height:40px;border-radius:9px}
+  .brand-wordmark{font-size:18px;line-height:1}
+  .brand-wordmark small{font-size:7px;letter-spacing:2px;margin-top:3px}
+  .topbar .button{min-height:38px;padding:0 8px;font-size:10px}
+  main{width:calc(100% - 28px);margin:12px auto}
+  .login-wrap{display:block;min-height:0;padding:8px 0}
+  .login-card{width:100%;padding:20px 18px;border-radius:16px}
+  .eyebrow{font-size:9px;letter-spacing:1.7px}
+  .login-card h1,.catalog-head h1{font-size:clamp(23px,6vw,28px);margin:6px 0;line-height:1.12}
+  .intro{font-size:14px;line-height:1.4;margin:0 0 12px}
+  form{gap:6px}
+  form>label:not(.remember){font-size:12px;margin-top:4px}
+  input,select{min-height:42px;padding:0 11px;font-size:14px}
+  .login-card form>.fine-print{font-size:10px;line-height:1.3;margin:-3px 0 1px}
+  .remember{gap:8px;margin:5px 0 2px;font-size:11px}
+  .remember input{width:16px;height:16px;flex:0 0 16px}
+  .button.primary{min-height:46px;font-size:12px;margin-top:3px}
+  .login-card>.fine-print{font-size:10px;line-height:1.35;margin:12px 0 0}
+  .status{min-height:0;margin:8px 0 2px;font-size:12px}
+}
+
 /* Logo YOS completo y legible en el encabezado Xtream. */
 .brand{gap:11px;min-width:190px;padding-right:16px;border-right:1px solid #ffffff24}
 .brand-logo-window{display:grid;place-items:center;flex:0 0 64px;width:64px;height:60px;overflow:hidden;border:1px solid #ffffff70;border-radius:12px;background:#020407;box-shadow:0 0 18px #ffffff26}

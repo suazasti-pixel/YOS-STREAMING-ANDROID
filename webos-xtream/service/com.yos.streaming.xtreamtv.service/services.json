@@ -1,0 +1,14 @@
+{
+  "services": [
+    {
+      "name": "com.yos.streaming.xtreamtv.service",
+      "description": "Consultas Xtream autorizadas de YOS Xtream LG",
+      "commands": [
+        {
+          "name": "requestApi",
+          "description": "Consulta player_api.php para la cuenta ingresada en la app"
+        }
+      ]
+    }
+  ]
+}

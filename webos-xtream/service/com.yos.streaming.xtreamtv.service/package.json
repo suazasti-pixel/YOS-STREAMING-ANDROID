@@ -1,0 +1,4 @@
+{
+  "name": "com.yos.streaming.xtreamtv.service",
+  "main": "service.js"
+}

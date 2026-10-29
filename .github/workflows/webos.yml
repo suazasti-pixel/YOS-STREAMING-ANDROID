@@ -7,7 +7,10 @@ on:
     paths:
       - "web/**"
       - "webos/**"
+      - "webos-xtream/**"
       - "scripts/build-webos.sh"
+      - "scripts/build-webos-xtream.sh"
+      - "xtream/src/main/assets/www/**"
       - ".github/workflows/webos.yml"
 
 permissions:
@@ -36,5 +39,16 @@ jobs:
         with:
           name: YOS-STREAMING-LG-webOS-IPK
           path: build/webos-package/*.ipk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Crear paquete YOS Xtream para LG webOS
+        run: bash scripts/build-webos-xtream.sh
+
+      - name: Guardar instalador YOS Xtream para TV LG
+        uses: actions/upload-artifact@v4
+        with:
+          name: YOS-XTREAM-LG-webOS-IPK
+          path: build/webos-xtream-package/*.ipk
           if-no-files-found: error
           retention-days: 30

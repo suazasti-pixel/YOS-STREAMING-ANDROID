@@ -1,0 +1,12 @@
+{
+  "id": "com.yos.streaming.xtreamtv",
+  "version": "1.0.0",
+  "vendor": "YOS STREAMING",
+  "type": "web",
+  "main": "index.html",
+  "title": "YOS Xtream LG",
+  "icon": "icon.png",
+  "largeIcon": "largeIcon.png",
+  "iconColor": "#03070b",
+  "appDescription": "YOS Xtream optimizado para el control Magic de LG webOS"
+}

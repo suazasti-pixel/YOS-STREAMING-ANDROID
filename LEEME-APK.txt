@@ -12,6 +12,11 @@ CÓMO GENERAR EL APK EN WINDOWS
    app/build/outputs/apk/debug/app-debug.apk
 7. Pasa app-debug.apk a tu teléfono Android, ábrelo y autoriza instalar aplicaciones de esa fuente si Android lo solicita.
 
+SEGUNDA APP PARA CUENTAS XTREAM
+Al compilar el proyecto también se genera:
+   xtream/build/outputs/apk/debug/xtream-debug.apk
+Esta app independiente acepta servidores compatibles con Xtream Codes API (player_api.php), y permite explorar TV en vivo, películas y series. En GitHub Actions se descarga como artifact YOS-XTREAM-APK.
+
 INCLUYE
 - La versión web YOS Streaming con TV en vivo, películas y series.
 - Fondo yos-laptop y estilos compactos.
@@ -22,3 +27,4 @@ IMPORTANTE
 - Este entorno no tiene Android SDK/Gradle configurado, por lo que se entrega el proyecto Android listo para abrir y compilar, no un APK ya compilado.
 - Las listas y transmisiones dependen de proveedores autorizados, URLs activas y compatibilidad del navegador. Algunas URLs HTTP o streams pueden fallar por CORS, DRM o restricciones del proveedor.
 - No compartas públicamente listas que contengan credenciales. El almacenamiento local de la aplicación guarda datos en tu dispositivo.
+- En YOS Xtream, las credenciales guardadas se cifran localmente con Android Keystore. Si el servidor usa HTTP, las credenciales no van cifradas por la red.

@@ -1,0 +1,11 @@
+<resources>
+    <style name="XtreamTheme" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:colorAccent">#ff174d</item>
+        <item name="android:statusBarColor">#07090d</item>
+        <item name="android:navigationBarColor">#07090d</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowActionModeOverlay">true</item>
+        <item name="android:windowBackground">#07090d</item>
+    </style>
+</resources>

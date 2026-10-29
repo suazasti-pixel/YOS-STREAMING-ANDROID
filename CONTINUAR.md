@@ -19,6 +19,7 @@
 ## Estructura
 
 - app/: aplicación Android para celular y TV Box.
+- xtream/: segunda aplicación Android independiente para servidores autorizados compatibles con Xtream Codes API.
 - app/src/main/assets/www/: interfaz web incluida dentro de la aplicación Android.
 - web/: versión PWA independiente de la plataforma web.
 - app/src/main/java/com/yos/streaming/MainActivity.java: integración Android, incluido el acceso de red para cargar listas.
@@ -31,11 +32,20 @@
 
 También se puede compilar localmente con Java 17 y Gradle 8.7 ejecutando gradle assembleDebug.
 
+El mismo build genera también `xtream/build/outputs/apk/debug/xtream-debug.apk`; en GitHub Actions se descarga como artifact `YOS-XTREAM-APK`.
+
 ## Continuidad desde otra cuenta
 
 El repositorio es la copia principal del proyecto. Otra cuenta puede abrir o clonar el repositorio público. Para subir cambios desde esa cuenta, el propietario debe agregarla como colaboradora o transferir el repositorio desde GitHub.
 
 La carpeta web/ conserva la versión PWA separada y la carpeta app/ conserva la versión instalable Android. Al cambiar la interfaz, revisar si el cambio debe aplicarse a ambas.
+
+## Segunda app YOS Xtream
+
+- La app separada vive en `xtream/` y usa el paquete `com.yos.streaming.xtream`, por lo que se instala junto a YOS Streaming.
+- Permite conectar a `player_api.php`, explorar categorías de TV en vivo, películas y series, y reproducir con el player nativo Media3.
+- Si se marca **Recordar esta cuenta**, servidor, usuario y contraseña se cifran con AES-GCM usando Android Keystore. No se guardan en archivos del proyecto ni en GitHub.
+- Proveedores que solo entregan M3U, deshabilitan la API Xtream o usan rutas incompatibles no podrán iniciar sesión en esta app. HTTP no cifra credenciales durante el transporte; la app muestra un aviso y recomienda HTTPS si el proveedor lo ofrece.
 
 ## Datos IPTV y privacidad
 

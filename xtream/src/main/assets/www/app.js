@@ -1,14 +1,28 @@
 "use strict";
 
 const $ = id => document.getElementById(id);
-const state = { credentials: null, kind: "live", categories: [], items: [], filtered: [], limit: 100, series: null };
+const PAGE_SIZE = 60;
+const ITEM_CACHE_LIMIT = 3;
+const state = { credentials: null, kind: "live", categories: [], items: [], filtered: [], limit: PAGE_SIZE, series: null };
 const kinds = {
   live: { title: "Canales en vivo", categories: "get_live_categories", items: "get_live_streams", singular: "live" },
   movie: { title: "Películas", categories: "get_vod_categories", items: "get_vod_streams", singular: "movie" },
   series: { title: "Series", categories: "get_series_categories", items: "get_series", singular: "series" }
 };
 let requestSequence = 0;
+let categoryRequestSequence = 0;
+let itemRequestSequence = 0;
+let searchTimer = 0;
 const pending = new Map();
+const categoryCache = new Map();
+const itemCache = new Map();
+const seriesCache = new Map();
+
+function cacheItems(key, rows) {
+  itemCache.delete(key);
+  itemCache.set(key, rows);
+  while (itemCache.size > ITEM_CACHE_LIMIT) itemCache.delete(itemCache.keys().next().value);
+}
 
 function setStatus(id, message, type = "") {
   const el = $(id);
@@ -104,6 +118,9 @@ $("login-form").addEventListener("submit", async event => {
     const stored = bridge().saveCredentials(server, username, password, $("remember").checked);
     const storageResult = readAccount(stored);
     if (!storageResult.ok) throw new Error(storageResult.error || "No se pudieron guardar las credenciales.");
+    categoryCache.clear();
+    itemCache.clear();
+    seriesCache.clear();
     $("login-view").hidden = true;
     $("catalog-view").hidden = false;
     $("logout").hidden = false;
@@ -118,36 +135,52 @@ $("login-form").addEventListener("submit", async event => {
 });
 
 async function loadCategories(kind) {
+  const requestId = ++categoryRequestSequence;
+  itemRequestSequence++;
   state.kind = kind;
   state.categories = [];
   state.items = [];
   state.filtered = [];
-  state.limit = 100;
+  state.limit = PAGE_SIZE;
   $("catalog-title").textContent = kinds[kind].title;
   $("content-grid").replaceChildren();
   $("catalog-count").textContent = "";
   $("load-more").hidden = true;
   $("search").value = "";
+  $("category").disabled = false;
+  const cachedRows = categoryCache.get(kind);
+  if (cachedRows) {
+    showCategories(kind, cachedRows);
+    setStatus("catalog-status", cachedRows.length ? "Elige una categoría para cargar el contenido." : "El proveedor no devolvió categorías para esta sección.");
+    return;
+  }
   $("category").innerHTML = '<option value="">Cargando categorías…</option>';
   setStatus("catalog-status", "Cargando categorías…");
   try {
     const rows = await callApi(kinds[kind].categories);
+    if (requestId !== categoryRequestSequence || state.kind !== kind) return;
     if (!Array.isArray(rows)) throw new Error("El proveedor devolvió categorías con formato no reconocido.");
-    state.categories = rows;
-    $("category").innerHTML = '<option value="">Selecciona una categoría</option>';
-    for (const row of rows) {
-      if (!row || row.category_id == null) continue;
-      const option = document.createElement("option");
-      option.value = String(row.category_id);
-      option.textContent = row.category_name || "Categoría";
-      $("category").append(option);
-    }
-    if (document.body.classList.contains("tv-remote")) requestAnimationFrame(() => $("category").focus());
+    categoryCache.set(kind, rows);
+    showCategories(kind, rows);
     setStatus("catalog-status", rows.length ? "Elige una categoría para cargar el contenido." : "El proveedor no devolvió categorías para esta sección.");
   } catch (error) {
+    if (requestId !== categoryRequestSequence) return;
     $("category").innerHTML = '<option value="">Sin categorías</option>';
     setStatus("catalog-status", error.message, "error");
   }
+}
+
+function showCategories(kind, rows) {
+  state.categories = rows;
+  $("category").innerHTML = '<option value="">Selecciona una categoría</option>';
+  for (const row of rows) {
+    if (!row || row.category_id == null) continue;
+    const option = document.createElement("option");
+    option.value = String(row.category_id);
+    option.textContent = row.category_name || "Categoría";
+    $("category").append(option);
+  }
+  if (document.body.classList.contains("tv-remote")) requestAnimationFrame(() => $("category").focus());
 }
 
 async function loadItems(categoryId) {
@@ -158,31 +191,48 @@ async function loadItems(categoryId) {
     setStatus("catalog-status", "Elige una categoría para cargar el contenido.");
     return;
   }
+  const kind = state.kind;
+  const requestId = ++itemRequestSequence;
+  const cacheKey = kind + ":" + categoryId;
+  const cachedRows = itemCache.get(cacheKey);
+  if (cachedRows) {
+    itemCache.delete(cacheKey);
+    itemCache.set(cacheKey, cachedRows);
+    state.items = cachedRows;
+    state.limit = PAGE_SIZE;
+    applySearch();
+    setStatus("catalog-status", "Contenido cargado.", "ok");
+    if (document.body.classList.contains("tv-remote")) requestAnimationFrame(() => document.querySelector(".content-card")?.focus());
+    return;
+  }
   $("category").disabled = true;
   $("content-grid").replaceChildren();
   setStatus("catalog-status", "Cargando " + kinds[state.kind].title.toLowerCase() + "…");
   try {
-    const rows = await callApi(kinds[state.kind].items, categoryId);
+    const rows = await callApi(kinds[kind].items, categoryId);
+    if (requestId !== itemRequestSequence || state.kind !== kind || $("category").value !== String(categoryId)) return;
     if (!Array.isArray(rows)) throw new Error("El proveedor devolvió contenido con formato no reconocido.");
+    cacheItems(cacheKey, rows);
     state.items = rows;
-    state.limit = 100;
+    state.limit = PAGE_SIZE;
     applySearch();
     setStatus("catalog-status", rows.length ? "Selecciona un elemento para reproducir." : "Esta categoría no tiene contenido.", rows.length ? "ok" : "");
     if (rows.length && document.body.classList.contains("tv-remote")) {
       requestAnimationFrame(() => document.querySelector(".content-card")?.focus());
     }
   } catch (error) {
+    if (requestId !== itemRequestSequence || state.kind !== kind) return;
     state.items = [];
     state.filtered = [];
     renderItems();
     setStatus("catalog-status", error.message, "error");
-  } finally { $("category").disabled = false; }
+  } finally { if (requestId === itemRequestSequence) $("category").disabled = false; }
 }
 
 function applySearch() {
   const q = $("search").value.trim().toLocaleLowerCase();
   state.filtered = q ? state.items.filter(item => String(item.name || "").toLocaleLowerCase().includes(q)) : [...state.items];
-  state.limit = 100;
+  state.limit = PAGE_SIZE;
   renderItems();
 }
 
@@ -194,12 +244,20 @@ function renderItems() {
     const button = document.createElement("button");
     button.className = "content-card";
     button.type = "button";
-    const img = document.createElement("img");
-    img.className = "poster";
-    img.loading = "lazy";
-    img.alt = "";
-    img.src = item.stream_icon || item.cover || "";
-    img.onerror = () => { const fallback = document.createElement("div"); fallback.className = "poster"; fallback.textContent = "Y"; img.replaceWith(fallback); };
+    const posterUrl = item.stream_icon || item.cover || "";
+    let poster;
+    if (/^https?:\/\//i.test(posterUrl)) {
+      const img = document.createElement("img");
+      img.className = "poster";
+      img.loading = "lazy";
+      img.decoding = "async";
+      img.alt = "";
+      img.src = posterUrl;
+      img.onerror = () => img.replaceWith(posterPlaceholder(item.name));
+      poster = img;
+    } else {
+      poster = posterPlaceholder(item.name);
+    }
     const body = document.createElement("div");
     body.className = "card-body";
     const title = document.createElement("div");
@@ -209,12 +267,20 @@ function renderItems() {
     meta.className = "card-meta";
     meta.textContent = item.category_name || (state.kind === "live" ? "TV en vivo" : state.kind === "movie" ? "Película" : "Serie");
     body.append(title, meta);
-    button.append(img, body);
+    button.append(poster, body);
     button.addEventListener("click", () => selectItem(item));
     box.append(button);
   }
   $("catalog-count").textContent = state.filtered.length ? state.filtered.length + " elementos" : "";
   $("load-more").hidden = page.length >= state.filtered.length;
+}
+
+function posterPlaceholder(name) {
+  const placeholder = document.createElement("div");
+  placeholder.className = "poster poster-placeholder";
+  placeholder.setAttribute("aria-hidden", "true");
+  placeholder.textContent = String(name || "YOS").trim().slice(0, 2).toUpperCase() || "Y";
+  return placeholder;
 }
 
 function streamUrl(kind, item) {
@@ -245,7 +311,13 @@ async function selectItem(item) {
 async function showEpisodes(series) {
   setStatus("catalog-status", "Cargando episodios…");
   try {
-    const info = await callApi("get_series_info", "", series.series_id || series.id);
+    const seriesId = String(series.series_id || series.id);
+    let info = seriesCache.get(seriesId);
+    if (!info) {
+      info = await callApi("get_series_info", "", seriesId);
+      seriesCache.set(seriesId, info);
+      while (seriesCache.size > 6) seriesCache.delete(seriesCache.keys().next().value);
+    }
     const seasons = info && info.episodes;
     const episodes = [];
     if (Array.isArray(seasons)) episodes.push(...seasons);
@@ -288,12 +360,16 @@ document.querySelectorAll(".tab").forEach(button => button.addEventListener("cli
   loadCategories(button.dataset.kind);
 }));
 $("category").addEventListener("change", () => loadItems($("category").value));
-$("search").addEventListener("input", applySearch);
-$("load-more").addEventListener("click", () => { state.limit += 100; renderItems(); });
+$("search").addEventListener("input", () => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(applySearch, 100);
+});
+$("load-more").addEventListener("click", () => { state.limit += PAGE_SIZE; renderItems(); });
 $("close-episodes").addEventListener("click", () => $("episodes-dialog").close());
 $("episodes-dialog").addEventListener("click", event => { if (event.target === $("episodes-dialog")) $("episodes-dialog").close(); });
 $("logout").addEventListener("click", () => {
   state.credentials = null; state.items = []; state.filtered = [];
+  categoryCache.clear(); itemCache.clear(); seriesCache.clear();
   $("catalog-view").hidden = true; $("logout").hidden = true; $("login-view").hidden = false;
   $("password").value = ""; setStatus("login-status", "Sesión cerrada."); $("server").focus();
 });

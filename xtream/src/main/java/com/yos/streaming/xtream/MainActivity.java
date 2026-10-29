@@ -31,6 +31,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.zip.GZIPInputStream;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
@@ -240,11 +241,14 @@ public class MainActivity extends Activity {
         connection.setReadTimeout(25000);
         connection.setRequestMethod("GET");
         connection.setRequestProperty("Accept", "application/json, */*");
+        connection.setRequestProperty("Accept-Encoding", "gzip");
         connection.setRequestProperty("User-Agent", "YOS-Xtream-Android/1.0");
         try {
             int status = connection.getResponseCode();
             if (status < 200 || status >= 300) throw new Exception("El servidor respondió HTTP " + status + ".");
-            try (InputStream input = connection.getInputStream(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            InputStream responseStream = connection.getInputStream();
+            if ("gzip".equalsIgnoreCase(connection.getContentEncoding())) responseStream = new GZIPInputStream(responseStream);
+            try (InputStream input = responseStream; ByteArrayOutputStream out = new ByteArrayOutputStream()) {
                 byte[] buffer = new byte[8192]; int read;
                 while ((read = input.read(buffer)) != -1) {
                     if (out.size() + read > 20 * 1024 * 1024) throw new Exception("La respuesta supera el límite de 20 MB.");

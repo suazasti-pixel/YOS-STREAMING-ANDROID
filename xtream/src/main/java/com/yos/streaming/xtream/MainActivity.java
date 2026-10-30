@@ -45,13 +45,14 @@ public class MainActivity extends Activity {
     private static final String PREFS = "yos_xtream_secure_store";
     private static final Set<String> ACTIONS = new HashSet<>(Arrays.asList(
         "", "get_live_categories", "get_live_streams", "get_vod_categories",
-        "get_vod_streams", "get_series_categories", "get_series", "get_series_info", "get_short_epg"
+        "get_vod_streams", "get_vod_info", "get_series_categories", "get_series", "get_series_info", "get_short_epg"
     ));
     private final ExecutorService requests = Executors.newFixedThreadPool(3);
     private WebView webView;
     private View customView;
     private WebChromeClient.CustomViewCallback customViewCallback;
     private FrameLayout root;
+    private static final int PLAYER_REQUEST = 41;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -123,6 +124,14 @@ public class MainActivity extends Activity {
                 else finish();
             }
         });
+    }
+
+    @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode != PLAYER_REQUEST || data == null || webView == null) return;
+        String playback = data.getStringExtra(PlayerActivity.RESULT_DATA);
+        if (playback != null) webView.evaluateJavascript("window.yosPlaybackFinished&&window.yosPlaybackFinished(" +
+            JSONObject.quote(playback) + ")", null);
     }
 
     private void hideCustomView() {
@@ -219,7 +228,7 @@ public class MainActivity extends Activity {
             });
         }
 
-        @JavascriptInterface public void playNative(String url, String title, String queueJson, int index) {
+        @JavascriptInterface public void playNative(String url, String title, String queueJson, int index, long resumePositionMs) {
             if (url == null || !(url.startsWith("http://") || url.startsWith("https://"))) return;
             runOnUiThread(() -> {
                 Intent intent = new Intent(MainActivity.this, PlayerActivity.class);
@@ -227,7 +236,8 @@ public class MainActivity extends Activity {
                 intent.putExtra(PlayerActivity.EXTRA_TITLE, title == null ? "YOS XTREAM" : title);
                 intent.putExtra(PlayerActivity.EXTRA_QUEUE, queueJson);
                 intent.putExtra(PlayerActivity.EXTRA_INDEX, index);
-                startActivity(intent);
+                intent.putExtra(PlayerActivity.EXTRA_RESUME_MS, resumePositionMs);
+                startActivityForResult(intent, PLAYER_REQUEST);
             });
         }
     }
@@ -246,6 +256,7 @@ public class MainActivity extends Activity {
         if (action != null && !action.isEmpty()) builder.appendQueryParameter("action", action);
         if (categoryId != null && !categoryId.isEmpty()) builder.appendQueryParameter("category_id", categoryId);
         if ("get_series_info".equals(action) && itemId != null && !itemId.isEmpty()) builder.appendQueryParameter("series_id", itemId);
+        if ("get_vod_info".equals(action) && itemId != null && !itemId.isEmpty()) builder.appendQueryParameter("vod_id", itemId);
         if ("get_short_epg".equals(action) && itemId != null && !itemId.isEmpty()) {
             builder.appendQueryParameter("stream_id", itemId).appendQueryParameter("limit", "2");
         }

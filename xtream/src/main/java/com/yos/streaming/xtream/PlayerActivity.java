@@ -1,6 +1,7 @@
 package com.yos.streaming.xtream;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
@@ -35,8 +36,10 @@ public final class PlayerActivity extends Activity {
     public static final String EXTRA_TITLE = "stream_title";
     public static final String EXTRA_QUEUE = "stream_queue";
     public static final String EXTRA_INDEX = "stream_index";
+    public static final String EXTRA_RESUME_MS = "stream_resume_ms";
     public static final String RESULT_URL = "result_url";
     public static final String RESULT_TITLE = "result_title";
+    public static final String RESULT_DATA = "playback_data";
 
     private ExoPlayer player;
     private PlayerView playerView;
@@ -169,7 +172,8 @@ public final class PlayerActivity extends Activity {
             return;
         }
         int safeStartIndex = Math.max(0, Math.min(startIndex, mediaItems.size() - 1));
-        player.setMediaItems(mediaItems, safeStartIndex, 0L);
+        long resumePosition = getIntent().getLongExtra(EXTRA_RESUME_MS, 0L);
+        player.setMediaItems(mediaItems, safeStartIndex, Math.max(0L, resumePosition));
         player.prepare();
         player.play();
     }
@@ -215,7 +219,24 @@ public final class PlayerActivity extends Activity {
     @Override
     public void finish() {
         if (selectedUrl != null) {
-            setResult(RESULT_OK, getIntent().putExtra(RESULT_URL, selectedUrl).putExtra(RESULT_TITLE, selectedTitle));
+            Intent result = new Intent();
+            result.putExtra(RESULT_URL, selectedUrl).putExtra(RESULT_TITLE, selectedTitle);
+            int currentIndex = player == null ? startIndex : player.getCurrentMediaItemIndex();
+            JSONObject item = queue == null ? null : queue.optJSONObject(currentIndex);
+            long position = player == null ? 0L : Math.max(0L, player.getCurrentPosition());
+            long duration = player == null ? 0L : Math.max(0L, player.getDuration());
+            try {
+                JSONObject playback = new JSONObject()
+                    .put("url", selectedUrl).put("title", selectedTitle)
+                    .put("position", position).put("duration", duration)
+                    .put("kind", item == null ? "live" : item.optString("kind", "live"))
+                    .put("id", item == null ? "" : item.optString("id", ""))
+                    .put("category", item == null ? "" : item.optString("category", ""))
+                    .put("extension", item == null ? "" : item.optString("extension", ""))
+                    .put("cover", item == null ? "" : item.optString("cover", ""));
+                result.putExtra(RESULT_DATA, playback.toString());
+            } catch (Exception ignored) { }
+            setResult(RESULT_OK, result);
         }
         super.finish();
     }

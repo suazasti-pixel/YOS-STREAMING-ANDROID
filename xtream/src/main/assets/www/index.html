@@ -44,8 +44,19 @@
     <section id="catalog-view" hidden>
       <div class="catalog-head">
         <div><span class="eyebrow">TU BIBLIOTECA</span><h1 id="catalog-title">Canales en vivo</h1><p id="account-summary" class="muted"></p></div>
-        <label class="search-box"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Buscar contenido" autocomplete="off"></label>
+        <label class="search-box"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Buscar en todo el catálogo" autocomplete="off"></label>
       </div>
+      <section class="browse-shortcuts" aria-label="Accesos rápidos">
+        <span class="eyebrow">EXPLORAR</span>
+        <button class="shortcut" data-kind="live" type="button"><span>▶</span><b>TV en vivo</b><small>Canales y guía</small></button>
+        <button class="shortcut" data-kind="movie" type="button"><span>▣</span><b>Películas</b><small>Explora el catálogo</small></button>
+        <button class="shortcut" data-kind="series" type="button"><span>▤</span><b>Series</b><small>Temporadas y episodios</small></button>
+        <button id="home-favorites" class="shortcut" type="button"><span>☆</span><b>Favoritos</b><small>Tus guardados</small></button>
+      </section>
+      <section id="recent-panel" class="recent-panel" hidden>
+        <div class="section-heading"><div><span class="eyebrow">TU ACTIVIDAD</span><h2>Visto recientemente</h2></div><button id="clear-recent" class="text-button" type="button">Borrar historial</button></div>
+        <div id="recent-grid" class="recent-grid"></div>
+      </section>
       <nav class="tabs" aria-label="Tipo de contenido">
         <button class="tab active" data-kind="live">TV EN VIVO</button>
         <button class="tab" data-kind="movie">PELÍCULAS</button>
@@ -73,6 +84,10 @@
   <dialog id="episodes-dialog" class="episodes-dialog">
     <div class="dialog-head"><div><span class="eyebrow">SERIE</span><h2 id="episodes-title">Episodios</h2></div><button id="close-episodes" class="icon-button" aria-label="Cerrar">×</button></div>
     <div id="episode-list" class="episode-list"></div>
+  </dialog>
+  <dialog id="movie-dialog" class="movie-dialog">
+    <div class="dialog-head"><div><span class="eyebrow">PELÍCULA</span><h2 id="movie-title">Detalles</h2></div><button id="close-movie" class="icon-button" aria-label="Cerrar">×</button></div>
+    <div class="movie-detail-body"><img id="movie-cover" alt="" hidden><div><p id="movie-meta" class="muted"></p><p id="movie-plot" class="movie-plot"></p><p id="movie-status" class="status" role="status" aria-live="polite"></p><div class="movie-actions"><button id="movie-play" class="button primary" type="button">REPRODUCIR</button><button id="movie-favorite" class="button" type="button">☆ FAVORITO</button></div></div></div>
   </dialog>
   <script src="app.js"></script>
 </body>

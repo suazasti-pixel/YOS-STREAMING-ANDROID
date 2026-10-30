@@ -3,7 +3,7 @@
 const $ = id => document.getElementById(id);
 const PAGE_SIZE = 60;
 const ITEM_CACHE_LIMIT = 3;
-const state = { credentials: null, kind: "live", categories: [], items: [], filtered: [], limit: PAGE_SIZE, series: null, showFavorites: false };
+const state = { credentials: null, kind: "live", categories: [], items: [], localItems: [], filtered: [], limit: PAGE_SIZE, series: null, movie: null, showFavorites: false, globalSearch: false };
 const kinds = {
   live: { title: "Canales en vivo", categories: "get_live_categories", items: "get_live_streams", singular: "live" },
   movie: { title: "Películas", categories: "get_vod_categories", items: "get_vod_streams", singular: "movie" },
@@ -13,6 +13,7 @@ let requestSequence = 0;
 let categoryRequestSequence = 0;
 let itemRequestSequence = 0;
 let searchTimer = 0;
+let searchSequence = 0;
 let guideTimer = 0;
 let guideRequestSequence = 0;
 const pending = new Map();
@@ -31,6 +32,64 @@ function cacheItems(key, rows) {
 function providerStoreKey() {
   const account = state.credentials;
   return account ? "yos-xtream-favorites-v1:" + encodeURIComponent(account.server + "|" + account.username) : "";
+}
+
+function historyStoreKey() {
+  const account = state.credentials;
+  return account ? "yos-xtream-recent-v1:" + encodeURIComponent(account.server + "|" + account.username) : "";
+}
+
+function readRecent() {
+  try {
+    const key = historyStoreKey();
+    const rows = key ? JSON.parse(localStorage.getItem(key) || "[]") : [];
+    return Array.isArray(rows) ? rows : [];
+  } catch { return []; }
+}
+
+function saveRecent(rows) {
+  try { const key = historyStoreKey(); if (key) localStorage.setItem(key, JSON.stringify(rows.slice(0, 16))); }
+  catch { /* El historial es opcional si el almacenamiento está lleno. */ }
+}
+
+function renderRecent() {
+  const rows = readRecent();
+  const panel = $("recent-panel");
+  const grid = $("recent-grid");
+  grid.replaceChildren();
+  panel.hidden = rows.length === 0;
+  for (const row of rows.slice(0, 8)) {
+    const card = document.createElement("button");
+    card.type = "button"; card.className = "recent-card";
+    const cover = document.createElement("span"); cover.className = "recent-cover";
+    if (/^https?:\/\//i.test(row.cover || "")) {
+      const img = document.createElement("img"); img.loading = "lazy"; img.decoding = "async"; img.alt = ""; img.src = row.cover;
+      img.onerror = () => { cover.textContent = "YOS"; }; cover.append(img);
+    } else cover.textContent = row.kind === "live" ? "▶" : "YOS";
+    const info = document.createElement("span"); info.className = "recent-info";
+    const title = document.createElement("b"); title.textContent = row.title || "Contenido";
+    const sub = document.createElement("small");
+    sub.textContent = (row.kind === "live" ? "TV en vivo" : row.kind === "movie" ? "Película" : "Serie") + (row.category ? " · " + row.category : "");
+    info.append(title, sub);
+    if (row.kind !== "live" && row.duration > 0 && row.position > 0) {
+      const track = document.createElement("span"); track.className = "recent-progress";
+      const fill = document.createElement("i"); fill.style.width = Math.min(100, Math.round(row.position / row.duration * 100)) + "%"; track.append(fill); info.append(track);
+    }
+    card.append(cover, info);
+    card.addEventListener("click", () => resumeRecent(row));
+    grid.append(card);
+  }
+}
+
+function resumeRecent(row) {
+  if (!bridge()) return;
+  const kind = row.kind || "live";
+  const item = {
+    id: row.id, stream_id: row.id, name: row.title, title: row.title,
+    container_extension: row.extension, category_name: row.category,
+    stream_icon: row.cover, cover: row.cover, _kind: kind
+  };
+  playItems([item], kind, 0, Number(row.position) || 0);
 }
 
 function favoriteId(item, kind) {
@@ -73,7 +132,9 @@ function toggleFavorite(item, kind) {
 }
 
 function showFavoritesView() {
+  searchSequence++;
   state.showFavorites = true;
+  state.globalSearch = false;
   state.items = [];
   state.filtered = readFavorites();
   state.limit = PAGE_SIZE;
@@ -85,6 +146,12 @@ function showFavoritesView() {
   $("guide-panel").hidden = true;
   setStatus("catalog-status", state.filtered.length ? "Tus canales, películas y series guardados." : "Agrega favoritos con ☆ en una tarjeta.");
   applySearch();
+}
+
+function showBrowseKind(kind) {
+  document.querySelectorAll(".tab[data-kind]").forEach(tab => tab.classList.toggle("active", tab.dataset.kind === kind));
+  loadCategories(kind);
+  document.querySelector(".tabs")?.scrollIntoView({ block: "nearest", behavior: "smooth" });
 }
 
 function setStatus(id, message, type = "") {
@@ -191,6 +258,7 @@ $("login-form").addEventListener("submit", async event => {
     $("logout").hidden = false;
     const exp = info.exp_date && /^\d+$/.test(String(info.exp_date)) ? new Date(Number(info.exp_date) * 1000).toLocaleDateString() : "";
     $("account-summary").textContent = "Cuenta conectada" + (exp ? " · Vence " + exp : "");
+    renderRecent();
     setStatus("login-status", "");
     await loadCategories("live");
   } catch (error) {
@@ -200,15 +268,18 @@ $("login-form").addEventListener("submit", async event => {
 });
 
 async function loadCategories(kind) {
+  searchSequence++;
   const requestId = ++categoryRequestSequence;
   itemRequestSequence++;
   state.kind = kind;
   state.showFavorites = false;
+  state.globalSearch = false;
   $("favorites-tab").classList.remove("active");
   $("category").closest(".filters").classList.remove("favorites-mode");
   $("guide-panel").hidden = true;
   state.categories = [];
   state.items = [];
+  state.localItems = [];
   state.filtered = [];
   state.limit = PAGE_SIZE;
   $("catalog-title").textContent = kinds[kind].title;
@@ -253,8 +324,10 @@ function showCategories(kind, rows) {
 }
 
 async function loadItems(categoryId) {
+  searchSequence++;
   if (!categoryId) {
     state.items = [];
+    state.localItems = [];
     state.filtered = [];
     renderItems();
     setStatus("catalog-status", "Elige una categoría para cargar el contenido.");
@@ -268,6 +341,7 @@ async function loadItems(categoryId) {
     itemCache.delete(cacheKey);
     itemCache.set(cacheKey, cachedRows);
     state.items = cachedRows;
+    state.localItems = cachedRows;
     state.limit = PAGE_SIZE;
     applySearch();
     setStatus("catalog-status", "Contenido cargado.", "ok");
@@ -283,6 +357,7 @@ async function loadItems(categoryId) {
     if (!Array.isArray(rows)) throw new Error("El proveedor devolvió contenido con formato no reconocido.");
     cacheItems(cacheKey, rows);
     state.items = rows;
+    state.localItems = rows;
     state.limit = PAGE_SIZE;
     applySearch();
     setStatus("catalog-status", rows.length ? "Selecciona un elemento para reproducir." : "Esta categoría no tiene contenido.", rows.length ? "ok" : "");
@@ -304,6 +379,61 @@ function applySearch() {
   state.filtered = q ? source.filter(item => String(item.name || "").toLocaleLowerCase().includes(q)) : [...source];
   state.limit = PAGE_SIZE;
   renderItems();
+}
+
+async function searchCatalog(query) {
+  const requestId = ++searchSequence;
+  const kind = state.kind;
+  const q = query.trim().toLocaleLowerCase();
+  if (q.length < 2 || state.showFavorites) {
+    if (state.globalSearch && !state.showFavorites) state.items = state.localItems;
+    state.globalSearch = false;
+    applySearch();
+    if (q.length === 1 && !state.showFavorites) setStatus("catalog-status", "Escribe al menos 2 caracteres para buscar en todo el catálogo.");
+    return;
+  }
+  if (!state.categories.length) { setStatus("catalog-status", "Espera a que carguen las categorías para buscar."); return; }
+  state.globalSearch = true;
+  state.items = [];
+  state.filtered = [];
+  state.limit = PAGE_SIZE;
+  renderItems();
+  const categories = state.categories.filter(row => row && row.category_id != null);
+  let next = 0;
+  let checked = 0;
+  const found = new Map();
+  setStatus("catalog-status", "Buscando en " + categories.length + " categorías…");
+  const worker = async () => {
+    while (next < categories.length && requestId === searchSequence) {
+      const row = categories[next++];
+      try {
+        let items = itemCache.get(kind + ":" + row.category_id);
+        if (!items) {
+          const response = await callApi(kinds[kind].items, row.category_id);
+          if (!Array.isArray(response)) continue;
+          items = response;
+          cacheItems(kind + ":" + row.category_id, items);
+        }
+        if (requestId !== searchSequence || state.kind !== kind) return;
+        for (const item of items) {
+          if (String(item.name || item.title || "").toLocaleLowerCase().includes(q)) {
+            const id = kind === "series" ? (item.series_id || item.id) : item.stream_id;
+            if (id != null) found.set(String(id), { ...item, _kind: kind, category_name: item.category_name || row.category_name });
+          }
+        }
+      } catch { /* Una categoría caída no impide buscar en las demás. */ }
+      checked++;
+      if (requestId === searchSequence) setStatus("catalog-status", "Revisando " + checked + " de " + categories.length + " categorías… " + found.size + " resultados.");
+    }
+  };
+  await Promise.all([worker(), worker()]);
+  if (requestId !== searchSequence || state.kind !== kind) return;
+  state.items = [...found.values()];
+  state.filtered = state.items;
+  state.limit = PAGE_SIZE;
+  renderItems();
+  setStatus("catalog-status", state.filtered.length ? "Resultados en todo el catálogo." : "No encontramos coincidencias en este tipo de contenido.", state.filtered.length ? "ok" : "");
+  if (document.body.classList.contains("tv-remote")) requestAnimationFrame(() => document.querySelector(".content-card")?.focus());
 }
 
 function renderItems() {
@@ -420,23 +550,87 @@ function streamUrl(kind, item) {
   return c.server + "/" + route + "/" + encodeURIComponent(c.username) + "/" + encodeURIComponent(c.password) + "/" + encodeURIComponent(String(id)) + "." + extension;
 }
 
-function playItems(items, kind, index = 0) {
-  const queue = items.map(item => ({ url: streamUrl(kind, item), name: item.title || item.name || "YOS Xtream" }));
+function playItems(items, kind, index = 0, resumePosition = 0) {
+  const queue = items.map(item => {
+    const id = kind === "series" ? (item.id || item.stream_id || item.series_id) : item.stream_id;
+    return {
+      url: streamUrl(kind, item), name: item.title || item.name || "YOS Xtream", kind,
+      id: String(id == null ? "" : id), category: item.category_name || "",
+      extension: item.container_extension || (kind === "live" ? "m3u8" : "mp4"),
+      cover: item.stream_icon || item.cover || ""
+    };
+  });
   if (!queue.length) return;
   const selected = queue[Math.max(0, Math.min(index, queue.length - 1))];
-  if (bridge()) bridge().playNative(selected.url, selected.name, JSON.stringify(queue), Math.max(0, Math.min(index, queue.length - 1)));
+  const recent = readRecent().find(row => row.kind === kind && row.id === selected.id);
+  const startAt = resumePosition || (kind !== "live" && recent ? Number(recent.position) || 0 : 0);
+  if (bridge()) bridge().playNative(selected.url, selected.name, JSON.stringify(queue), Math.max(0, Math.min(index, queue.length - 1)), startAt);
   else setStatus("catalog-status", "La reproducción está disponible en el APK Android/TV Box.");
 }
+
+window.yosPlaybackFinished = raw => {
+  try {
+    const playback = JSON.parse(raw || "{}");
+    if (!playback.id || !playback.title) return;
+    const kind = ["live", "movie", "series"].includes(playback.kind) ? playback.kind : "live";
+    const rows = readRecent().filter(row => !(row.kind === kind && row.id === String(playback.id)));
+    rows.unshift({
+      id: String(playback.id), kind, title: String(playback.title), category: String(playback.category || ""),
+      extension: String(playback.extension || ""), cover: /^https?:\/\//i.test(playback.cover || "") ? playback.cover : "",
+      position: kind === "live" ? 0 : Math.max(0, Number(playback.position) || 0),
+      duration: kind === "live" ? 0 : Math.max(0, Number(playback.duration) || 0)
+    });
+    saveRecent(rows);
+    renderRecent();
+  } catch { /* Los datos del player no son necesarios para seguir navegando. */ }
+};
 
 async function selectItem(item) {
   const kind = item._kind || state.kind;
   if (kind === "live") showProgramGuide(item);
   if (kind === "series") return showEpisodes(item);
+  if (kind === "movie") return showMovieDetails(item);
   const streamKey = "stream_id";
   const source = state.showFavorites ? readFavorites() : state.filtered;
   const queueItems = source.filter(row => (row._kind || state.kind) === kind && row[streamKey] != null);
   const index = queueItems.findIndex(row => String(row[streamKey]) === String(item[streamKey]));
   playItems(queueItems, kind, Math.max(0, index));
+}
+
+let activeMovie = null;
+async function showMovieDetails(movie) {
+  activeMovie = movie;
+  $("movie-title").textContent = movie.name || "Película";
+  $("movie-meta").textContent = movie.category_name || "Película";
+  $("movie-plot").textContent = movie.plot || movie.description || "Consultando información del proveedor…";
+  const coverUrl = movie.stream_icon || movie.cover || "";
+  $("movie-cover").hidden = !/^https?:\/\//i.test(coverUrl);
+  if (!$("movie-cover").hidden) { $("movie-cover").src = coverUrl; $("movie-cover").onerror = () => { $("movie-cover").hidden = true; }; }
+  $("movie-status").textContent = "";
+  updateMovieFavoriteButton();
+  $("movie-dialog").showModal();
+  if (document.body.classList.contains("tv-remote")) requestAnimationFrame(() => $("movie-play").focus());
+  try {
+    const response = await callApi("get_vod_info", "", String(movie.stream_id));
+    const data = response?.info || response?.movie_data || {};
+    if (activeMovie !== movie) return;
+    $("movie-plot").textContent = data.plot || data.description || movie.plot || movie.description || "Sin sinopsis disponible.";
+    const tags = [movie.category_name, data.releasedate || data.releaseDate || data.year, data.rating ? "★ " + data.rating : ""].filter(Boolean);
+    $("movie-meta").textContent = tags.join(" · ") || "Película";
+    if (data.movie_image || data.cover_big) {
+      const url = data.movie_image || data.cover_big;
+      if (/^https?:\/\//i.test(url)) { $("movie-cover").hidden = false; $("movie-cover").src = url; }
+    }
+    if (data.container_extension) activeMovie.container_extension = data.container_extension;
+  } catch (error) {
+    if (activeMovie === movie) $("movie-status").textContent = "No pudimos cargar la ficha. Puedes reproducirla igualmente.";
+  }
+}
+
+function updateMovieFavoriteButton() {
+  if (!activeMovie) return;
+  const favorite = readFavorites().some(row => row.favoriteId === favoriteId(activeMovie, "movie"));
+  $("movie-favorite").textContent = favorite ? "★ GUARDADO" : "☆ FAVORITO";
 }
 
 async function showEpisodes(series) {
@@ -481,29 +675,40 @@ function renderEpisodes(episodes) {
     const button = document.createElement("button");
     button.type = "button"; button.className = "episode-button";
     button.textContent = (episode.episode_num ? "E" + episode.episode_num + " · " : "") + (episode.title || episode.name || "Episodio " + (index + 1));
-    button.addEventListener("click", () => { $("episodes-dialog").close(); playItems(episodes, "series", index); });
+    button.addEventListener("click", () => {
+      $("episodes-dialog").close();
+      const playlist = episodes.map(episode => ({ ...episode, name: episode.title || episode.name, category_name: state.series?.category_name, cover: state.series?.cover || state.series?.stream_icon }));
+      playItems(playlist, "series", index);
+    });
     box.append(button);
   });
 }
 
 document.querySelectorAll(".tab[data-kind]").forEach(button => button.addEventListener("click", () => {
-  document.querySelectorAll(".tab").forEach(tab => tab.classList.toggle("active", tab === button));
-  loadCategories(button.dataset.kind);
+  showBrowseKind(button.dataset.kind);
 }));
 $("favorites-tab").addEventListener("click", showFavoritesView);
-$("category").addEventListener("change", () => loadItems($("category").value));
+$("category").addEventListener("change", () => { $("search").value = ""; state.globalSearch = false; state.items = state.localItems; loadItems($("category").value); });
 $("search").addEventListener("input", () => {
   clearTimeout(searchTimer);
-  searchTimer = setTimeout(applySearch, 100);
+  searchTimer = setTimeout(() => searchCatalog($("search").value), 350);
 });
+document.querySelectorAll(".shortcut[data-kind]").forEach(button => button.addEventListener("click", () => showBrowseKind(button.dataset.kind)));
+$("home-favorites").addEventListener("click", showFavoritesView);
+$("clear-recent").addEventListener("click", () => { saveRecent([]); renderRecent(); });
 $("load-more").addEventListener("click", () => { state.limit += PAGE_SIZE; renderItems(); });
 $("close-episodes").addEventListener("click", () => $("episodes-dialog").close());
 $("episodes-dialog").addEventListener("click", event => { if (event.target === $("episodes-dialog")) $("episodes-dialog").close(); });
+$("close-movie").addEventListener("click", () => $("movie-dialog").close());
+$("movie-dialog").addEventListener("click", event => { if (event.target === $("movie-dialog")) $("movie-dialog").close(); });
+$("movie-play").addEventListener("click", () => { if (activeMovie) { $("movie-dialog").close(); playItems([activeMovie], "movie"); } });
+$("movie-favorite").addEventListener("click", () => { if (activeMovie) { toggleFavorite(activeMovie, "movie"); updateMovieFavoriteButton(); } });
 $("logout").addEventListener("click", () => {
-  state.credentials = null; state.items = []; state.filtered = [];
+  state.credentials = null; state.items = []; state.filtered = []; state.globalSearch = false; searchSequence++;
   categoryCache.clear(); itemCache.clear(); seriesCache.clear();
   guideCache.clear(); guidePending.clear(); state.showFavorites = false;
   $("catalog-view").hidden = true; $("logout").hidden = true; $("login-view").hidden = false;
+  renderRecent();
   $("password").value = ""; setStatus("login-status", "Sesión cerrada."); $("server").focus();
 });
 $("clear-saved").addEventListener("click", () => {
@@ -514,6 +719,7 @@ $("clear-saved").addEventListener("click", () => {
 });
 
 window.yosHandleBack = () => {
+  if ($("movie-dialog").open) { $("movie-dialog").close(); return true; }
   if ($("episodes-dialog").open) { $("episodes-dialog").close(); return true; }
   if (!$("catalog-view").hidden) { $("logout").click(); return true; }
   return false;

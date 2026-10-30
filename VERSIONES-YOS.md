@@ -5,12 +5,12 @@ Estas son las tres ediciones principales que vamos a mantener y actualizar por s
 | Edición | Dispositivo | Instalador en GitHub Actions | Proyecto |
 |---|---|---|---|
 | **1.1** | Celular Android | `YOS-1.1-CELULAR-APK` | YOS Streaming, listas M3U |
-| **2.5** | Celular Android y Android TV Box | `YOS-2.5-XTREAM-ANDROID-APK` | YOS Xtream Android |
+| **2.6** | Celular Android y Android TV Box | `YOS-2.6-XTREAM-ANDROID-APK` | YOS Xtream Android |
 | **3.2** | Televisor LG webOS | `YOS-3.2-LG-webOS-IPK` | YOS Xtream para webOS |
 
 ## Regla de numeración
 
-Cada edición avanza por separado: celular **1.1 → 1.2 → 1.3**, Xtream Android **2.1 → 2.2 → 2.3 → 2.4 → 2.5** y LG webOS **3.1 → 3.2 → 3.3**. Cuando un cambio afecte varias ediciones, incrementaremos la serie de cada una de ellas. Así cada instalador y sus notas de cambios indicarán qué versión recibió la mejora.
+Cada edición avanza por separado: celular **1.1 → 1.2 → 1.3**, Xtream Android **2.1 → 2.2 → 2.3 → 2.4 → 2.5 → 2.6** y LG webOS **3.1 → 3.2 → 3.3**. Cuando un cambio afecte varias ediciones, incrementaremos la serie de cada una de ellas. Así cada instalador y sus notas de cambios indicarán qué versión recibió la mejora.
 
 YOS Play sigue siendo un proyecto Android adicional y no forma parte de esta lista de tres instaladores.
 
@@ -35,3 +35,11 @@ Abre la ejecución más reciente que terminó correctamente en [GitHub Actions](
 - Control parental local con PIN de 4 a 8 dígitos. Oculta categorías cuyos nombres indiquen contenido adulto, y permite desbloquearlas solo durante la sesión. La detección depende del nombre asignado por el proveedor.
 - La guía muestra la hora de inicio de los programas si el proveedor incluye ese dato.
 - Android `versionCode 10`, `versionName 2.5`. Artifact de Actions: `YOS-2.5-XTREAM-ANDROID-APK`.
+
+## YOS Xtream 2.6 — navegación clara para TV Box
+
+- Atrás desde el catálogo lleva el foco a la pestaña actual sin cerrar la sesión. Desde ahí se puede ir con las flechas a Películas, Series o Favoritos; Atrás otra vez sale de la app.
+- Al volver del reproductor se recupera el foco de la tarjeta que se estaba reproduciendo, y el botón del reproductor indica **CATÁLOGO**.
+- En TV Box, la barra de secciones permanece visible al desplazarse. El modo de control remoto también se activa al detectar flechas en equipos que no informan correctamente el perfil Android TV.
+- Atrás en el reproductor vuelve al catálogo; CH+/CH− y los botones de página/anterior/siguiente conservan el cambio de canal.
+- Android `versionCode 11`, `versionName 2.6`. Artifact de Actions: `YOS-2.6-XTREAM-ANDROID-APK`.

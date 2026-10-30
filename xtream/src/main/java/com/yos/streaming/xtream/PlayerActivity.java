@@ -80,7 +80,8 @@ public final class PlayerActivity extends Activity {
         top.setPadding(dp(16), dp(10), dp(16), dp(10));
         top.setBackgroundColor(0x99000000);
         Button back = new Button(this);
-        back.setText("‹  VOLVER");
+        back.setText("‹  CATÁLOGO");
+        back.setContentDescription("Volver a las secciones de TV, películas y series");
         back.setOnClickListener(view -> finish());
         TextView title = new TextView(this);
         title.setTextColor(0xffffffff);
@@ -242,6 +243,26 @@ public final class PlayerActivity extends Activity {
             }
         }
         return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event.getAction() == KeyEvent.ACTION_DOWN && event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+            finish();
+            return true;
+        }
+        if (event.getAction() == KeyEvent.ACTION_DOWN && player != null &&
+            (event.getKeyCode() == KeyEvent.KEYCODE_CHANNEL_UP || event.getKeyCode() == KeyEvent.KEYCODE_PAGE_UP || event.getKeyCode() == KeyEvent.KEYCODE_MEDIA_PREVIOUS)) {
+            if (player.hasPreviousMediaItem()) player.seekToPreviousMediaItem();
+            return true;
+        }
+        if (event.getAction() == KeyEvent.ACTION_DOWN && player != null &&
+            (event.getKeyCode() == KeyEvent.KEYCODE_CHANNEL_DOWN || event.getKeyCode() == KeyEvent.KEYCODE_PAGE_DOWN || event.getKeyCode() == KeyEvent.KEYCODE_MEDIA_NEXT)) {
+            if (player.hasNextMediaItem()) player.seekToNextMediaItem();
+            return true;
+        }
+        if (playerView != null && playerView.dispatchKeyEvent(event)) return true;
+        return super.dispatchKeyEvent(event);
     }
 
     @Override

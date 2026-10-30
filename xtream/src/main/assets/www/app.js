@@ -22,6 +22,7 @@ const itemCache = new Map();
 const seriesCache = new Map();
 const guideCache = new Map();
 const guidePending = new Map();
+let lastPlaybackFocus = null;
 
 function cacheItems(key, rows) {
   itemCache.delete(key);
@@ -523,6 +524,8 @@ function renderItems() {
     const button = document.createElement("button");
     button.className = "content-card";
     button.type = "button";
+    button.dataset.contentId = String(kind === "series" ? (item.series_id || item.id || "") : (item.stream_id || ""));
+    button.dataset.contentKind = kind;
     const posterUrl = item.stream_icon || item.cover || "";
     let poster;
     if (/^https?:\/\//i.test(posterUrl)) {
@@ -645,6 +648,7 @@ function playItems(items, kind, index = 0, resumePosition = 0) {
   });
   if (!queue.length) return;
   const selected = queue[Math.max(0, Math.min(index, queue.length - 1))];
+  lastPlaybackFocus = document.activeElement?.closest?.(".content-card") || null;
   const recent = readRecent().find(row => row.kind === kind && row.id === selected.id);
   const startAt = resumePosition || (kind !== "live" && recent ? Number(recent.position) || 0 : 0);
   if (bridge()) bridge().playNative(selected.url, selected.name, JSON.stringify(queue), Math.max(0, Math.min(index, queue.length - 1)), startAt);
@@ -665,6 +669,16 @@ window.yosPlaybackFinished = raw => {
     });
     saveRecent(rows);
     renderRecent();
+    if (document.body.classList.contains("tv-remote")) requestAnimationFrame(() => {
+      const target = lastPlaybackFocus?.isConnected ? lastPlaybackFocus : null;
+      if (target && !target.closest("[hidden]")) {
+        target.focus({ preventScroll: true });
+        target.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
+      } else {
+        const activeTab = state.showFavorites ? $("favorites-tab") : document.querySelector('.tab[data-kind="' + state.kind + '"]');
+        activeTab?.focus({ preventScroll: true });
+      }
+    });
   } catch { /* Los datos del player no son necesarios para seguir navegando. */ }
 };
 
@@ -874,7 +888,24 @@ window.yosHandleBack = () => {
   if ($("parental-dialog").open) { closeParentalDialog(); return true; }
   if ($("movie-dialog").open) { $("movie-dialog").close(); return true; }
   if ($("episodes-dialog").open) { $("episodes-dialog").close(); return true; }
-  if (!$("catalog-view").hidden) { $("logout").click(); return true; }
+  if (!$("catalog-view").hidden) {
+    const search = $("search");
+    if (search.value) {
+      searchSequence++;
+      if (state.globalSearch) state.items = state.localItems;
+      state.globalSearch = false;
+      search.value = "";
+      applySearch();
+    }
+    if (document.body.classList.contains("tv-remote")) {
+      const tab = state.showFavorites ? $("favorites-tab") : document.querySelector('.tab[data-kind="' + state.kind + '"]');
+      if (tab && document.activeElement !== tab) {
+        tab.focus({ preventScroll: true });
+        tab.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        return true;
+      }
+    }
+  }
   return false;
 };
 
@@ -892,8 +923,9 @@ try {
 } catch { /* La versión web sin puente nativo no restaura credenciales. */ }
 
 try {
-  if (bridge()?.isTelevision()) {
-    document.body.classList.add("tv-remote");
+  const nativeBridge = bridge();
+  if (nativeBridge?.isTelevision()) document.body.classList.add("tv-remote");
+  if (nativeBridge) {
     document.addEventListener("keydown", event => {
       const direction = {
         ArrowLeft: [-1, 0], ArrowRight: [1, 0],
@@ -901,6 +933,8 @@ try {
       }[event.key];
       const active = document.activeElement;
       const editing = active && (/^(INPUT|TEXTAREA|SELECT)$/.test(active.tagName) || active.isContentEditable);
+      if (direction && !editing && !document.body.classList.contains("tv-remote")) document.body.classList.add("tv-remote");
+      if (!document.body.classList.contains("tv-remote")) return;
       if (direction && !editing) {
         const [dx, dy] = direction;
         const origin = active && active !== document.body ? active.getBoundingClientRect() : null;

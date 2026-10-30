@@ -122,8 +122,16 @@ body.tv-remote .search-box input {
 }
 
 body.tv-remote .tabs {
+  position: sticky;
+  top: 82px;
+  z-index: 5;
   gap: 12px;
-  padding: 18px 0;
+  margin-inline: -1vw;
+  padding: 14px 1vw;
+  border-block: 1px solid #26333d;
+  background: #07090df2;
+  box-shadow: 0 8px 18px #0008;
+  scroll-margin-top: 96px;
 }
 
 body.tv-remote .tab {

@@ -5,12 +5,12 @@ Estas son las tres ediciones principales que vamos a mantener y actualizar por s
 | Edición | Dispositivo | Instalador en GitHub Actions | Proyecto |
 |---|---|---|---|
 | **1.1** | Celular Android | `YOS-1.1-CELULAR-APK` | YOS Streaming, listas M3U |
-| **2.9** | Celular Android y Android TV Box | `YOS-2.9-XTREAM-ANDROID-APK` | YOS Xtream Android |
+| **2.10** | Celular Android y Android TV Box | `YOS-2.10-XTREAM-ANDROID-APK` | YOS Xtream Android |
 | **3.2** | Televisor LG webOS | `YOS-3.2-LG-webOS-IPK` | YOS Xtream para webOS |
 
 ## Regla de numeración
 
-Cada edición avanza por separado: celular **1.1 → 1.2 → 1.3**, Xtream Android **2.1 → 2.2 → 2.3 → 2.4 → 2.5 → 2.6 → 2.7 → 2.8 → 2.9** y LG webOS **3.1 → 3.2 → 3.3**. Cuando un cambio afecte varias ediciones, incrementaremos la serie de cada una de ellas. Así cada instalador y sus notas de cambios indicarán qué versión recibió la mejora.
+Cada edición avanza por separado: celular **1.1 → 1.2 → 1.3**, Xtream Android **2.1 → 2.2 → 2.3 → 2.4 → 2.5 → 2.6 → 2.7 → 2.8 → 2.9 → 2.10** y LG webOS **3.1 → 3.2 → 3.3**. Cuando un cambio afecte varias ediciones, incrementaremos la serie de cada una de ellas. Así cada instalador y sus notas de cambios indicarán qué versión recibió la mejora.
 
 YOS Play sigue siendo un proyecto Android adicional y no forma parte de esta lista de tres instaladores.
 
@@ -66,3 +66,10 @@ Abre la ejecución más reciente que terminó correctamente en [GitHub Actions](
 - La búsqueda por texto y voz consulta el catálogo local de respaldo; también permite volver a una categoría sin repetir la solicitud de red.
 - El respaldo queda en memoria solo para la sesión/cuenta actual y se borra al cerrar sesión o cambiar de cuenta. Si el proveedor rechaza tanto las categorías como el catálogo completo, el mensaje muestra ambos errores.
 - Android `versionCode 14`, `versionName 2.9`. Artifact de Actions: `YOS-2.9-XTREAM-ANDROID-APK`.
+
+## YOS Xtream 2.10 — compatibilidad de respaldo M3U
+
+- Si una consulta de API Xtream devuelve HTTP 404, la app intenta descargar una URL `get.php` M3U y organiza los elementos por `group-title` para TV en vivo, películas y series.
+- Búsqueda por texto/voz, categorías, favoritos locales y reproducción usan los enlaces directos de la lista. La ficha, EPG, temporadas y vencimiento dependen de API Xtream y no están disponibles en modo M3U.
+- El enlace M3U recordado se conserva dentro del almacenamiento cifrado Android. No se guardan los enlaces directos de reproducción en favoritos o historial.
+- Android `versionCode 15`, `versionName 2.10`. Artifact de Actions: `YOS-2.10-XTREAM-ANDROID-APK`.

@@ -24,13 +24,17 @@ import androidx.webkit.WebViewAssetLoader;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
+import java.io.BufferedInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -205,7 +209,8 @@ public class MainActivity extends Activity {
                 cipher.init(Cipher.DECRYPT_MODE, secretKey(), new GCMParameterSpec(128, iv));
                 JSONObject credentials = new JSONObject(new String(cipher.doFinal(cipherText), StandardCharsets.UTF_8));
                 result.put("saved", true).put("server", credentials.optString("server"))
-                    .put("username", credentials.optString("username")).put("password", credentials.optString("password"));
+                    .put("username", credentials.optString("username")).put("password", credentials.optString("password"))
+                    .put("playlistUrl", credentials.optString("playlistUrl"));
             } catch (Exception e) {
                 getSharedPreferences(PREFS, MODE_PRIVATE).edit().remove("credentials").apply();
                 try { result.put("saved", false); } catch (Exception ignored) { }
@@ -213,14 +218,15 @@ public class MainActivity extends Activity {
             return result.toString();
         }
 
-        @JavascriptInterface public String saveCredentials(String server, String username, String password, boolean remember) {
+        @JavascriptInterface public String saveCredentials(String server, String username, String password, String playlistUrl, boolean remember) {
             JSONObject result = new JSONObject();
             try {
                 if (!remember) {
                     getSharedPreferences(PREFS, MODE_PRIVATE).edit().remove("credentials").apply();
                     return result.put("ok", true).toString();
                 }
-                JSONObject data = new JSONObject().put("server", server).put("username", username).put("password", password);
+                JSONObject data = new JSONObject().put("server", server).put("username", username)
+                    .put("password", password).put("playlistUrl", playlistUrl == null ? "" : playlistUrl);
                 Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
                 cipher.init(Cipher.ENCRYPT_MODE, secretKey());
                 byte[] iv = cipher.getIV();
@@ -240,6 +246,16 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface public void clearSavedCredentials() {
             getSharedPreferences(PREFS, MODE_PRIVATE).edit().remove("credentials").apply();
+        }
+
+        @JavascriptInterface public String downloadM3u(String rawUrl) {
+            JSONObject result = new JSONObject();
+            try { result.put("ok", true).put("text", downloadM3uText(rawUrl)); }
+            catch (Exception error) {
+                try { result.put("ok", false).put("error", error.getMessage() == null ? "No se pudo descargar la lista." : error.getMessage()); }
+                catch (Exception ignored) { return "{\"ok\":false,\"error\":\"Error de red.\"}"; }
+            }
+            return result.toString();
         }
 
         @JavascriptInterface public void cancelApiRequests() { cancelAllApiRequests(); }
@@ -294,6 +310,67 @@ public class MainActivity extends Activity {
             if (task != null) task.cancel(true);
             HttpURLConnection connection = apiConnections.remove(requestId);
             if (connection != null) connection.disconnect();
+        }
+    }
+
+    private String downloadM3uText(String rawUrl) throws Exception {
+        if (rawUrl == null || rawUrl.length() > 8192) throw new IOException("La URL de la lista no es válida.");
+        URL url = new URL(rawUrl);
+        String originalHost = url.getHost();
+        for (int redirects = 0; redirects <= 4; redirects++) {
+            validatePublicHttpUrl(url);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setConnectTimeout(12000);
+            connection.setReadTimeout(25000);
+            connection.setInstanceFollowRedirects(false);
+            connection.setRequestProperty("Accept", "application/vnd.apple.mpegurl, audio/x-mpegurl, text/plain, */*");
+            connection.setRequestProperty("User-Agent", "YOS-Xtream-Android/2.10");
+            try {
+                int status = connection.getResponseCode();
+                if (status == 301 || status == 302 || status == 303 || status == 307 || status == 308) {
+                    String location = connection.getHeaderField("Location");
+                    if (location == null || redirects == 4) throw new IOException("La lista redirigió demasiadas veces.");
+                    URL target = new URL(url, location);
+                    if (!originalHost.equalsIgnoreCase(target.getHost())) throw new IOException("La lista intentó redirigir las credenciales a otro servidor.");
+                    url = target;
+                    continue;
+                }
+                if (status < 200 || status >= 300) throw new IOException("El servidor respondió HTTP " + status + " al descargar la lista M3U.");
+                try (InputStream input = new BufferedInputStream(connection.getInputStream()); ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+                    byte[] buffer = new byte[8192]; int read;
+                    while ((read = input.read(buffer)) != -1) {
+                        if (output.size() + read > 20 * 1024 * 1024) throw new IOException("La lista supera el límite de 20 MB.");
+                        output.write(buffer, 0, read);
+                    }
+                    String text = new String(output.toByteArray(), StandardCharsets.UTF_8);
+                    if (!text.contains("#EXTINF:")) throw new IOException("La respuesta no contiene una lista M3U válida.");
+                    return text;
+                }
+            } finally { connection.disconnect(); }
+        }
+        throw new IOException("No se pudo seguir la redirección de la lista.");
+    }
+
+    private void validatePublicHttpUrl(URL url) throws Exception {
+        String scheme = url.getProtocol().toLowerCase(Locale.ROOT);
+        String host = url.getHost();
+        if (!(scheme.equals("http") || scheme.equals("https")) || host == null || host.isEmpty() || url.getUserInfo() != null)
+            throw new IOException("Solo se permiten direcciones HTTP o HTTPS válidas.");
+        String normalizedHost = host.toLowerCase(Locale.ROOT);
+        if (normalizedHost.equals("localhost") || normalizedHost.endsWith(".localhost") || normalizedHost.endsWith(".local") || normalizedHost.endsWith(".internal"))
+            throw new IOException("No se permiten direcciones locales o privadas.");
+        for (InetAddress address : InetAddress.getAllByName(host)) {
+            byte[] bytes = address.getAddress();
+            boolean privateIpv4 = bytes.length == 4 && (
+                (bytes[0] & 0xff) == 10 || (bytes[0] & 0xff) == 127 ||
+                ((bytes[0] & 0xff) == 192 && (bytes[1] & 0xff) == 168) ||
+                ((bytes[0] & 0xff) == 172 && (bytes[1] & 0xff) >= 16 && (bytes[1] & 0xff) <= 31) ||
+                ((bytes[0] & 0xff) == 169 && (bytes[1] & 0xff) == 254) ||
+                ((bytes[0] & 0xff) == 100 && (bytes[1] & 0xc0) == 64));
+            boolean privateIpv6 = bytes.length == 16 && ((bytes[0] & 0xfe) == 0xfc);
+            if (address.isAnyLocalAddress() || address.isLoopbackAddress() || address.isLinkLocalAddress() ||
+                address.isSiteLocalAddress() || address.isMulticastAddress() || privateIpv4 || privateIpv6)
+                throw new IOException("No se permiten direcciones locales o privadas.");
         }
     }
 

@@ -25,6 +25,7 @@ const seriesCache = new Map();
 const guideCache = new Map();
 const guidePending = new Map();
 let lastPlaybackFocus = null;
+let savedPlaylistUrl = "";
 
 function cacheItems(key, rows) {
   if (rows.length > ITEM_CACHE_ROW_LIMIT) return;
@@ -48,7 +49,9 @@ function showFallbackCatalog(kind, catalog, requestId) {
   const visibleIds = new Set(categories.filter(row => visibleCategory(row.category_name) && (!state.sportsMode || isSportsCategory(row.category_name))).map(row => String(row.category_id)));
   const visibleItems = categorizedItems.filter(item => {
     const categoryId = item.category_id == null ? "" : String(item.category_id);
-    return (!categoryId || visibleIds.has(categoryId)) && visibleCategory(item.category_name) && (!state.sportsMode || isSportsCategory(item.category_name));
+    const sportsItem = isSportsCategory(item.category_name) || isSportsCategory(item.name);
+    return (!categoryId || visibleIds.has(categoryId) || (state.sportsMode && sportsItem)) &&
+      visibleCategory(item.category_name) && (state.parentalUnlocked || !isRestrictedCategory(item.name)) && (!state.sportsMode || sportsItem);
   });
   state.localItems = visibleItems;
   state.items = visibleItems;
@@ -56,9 +59,80 @@ function showFallbackCatalog(kind, catalog, requestId) {
   applySearch();
   const kindName = kinds[kind].title.toLowerCase();
   setStatus("catalog-status", visibleItems.length
-    ? "Catálogo de " + kindName + " listo · categorías reconstruidas desde el contenido del proveedor."
+    ? (state.credentials?.m3uMode ? "Lista M3U cargada · categorías listas para buscar." : "Catálogo de " + kindName + " listo · categorías reconstruidas desde el contenido del proveedor.")
     : "El proveedor no devolvió contenido para esta sección.", visibleItems.length ? "ok" : "");
   if (visibleItems.length && document.body.classList.contains("tv-remote")) requestAnimationFrame(() => document.querySelector(".content-card")?.focus());
+}
+
+function classifyM3uItem(name, category, url) {
+  const text = (String(name || "") + " " + String(category || "") + " " + String(url || "")).toLocaleLowerCase();
+  if (/\b(series?|temporadas?|episodios?|episodes?|seasons?|tv\s*shows?)\b|s\d{1,2}\s*e\d{1,2}/i.test(text)) return "series";
+  if (/\b(movies?|pel[ií]culas?|cine|films?|vod|pelis)\b|\.(mp4|mkv|avi|mov)(?:$|[?#])/i.test(text)) return "movie";
+  return "live";
+}
+
+function parseM3uPlaylist(text) {
+  const items = [];
+  let current = null;
+  for (const line of String(text || "").replace(/^\uFEFF/, "").split(/\r?\n/).map(value => value.trim()).filter(Boolean)) {
+    if (line.startsWith("#EXTINF:")) {
+      const comma = line.indexOf(",");
+      const attributesText = comma >= 0 ? line.slice(0, comma) : line;
+      const attributes = {};
+      const matcher = /([\w-]+)="([^"]*)"/g;
+      let match;
+      while ((match = matcher.exec(attributesText))) attributes[match[1].toLowerCase()] = match[2];
+      const name = comma >= 0 ? line.slice(comma + 1).trim() : attributes["tvg-name"] || "Sin título";
+      const category = attributes["group-title"] || attributes.category || "General";
+      current = { name: name || attributes["tvg-name"] || "Sin título", category_name: category, stream_icon: attributes["tvg-logo"] || "", _kind: classifyM3uItem(name, category, ""), _m3u: true };
+    } else if (current && /^https?:\/\//i.test(line)) {
+      const id = String(items.length + 1);
+      let extension = "";
+      try { extension = new URL(line).pathname.split(".").pop().toLowerCase(); } catch { /* El enlace se valida al reproducir. */ }
+      if (!/^[a-z0-9]{1,8}$/i.test(extension)) extension = current._kind === "live" ? "m3u8" : "mp4";
+      const kind = classifyM3uItem(current.name, current.category_name, line);
+      items.push({ ...current, _kind: kind, stream_id: id, series_id: kind === "series" ? id : undefined, id, category_id: current.category_name, container_extension: extension, url: line });
+      current = null;
+    }
+  }
+  return items;
+}
+
+function makeM3uUrl(server, username, password, suppliedUrl = "") {
+  if (suppliedUrl) return suppliedUrl;
+  const url = new URL(server.replace(/\/+$/, "") + "/get.php");
+  url.searchParams.set("username", username);
+  url.searchParams.set("password", password);
+  url.searchParams.set("type", "m3u_plus");
+  url.searchParams.set("output", "ts");
+  return url.toString();
+}
+
+function loadM3uUrl(url) {
+  const native = bridge();
+  if (!native?.downloadM3u) return Promise.reject(new Error("La carga de una lista M3U requiere la app Android o TV Box instalada."));
+  try {
+    const result = JSON.parse(native.downloadM3u(url));
+    if (!result.ok) return Promise.reject(new Error(result.error || "No se pudo descargar la lista M3U."));
+    if (!String(result.text || "").includes("#EXTINF:")) return Promise.reject(new Error("El servidor no devolvió una lista M3U válida."));
+    return Promise.resolve(parseM3uPlaylist(result.text));
+  } catch (error) { return Promise.reject(error); }
+}
+
+async function switchToM3uMode() {
+  const account = state.credentials;
+  if (!account || account.m3uMode) return false;
+  const m3uUrl = makeM3uUrl(account.server, account.username, account.password, account.playlistUrl || "");
+  const items = await loadM3uUrl(m3uUrl);
+  if (!items.length) throw new Error("La lista M3U no contiene elementos reproducibles.");
+  account.m3uMode = true;
+  account.m3uItems = items;
+  account.playlistUrl = m3uUrl;
+  categoryCache.clear(); itemCache.clear(); fallbackCatalogCache.clear(); seriesCache.clear(); guideCache.clear();
+  try { bridge()?.saveCredentials(account.server, account.username, account.password, m3uUrl, $("remember").checked); }
+  catch { /* El catálogo sigue disponible aunque no se pueda recordar la cuenta. */ }
+  $("account-summary").textContent = "Lista M3U · " + items.length + " elementos";
+  return true;
 }
 
 function cancelPendingApiRequests() {
@@ -187,10 +261,13 @@ function resumeRecent(row) {
   if (!bridge()) return;
   if (!state.parentalUnlocked && isRestrictedCategory(row.category)) return;
   const kind = row.kind || "live";
+  const playlistItem = state.credentials?.m3uMode
+    ? state.credentials.m3uItems.find(item => String(item.stream_id) === String(row.id) && item._kind === kind)
+    : null;
   const item = {
     id: row.id, stream_id: row.id, name: row.title, title: row.title,
     container_extension: row.extension, category_name: row.category,
-    stream_icon: row.cover, cover: row.cover, _kind: kind
+    stream_icon: row.cover, cover: row.cover, _kind: kind, _m3u: !!playlistItem, url: playlistItem?.url
   };
   playItems([item], kind, 0, Number(row.position) || 0);
 }
@@ -204,13 +281,20 @@ function readFavorites() {
   try {
     const key = providerStoreKey();
     const rows = key ? JSON.parse(localStorage.getItem(key) || "[]") : [];
-    return Array.isArray(rows) ? rows : [];
+    if (!Array.isArray(rows)) return [];
+    if (!state.credentials?.m3uMode) return rows;
+    return rows.map(row => {
+      const item = state.credentials.m3uItems.find(candidate => favoriteId(candidate, candidate._kind) === row.favoriteId);
+      return item ? { ...row, ...item } : row;
+    });
   } catch { return []; }
 }
 
 function saveFavorites(rows) {
   const key = providerStoreKey();
-  try { if (key) localStorage.setItem(key, JSON.stringify(rows)); }
+  try {
+    if (key) localStorage.setItem(key, JSON.stringify(rows.map(({ url, ...item }) => item)));
+  }
   catch { setStatus("catalog-status", "No se pudieron guardar los favoritos en este dispositivo.", "error"); }
 }
 
@@ -358,6 +442,7 @@ async function runDiagnostics() {
   const result = $("diagnostics-result");
   const button = $("diagnostics-run");
   if (!state.credentials) { result.textContent = "Conecta primero tu cuenta Xtream para revisar el proveedor."; return; }
+  if (state.credentials.m3uMode) { result.textContent = "Cuenta cargada como lista M3U. Esta fuente no ofrece diagnóstico de API Xtream."; return; }
   button.disabled = true;
   result.textContent = "Probando autenticación y catálogo…";
   const started = performance.now();
@@ -389,6 +474,7 @@ function readConnectionFields() {
   let server = $("server").value.trim().replace(/\/+$/, "");
   let username = $("username").value.trim();
   let password = $("password").value;
+  let playlistUrl = savedPlaylistUrl;
   try {
     const parsed = new URL(server);
     if (/\/get\.php\/?$/i.test(parsed.pathname)) {
@@ -398,6 +484,7 @@ function readConnectionFields() {
         throw new Error("El enlace get.php debe incluir username y password.");
       }
       const basePath = parsed.pathname.replace(/\/get\.php\/?$/i, "").replace(/\/+$/, "");
+      playlistUrl = parsed.toString();
       server = parsed.origin + basePath;
       username = linkUsername;
       password = linkPassword;
@@ -409,17 +496,19 @@ function readConnectionFields() {
   } catch (error) {
     if (error instanceof Error && error.message.startsWith("El enlace get.php")) throw error;
   }
-  return { server, username, password };
+  return { server, username, password, playlistUrl };
 }
 
-$("server").addEventListener("input", setHttpWarning);
+$("server").addEventListener("input", () => { savedPlaylistUrl = ""; setHttpWarning(); });
+$("username").addEventListener("input", () => { savedPlaylistUrl = ""; });
+$("password").addEventListener("input", () => { savedPlaylistUrl = ""; });
 
 $("login-form").addEventListener("submit", async event => {
   event.preventDefault();
   let connection;
   try { connection = readConnectionFields(); }
   catch (error) { setStatus("login-status", error.message, "error"); return; }
-  const { server, username, password } = connection;
+  const { server, username, password, playlistUrl } = connection;
   if (!/^https?:\/\/[^/]+(?::\d+)?(?:\/[^?#]*)?$/i.test(server)) {
     setStatus("login-status", "Escribe el servidor con http:// o https:// y su puerto si aplica.", "error");
     return;
@@ -428,13 +517,21 @@ $("login-form").addEventListener("submit", async event => {
   const button = $("login-button");
   button.disabled = true;
   setStatus("login-status", "Conectando con el proveedor…");
-  state.credentials = { server, username, password };
+  state.credentials = { server, username, password, playlistUrl };
   try {
-    const auth = await callApi();
+    let auth;
+    try { auth = await callApi(); }
+    catch (apiError) {
+      if (!/HTTP 404\b/.test(apiError.message || "")) throw apiError;
+      setStatus("login-status", "La API Xtream no está disponible. Probando el enlace M3U…");
+      try { await switchToM3uMode(); }
+      catch (m3uError) { throw new Error("La API respondió HTTP 404 y la lista M3U no se pudo cargar: " + (m3uError.message || "revisa el enlace")); }
+      auth = null;
+    }
     const info = auth && auth.user_info;
-    if (!info || String(info.auth) !== "1") throw new Error("El proveedor no autenticó esta cuenta o no ofrece una API Xtream compatible.");
-    if (info.status && !/^active$/i.test(String(info.status))) throw new Error("La cuenta aparece como " + info.status + ".");
-    const stored = bridge().saveCredentials(server, username, password, $("remember").checked);
+    if (!state.credentials.m3uMode && (!info || String(info.auth) !== "1")) throw new Error("El proveedor no autenticó esta cuenta o no ofrece una API Xtream compatible.");
+    if (!state.credentials.m3uMode && info.status && !/^active$/i.test(String(info.status))) throw new Error("La cuenta aparece como " + info.status + ".");
+    const stored = bridge().saveCredentials(server, username, password, state.credentials.playlistUrl || "", $("remember").checked);
     const storageResult = readAccount(stored);
     if (!storageResult.ok) throw new Error(storageResult.error || "No se pudieron guardar las credenciales.");
     categoryCache.clear();
@@ -452,8 +549,8 @@ $("login-form").addEventListener("submit", async event => {
     $("login-view").hidden = true;
     $("catalog-view").hidden = false;
     $("logout").hidden = false;
-    const exp = info.exp_date && /^\d+$/.test(String(info.exp_date)) ? new Date(Number(info.exp_date) * 1000).toLocaleDateString() : "";
-    $("account-summary").textContent = "Cuenta conectada" + (exp ? " · Vence " + exp : "");
+    const exp = info?.exp_date && /^\d+$/.test(String(info.exp_date)) ? new Date(Number(info.exp_date) * 1000).toLocaleDateString() : "";
+    $("account-summary").textContent = state.credentials.m3uMode ? "Lista M3U · " + state.credentials.m3uItems.length + " elementos" : "Cuenta conectada" + (exp ? " · Vence " + exp : "");
     renderRecent();
     setStatus("login-status", "");
     await loadCategories("live");
@@ -487,6 +584,20 @@ async function loadCategories(kind) {
   $("load-more").hidden = true;
   $("search").value = "";
   $("category").disabled = false;
+  if (state.credentials?.m3uMode) {
+    const items = state.credentials.m3uItems.filter(item => item._kind === kind);
+    const categoryMap = new Map();
+    for (const item of items) {
+      const id = String(item.category_name || "General");
+      if (!categoryMap.has(id)) categoryMap.set(id, { category_id: id, category_name: id });
+    }
+    const catalog = {
+      categories: [...categoryMap.values()],
+      items: items.map(item => ({ ...item, category_id: String(item.category_name || "General") }))
+    };
+    showFallbackCatalog(kind, catalog, requestId);
+    return;
+  }
   const fallbackCatalog = fallbackCatalogCache.get(kind);
   if (fallbackCatalog) {
     state.localCategoryFallback = true;
@@ -513,6 +624,14 @@ async function loadCategories(kind) {
   } catch (error) {
     if (requestId !== categoryRequestSequence) return;
     if (/HTTP 404\b/.test(error.message || "")) {
+      try {
+        if (await switchToM3uMode()) {
+          await loadCategories(kind);
+          return;
+        }
+      } catch (m3uError) {
+        error = new Error("La API respondió HTTP 404 y la lista M3U no se pudo cargar: " + (m3uError.message || "revisa el proveedor"));
+      }
       $("category").innerHTML = '<option value="">Cargando catálogo…</option>';
       setStatus("catalog-status", "El proveedor rechazó la lista de categorías. Intentando cargar el catálogo completo…");
       try {
@@ -611,6 +730,14 @@ async function loadItems(categoryId) {
     }
   } catch (error) {
     if (requestId !== itemRequestSequence || state.kind !== kind) return;
+    if (/HTTP 404\b/.test(error.message || "")) {
+      try {
+        if (await switchToM3uMode()) {
+          await loadCategories(kind);
+          return;
+        }
+      } catch (m3uError) { error = new Error("La API respondió HTTP 404 y la lista M3U no se pudo cargar: " + (m3uError.message || "revisa el proveedor")); }
+    }
     state.items = [];
     state.filtered = [];
     renderItems();
@@ -659,6 +786,8 @@ async function searchCatalog(query) {
   const categories = state.categories.filter(row => row && row.category_id != null && visibleCategory(row) && (!state.sportsMode || isSportsCategory(row.category_name)));
   let next = 0;
   let checked = 0;
+  let unsupportedAction = false;
+  let m3uFallbackError = "";
   const found = new Map();
   setStatus("catalog-status", "Buscando en " + categories.length + " categorías…");
   const worker = async () => {
@@ -679,18 +808,28 @@ async function searchCatalog(query) {
             if (id != null) found.set(String(id), { ...item, _kind: kind, category_name: item.category_name || row.category_name });
           }
         }
-      } catch { /* Una categoría caída no impide buscar en las demás. */ }
+      } catch (error) {
+        if (/HTTP 404\b/.test(error.message || "")) unsupportedAction = true;
+      }
       checked++;
       if (requestId === searchSequence) setStatus("catalog-status", "Revisando " + checked + " de " + categories.length + " categorías… " + found.size + " resultados.");
     }
   };
   await Promise.all([worker(), worker()]);
   if (requestId !== searchSequence || state.kind !== kind) return;
+  if (unsupportedAction) {
+    try {
+      if (await switchToM3uMode()) {
+        await loadCategories(kind);
+        return;
+      }
+    } catch (error) { m3uFallbackError = error.message || "No se pudo cargar la lista M3U."; }
+  }
   state.items = [...found.values()];
   state.filtered = state.items;
   state.limit = PAGE_SIZE;
   renderItems();
-  setStatus("catalog-status", state.filtered.length ? "Resultados en todo el catálogo." : "No encontramos coincidencias en este tipo de contenido.", state.filtered.length ? "ok" : "");
+  setStatus("catalog-status", m3uFallbackError ? "La API respondió HTTP 404 y la lista M3U no se pudo cargar: " + m3uFallbackError : state.filtered.length ? "Resultados en todo el catálogo." : "No encontramos coincidencias en este tipo de contenido.", m3uFallbackError ? "error" : state.filtered.length ? "ok" : "");
   if (document.body.classList.contains("tv-remote")) requestAnimationFrame(() => document.querySelector(".content-card")?.focus());
 }
 
@@ -771,6 +910,16 @@ function posterPlaceholder(name) {
 
 async function showProgramGuide(item) {
   const kind = item._kind || state.kind;
+  if (state.credentials?.m3uMode) {
+    $("guide-panel").hidden = false;
+    $("guide-channel").textContent = item.name || "Canal en vivo";
+    $("guide-now").textContent = "La lista M3U no incluye datos de programación.";
+    $("guide-next").textContent = "La reproducción del canal está disponible.";
+    $("guide-now-time").textContent = "";
+    $("guide-next-time").textContent = "";
+    $("guide-upcoming").replaceChildren();
+    return;
+  }
   if (kind !== "live" || item.stream_id == null) {
     $("guide-panel").hidden = true;
     return;
@@ -839,6 +988,7 @@ function formatProgramEndTime(program) {
 }
 
 function streamUrl(kind, item) {
+  if (item._m3u && /^https?:\/\//i.test(item.url || "")) return item.url;
   const c = state.credentials;
   const route = kind === "live" ? "live" : kind === "movie" ? "movie" : "series";
   const id = kind === "live" ? item.stream_id : kind === "movie" ? item.stream_id : item.id;
@@ -896,7 +1046,7 @@ window.yosPlaybackFinished = raw => {
 async function selectItem(item) {
   const kind = item._kind || state.kind;
   if (kind === "live") showProgramGuide(item);
-  if (kind === "series") return showEpisodes(item);
+  if (kind === "series" && !item._m3u) return showEpisodes(item);
   if (kind === "movie") return showMovieDetails(item);
   const streamKey = "stream_id";
   const source = state.showFavorites ? readFavorites() : state.filtered;
@@ -918,6 +1068,11 @@ async function showMovieDetails(movie) {
   updateMovieFavoriteButton();
   $("movie-dialog").showModal();
   if (document.body.classList.contains("tv-remote")) requestAnimationFrame(() => $("movie-play").focus());
+  if (movie._m3u || state.credentials?.m3uMode) {
+    $("movie-plot").textContent = movie.plot || movie.description || "La lista M3U no incluye sinopsis para esta película.";
+    $("movie-status").textContent = "";
+    return;
+  }
   try {
     const response = await callApi("get_vod_info", "", String(movie.stream_id));
     const data = response?.info || response?.movie_data || {};
@@ -1100,6 +1255,7 @@ $("logout").addEventListener("click", () => {
 });
 $("clear-saved").addEventListener("click", () => {
   if (bridge()) bridge().clearSavedCredentials();
+  savedPlaylistUrl = "";
   $("server").value = ""; $("username").value = ""; $("password").value = "";
   $("remember").checked = false; $("clear-saved").hidden = true; setHttpWarning();
   setStatus("login-status", "Cuenta guardada eliminada.");
@@ -1134,6 +1290,7 @@ window.yosHandleBack = () => {
 try {
   const saved = readAccount(bridge()?.getSavedCredentials());
   if (saved.saved) {
+    savedPlaylistUrl = saved.playlistUrl || "";
     $("server").value = saved.server || "";
     $("username").value = saved.username || "";
     $("password").value = saved.password || "";

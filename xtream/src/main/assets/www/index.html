@@ -14,6 +14,7 @@
       <span class="brand-logo-window"><img class="brand-mark" src="yos-logo-header.png" alt=""></span><span class="brand-wordmark">YOS<small>XTREAM</small></span>
     </a>
     <span class="header-caption">TU CONTENIDO, EN UN SOLO LUGAR</span>
+    <button id="parental-control" class="button subtle" type="button" hidden>🔒 CONTROL PARENTAL</button>
     <button id="logout" class="button subtle" hidden>CERRAR SESIÓN</button>
   </header>
 
@@ -72,8 +73,8 @@
       <section id="guide-panel" class="guide-panel" aria-live="polite" hidden>
         <div class="guide-heading"><span class="eyebrow">GUÍA EN VIVO</span><strong id="guide-channel"></strong></div>
         <div class="guide-programs">
-          <article><span>AHORA</span><p id="guide-now">Consultando programación…</p></article>
-          <article><span>SIGUE</span><p id="guide-next">Consultando programación…</p></article>
+          <article><span>AHORA <small id="guide-now-time"></small></span><p id="guide-now">Consultando programación…</p></article>
+          <article><span>SIGUE <small id="guide-next-time"></small></span><p id="guide-next">Consultando programación…</p></article>
         </div>
       </section>
       <div id="content-grid" class="content-grid"></div>
@@ -83,11 +84,26 @@
 
   <dialog id="episodes-dialog" class="episodes-dialog">
     <div class="dialog-head"><div><span class="eyebrow">SERIE</span><h2 id="episodes-title">Episodios</h2></div><button id="close-episodes" class="icon-button" aria-label="Cerrar">×</button></div>
+    <label id="season-picker-label" class="season-picker-label" for="season-picker">Temporada <select id="season-picker"></select></label>
     <div id="episode-list" class="episode-list"></div>
   </dialog>
   <dialog id="movie-dialog" class="movie-dialog">
     <div class="dialog-head"><div><span class="eyebrow">PELÍCULA</span><h2 id="movie-title">Detalles</h2></div><button id="close-movie" class="icon-button" aria-label="Cerrar">×</button></div>
     <div class="movie-detail-body"><img id="movie-cover" alt="" hidden><div><p id="movie-meta" class="muted"></p><p id="movie-plot" class="movie-plot"></p><p id="movie-status" class="status" role="status" aria-live="polite"></p><div class="movie-actions"><button id="movie-play" class="button primary" type="button">REPRODUCIR</button><button id="movie-favorite" class="button" type="button">☆ FAVORITO</button></div></div></div>
+  </dialog>
+  <dialog id="parental-dialog" class="parental-dialog">
+    <div class="dialog-head"><div><span class="eyebrow">SEGURIDAD LOCAL</span><h2>Control parental</h2></div><button id="close-parental" class="icon-button" aria-label="Cerrar">×</button></div>
+    <p id="parental-description" class="muted">Protege categorías identificadas como contenido para adultos con un PIN.</p>
+    <form id="parental-form">
+      <label id="parental-current-label" for="parental-current">PIN</label>
+      <input id="parental-current" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off">
+      <label id="parental-new-label" for="parental-new" hidden>Nuevo PIN (4 a 8 dígitos)</label>
+      <input id="parental-new" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="new-password" hidden>
+      <p id="parental-status" class="status" role="status" aria-live="polite"></p>
+      <button id="parental-submit" class="button primary" type="submit">GUARDAR PIN</button>
+      <button id="parental-lock-now" class="button" type="button" hidden>BLOQUEAR AHORA</button>
+    </form>
+    <p class="fine-print">El PIN se guarda como un resumen criptográfico local y no se envía al proveedor. Solo se restringen categorías cuyo nombre indique +18, adultos, XXX o contenido similar; no es un filtro infalible.</p>
   </dialog>
   <script src="app.js"></script>
 </body>

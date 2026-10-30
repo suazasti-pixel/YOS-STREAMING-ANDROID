@@ -3,7 +3,7 @@
 const $ = id => document.getElementById(id);
 const PAGE_SIZE = 60;
 const ITEM_CACHE_LIMIT = 3;
-const state = { credentials: null, kind: "live", categories: [], items: [], localItems: [], filtered: [], limit: PAGE_SIZE, series: null, movie: null, showFavorites: false, globalSearch: false };
+const state = { credentials: null, kind: "live", categories: [], items: [], localItems: [], filtered: [], limit: PAGE_SIZE, series: null, movie: null, showFavorites: false, globalSearch: false, parentalHash: "", parentalUnlocked: false, parentalMode: "setup", parentalFailures: 0, parentalBlockedUntil: 0, episodes: [] };
 const kinds = {
   live: { title: "Canales en vivo", categories: "get_live_categories", items: "get_live_streams", singular: "live" },
   movie: { title: "Películas", categories: "get_vod_categories", items: "get_vod_streams", singular: "movie" },
@@ -39,6 +39,55 @@ function historyStoreKey() {
   return account ? "yos-xtream-recent-v1:" + encodeURIComponent(account.server + "|" + account.username) : "";
 }
 
+function parentalStoreKey() {
+  const account = state.credentials;
+  return account ? "yos-xtream-parental-v1:" + encodeURIComponent(account.server + "|" + account.username) : "";
+}
+
+function isRestrictedCategory(name) {
+  return /\b(adultos?|xxx|porn(?:o|ografía)?|er[oó]tic[oa]s?|solo\s+adultos)\b|(?:\+\s*18|18\s*(?:\+|plus))/i.test(String(name || ""));
+}
+
+function visibleCategory(category) { return state.parentalUnlocked || !isRestrictedCategory(category?.category_name); }
+
+function categoriesStatus(rows) {
+  const visibleCount = rows.filter(visibleCategory).length;
+  if (!visibleCount) return "No hay categorías visibles. Revisa Control parental.";
+  return visibleCount < rows.length ? "Elige una categoría. Las categorías +18 permanecen ocultas." : "Elige una categoría para cargar el contenido.";
+}
+
+async function hashPin(pin) {
+  if (!window.crypto?.subtle) throw new Error("Este dispositivo no permite guardar el PIN de forma segura.");
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(pin));
+  return [...new Uint8Array(digest)].map(value => value.toString(16).padStart(2, "0")).join("");
+}
+
+function updateParentalButton() {
+  const button = $("parental-control");
+  button.textContent = state.parentalUnlocked ? "🔓 PIN" : "🔒 PIN";
+  button.setAttribute("aria-label", state.parentalUnlocked ? "Cambiar PIN del control parental" : "Control parental bloqueado");
+}
+
+function openParentalDialog() {
+  state.parentalMode = !state.parentalHash ? "setup" : state.parentalUnlocked ? "change" : "unlock";
+  $("parental-current").value = "";
+  $("parental-new").value = "";
+  $("parental-current-label").hidden = state.parentalMode === "setup";
+  $("parental-current").hidden = state.parentalMode === "setup";
+  $("parental-new-label").hidden = state.parentalMode === "unlock";
+  $("parental-new").hidden = state.parentalMode === "unlock";
+  $("parental-lock-now").hidden = !state.parentalUnlocked;
+  $("parental-submit").textContent = state.parentalMode === "setup" ? "GUARDAR PIN" : state.parentalMode === "change" ? "CAMBIAR PIN" : "DESBLOQUEAR CATEGORÍAS";
+  $("parental-description").textContent = state.parentalMode === "setup" ? "Crea un PIN local para ocultar las categorías +18 detectadas." : state.parentalMode === "change" ? "Confirma tu PIN actual y escribe uno nuevo." : "Escribe el PIN para mostrar temporalmente las categorías restringidas.";
+  setStatus("parental-status", "");
+  $("parental-dialog").showModal();
+  requestAnimationFrame(() => $(state.parentalMode === "setup" ? "parental-new" : "parental-current").focus());
+}
+
+function closeParentalDialog() {
+  $("parental-dialog").close();
+}
+
 function readRecent() {
   try {
     const key = historyStoreKey();
@@ -47,13 +96,23 @@ function readRecent() {
   } catch { return []; }
 }
 
+function refreshAfterParentalChange() {
+  updateParentalButton();
+  renderRecent();
+  if (state.showFavorites) {
+    state.filtered = readFavorites().filter(item => state.parentalUnlocked || !isRestrictedCategory(item.category_name));
+    state.limit = PAGE_SIZE;
+    applySearch();
+  } else loadCategories(state.kind);
+}
+
 function saveRecent(rows) {
   try { const key = historyStoreKey(); if (key) localStorage.setItem(key, JSON.stringify(rows.slice(0, 16))); }
   catch { /* El historial es opcional si el almacenamiento está lleno. */ }
 }
 
 function renderRecent() {
-  const rows = readRecent();
+  const rows = readRecent().filter(row => state.parentalUnlocked || !isRestrictedCategory(row.category));
   const panel = $("recent-panel");
   const grid = $("recent-grid");
   grid.replaceChildren();
@@ -83,6 +142,7 @@ function renderRecent() {
 
 function resumeRecent(row) {
   if (!bridge()) return;
+  if (!state.parentalUnlocked && isRestrictedCategory(row.category)) return;
   const kind = row.kind || "live";
   const item = {
     id: row.id, stream_id: row.id, name: row.title, title: row.title,
@@ -136,7 +196,7 @@ function showFavoritesView() {
   state.showFavorites = true;
   state.globalSearch = false;
   state.items = [];
-  state.filtered = readFavorites();
+  state.filtered = readFavorites().filter(item => state.parentalUnlocked || !isRestrictedCategory(item.category_name));
   state.limit = PAGE_SIZE;
   $("search").value = "";
   $("favorites-tab").classList.add("active");
@@ -253,6 +313,11 @@ $("login-form").addEventListener("submit", async event => {
     seriesCache.clear();
     guideCache.clear();
     guidePending.clear();
+    state.parentalHash = localStorage.getItem(parentalStoreKey()) || "";
+    state.parentalUnlocked = false;
+    state.parentalFailures = 0;
+    $("parental-control").hidden = false;
+    updateParentalButton();
     $("login-view").hidden = true;
     $("catalog-view").hidden = false;
     $("logout").hidden = false;
@@ -291,7 +356,7 @@ async function loadCategories(kind) {
   const cachedRows = categoryCache.get(kind);
   if (cachedRows) {
     showCategories(kind, cachedRows);
-    setStatus("catalog-status", cachedRows.length ? "Elige una categoría para cargar el contenido." : "El proveedor no devolvió categorías para esta sección.");
+    setStatus("catalog-status", cachedRows.length ? categoriesStatus(cachedRows) : "El proveedor no devolvió categorías para esta sección.");
     return;
   }
   $("category").innerHTML = '<option value="">Cargando categorías…</option>';
@@ -302,7 +367,7 @@ async function loadCategories(kind) {
     if (!Array.isArray(rows)) throw new Error("El proveedor devolvió categorías con formato no reconocido.");
     categoryCache.set(kind, rows);
     showCategories(kind, rows);
-    setStatus("catalog-status", rows.length ? "Elige una categoría para cargar el contenido." : "El proveedor no devolvió categorías para esta sección.");
+    setStatus("catalog-status", rows.length ? categoriesStatus(rows) : "El proveedor no devolvió categorías para esta sección.");
   } catch (error) {
     if (requestId !== categoryRequestSequence) return;
     $("category").innerHTML = '<option value="">Sin categorías</option>';
@@ -313,13 +378,15 @@ async function loadCategories(kind) {
 function showCategories(kind, rows) {
   state.categories = rows;
   $("category").innerHTML = '<option value="">Selecciona una categoría</option>';
-  for (const row of rows) {
+  const visibleRows = rows.filter(visibleCategory);
+  for (const row of visibleRows) {
     if (!row || row.category_id == null) continue;
     const option = document.createElement("option");
     option.value = String(row.category_id);
     option.textContent = row.category_name || "Categoría";
     $("category").append(option);
   }
+  if (rows.length > visibleRows.length) setStatus("catalog-status", "Categorías para adultos ocultas. Usa Control parental para mostrarlas.");
   if (document.body.classList.contains("tv-remote")) requestAnimationFrame(() => $("category").focus());
 }
 
@@ -355,8 +422,10 @@ async function loadItems(categoryId) {
     const rows = await callApi(kinds[kind].items, categoryId);
     if (requestId !== itemRequestSequence || state.kind !== kind || $("category").value !== String(categoryId)) return;
     if (!Array.isArray(rows)) throw new Error("El proveedor devolvió contenido con formato no reconocido.");
-    cacheItems(cacheKey, rows);
-    state.items = rows;
+    const categoryName = state.categories.find(row => String(row.category_id) === String(categoryId))?.category_name || "";
+    const categorizedRows = rows.map(item => ({ ...item, category_name: item.category_name || categoryName }));
+    cacheItems(cacheKey, categorizedRows);
+    state.items = categorizedRows;
     state.localItems = rows;
     state.limit = PAGE_SIZE;
     applySearch();
@@ -398,7 +467,7 @@ async function searchCatalog(query) {
   state.filtered = [];
   state.limit = PAGE_SIZE;
   renderItems();
-  const categories = state.categories.filter(row => row && row.category_id != null);
+  const categories = state.categories.filter(row => row && row.category_id != null && visibleCategory(row));
   let next = 0;
   let checked = 0;
   const found = new Map();
@@ -518,6 +587,8 @@ async function showProgramGuide(item) {
   $("guide-channel").textContent = item.name || "Canal en vivo";
   $("guide-now").textContent = "Consultando programación…";
   $("guide-next").textContent = "Consultando programación…";
+  $("guide-now-time").textContent = "";
+  $("guide-next-time").textContent = "";
   try {
     let programs = guideCache.get(key);
     if (!programs) {
@@ -534,11 +605,23 @@ async function showProgramGuide(item) {
     if (requestId !== guideRequestSequence) return;
     $("guide-now").textContent = programs[0]?.title || "El proveedor no ofrece datos de programación.";
     $("guide-next").textContent = programs[1]?.title || "Sin siguiente programa disponible.";
+    $("guide-now-time").textContent = formatProgramTime(programs[0]);
+    $("guide-next-time").textContent = formatProgramTime(programs[1]);
   } catch {
     if (requestId !== guideRequestSequence) return;
     $("guide-now").textContent = "Guía no disponible para este canal.";
     $("guide-next").textContent = "La reproducción del canal sigue disponible.";
   }
+}
+
+function formatProgramTime(program) {
+  if (!program) return "";
+  const raw = program.start_timestamp || program.start || "";
+  if (!raw) return "";
+  const numeric = Number(raw);
+  const dateValue = Number.isFinite(numeric) ? (numeric < 100000000000 ? numeric * 1000 : numeric) : String(raw).replace(" ", "T");
+  const date = new Date(dateValue);
+  return Number.isNaN(date.getTime()) ? "" : new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit" }).format(date);
 }
 
 function streamUrl(kind, item) {
@@ -653,28 +736,42 @@ async function showEpisodes(series) {
     }
     if (!episodes.length) throw new Error("No se encontraron episodios para esta serie.");
     state.series = series;
-    renderEpisodes(episodes);
+    state.episodes = episodes.map(episode => ({ ...episode, _seasonLabel: String(episode._season ?? episode.season ?? "1") }));
+    const seasonSelect = $("season-picker");
+    const seasonNames = [...new Set(state.episodes.map(episode => episode._seasonLabel))].sort((a, b) => Number(a) - Number(b));
+    seasonSelect.replaceChildren();
+    for (const season of seasonNames) {
+      const option = document.createElement("option");
+      option.value = season; option.textContent = "Temporada " + season; seasonSelect.append(option);
+    }
+    $("season-picker-label").hidden = seasonNames.length <= 1;
+    renderEpisodes(seasonNames[0]);
     $("episodes-title").textContent = series.name || "Episodios";
     $("episodes-dialog").showModal();
-    if (document.body.classList.contains("tv-remote")) requestAnimationFrame(() => $("episode-list").querySelector("button")?.focus());
+    if (document.body.classList.contains("tv-remote")) requestAnimationFrame(() => {
+      const firstEpisode = $("episode-list").querySelector("button");
+      if (firstEpisode) firstEpisode.focus(); else $("season-picker").focus();
+    });
     setStatus("catalog-status", "");
   } catch (error) { setStatus("catalog-status", error.message, "error"); }
 }
 
-function renderEpisodes(episodes) {
+function renderEpisodes(season) {
   const box = $("episode-list");
   box.replaceChildren();
-  let lastSeason = null;
+  const episodes = state.episodes.filter(episode => episode._seasonLabel === season);
+  const recentRows = readRecent().filter(row => state.parentalUnlocked || !isRestrictedCategory(row.category));
   episodes.forEach((episode, index) => {
-    if (episode._season !== lastSeason) {
-      lastSeason = episode._season;
-      if (lastSeason != null) {
-        const label = document.createElement("div"); label.className = "season-title"; label.textContent = "TEMPORADA " + lastSeason; box.append(label);
-      }
-    }
     const button = document.createElement("button");
     button.type = "button"; button.className = "episode-button";
-    button.textContent = (episode.episode_num ? "E" + episode.episode_num + " · " : "") + (episode.title || episode.name || "Episodio " + (index + 1));
+    const number = episode.episode_num ? "E" + episode.episode_num + " · " : "";
+    const title = episode.title || episode.name || "Episodio " + (index + 1);
+    const progress = recentRows.find(row => row.kind === "series" && row.id === String(episode.id));
+    let suffix = "";
+    if (progress?.duration > 0 && progress.position >= progress.duration * 0.9) suffix = " · VISTO";
+    else if (progress?.duration > 0 && progress.position > 0) suffix = " · RETOMAR " + Math.round(progress.position / progress.duration * 100) + "%";
+    button.textContent = number + title + suffix;
+    if (suffix) button.classList.add("episode-progress-state");
     button.addEventListener("click", () => {
       $("episodes-dialog").close();
       const playlist = episodes.map(episode => ({ ...episode, name: episode.title || episode.name, category_name: state.series?.category_name, cover: state.series?.cover || state.series?.stream_icon }));
@@ -698,13 +795,68 @@ $("home-favorites").addEventListener("click", showFavoritesView);
 $("clear-recent").addEventListener("click", () => { saveRecent([]); renderRecent(); });
 $("load-more").addEventListener("click", () => { state.limit += PAGE_SIZE; renderItems(); });
 $("close-episodes").addEventListener("click", () => $("episodes-dialog").close());
+$("season-picker").addEventListener("change", () => renderEpisodes($("season-picker").value));
 $("episodes-dialog").addEventListener("click", event => { if (event.target === $("episodes-dialog")) $("episodes-dialog").close(); });
 $("close-movie").addEventListener("click", () => $("movie-dialog").close());
 $("movie-dialog").addEventListener("click", event => { if (event.target === $("movie-dialog")) $("movie-dialog").close(); });
 $("movie-play").addEventListener("click", () => { if (activeMovie) { $("movie-dialog").close(); playItems([activeMovie], "movie"); } });
 $("movie-favorite").addEventListener("click", () => { if (activeMovie) { toggleFavorite(activeMovie, "movie"); updateMovieFavoriteButton(); } });
+$("parental-control").addEventListener("click", openParentalDialog);
+$("close-parental").addEventListener("click", closeParentalDialog);
+$("parental-lock-now").addEventListener("click", () => {
+  state.parentalUnlocked = false;
+  closeParentalDialog();
+  refreshAfterParentalChange();
+  setStatus("catalog-status", "Categorías restringidas bloqueadas.", "ok");
+});
+$("parental-dialog").addEventListener("click", event => { if (event.target === $("parental-dialog")) closeParentalDialog(); });
+$("parental-form").addEventListener("submit", async event => {
+  event.preventDefault();
+  const current = $("parental-current").value.trim();
+  const nextPin = $("parental-new").value.trim();
+  if (state.parentalMode !== "setup" && Date.now() < state.parentalBlockedUntil) {
+    setStatus("parental-status", "Espera un momento antes de volver a intentarlo.", "error");
+    return;
+  }
+  try {
+    if (state.parentalMode === "setup") {
+      if (!/^\d{4,8}$/.test(nextPin)) throw new Error("El PIN debe tener entre 4 y 8 números.");
+      const newHash = await hashPin(nextPin);
+      localStorage.setItem(parentalStoreKey(), newHash);
+      state.parentalHash = newHash;
+      state.parentalUnlocked = false;
+      state.parentalFailures = 0;
+      closeParentalDialog();
+      refreshAfterParentalChange();
+      setStatus("catalog-status", "PIN guardado. Las categorías restringidas quedan ocultas.", "ok");
+      return;
+    }
+    if (await hashPin(current) !== state.parentalHash) {
+      state.parentalFailures++;
+      if (state.parentalFailures >= 5) { state.parentalFailures = 0; state.parentalBlockedUntil = Date.now() + 30000; }
+      throw new Error("El PIN no coincide.");
+    }
+    state.parentalFailures = 0;
+    if (state.parentalMode === "unlock") {
+      state.parentalUnlocked = true;
+      closeParentalDialog();
+      refreshAfterParentalChange();
+      setStatus("catalog-status", "Categorías restringidas visibles durante esta sesión.", "ok");
+      return;
+    }
+    if (!/^\d{4,8}$/.test(nextPin)) throw new Error("El nuevo PIN debe tener entre 4 y 8 números.");
+    const newHash = await hashPin(nextPin);
+    localStorage.setItem(parentalStoreKey(), newHash);
+    state.parentalHash = newHash;
+    state.parentalUnlocked = true;
+    closeParentalDialog();
+    refreshAfterParentalChange();
+    setStatus("catalog-status", "PIN actualizado.", "ok");
+  } catch (error) { setStatus("parental-status", error.message || "No se pudo guardar el PIN.", "error"); }
+});
 $("logout").addEventListener("click", () => {
   state.credentials = null; state.items = []; state.filtered = []; state.globalSearch = false; searchSequence++;
+  state.parentalHash = ""; state.parentalUnlocked = false; $("parental-control").hidden = true;
   categoryCache.clear(); itemCache.clear(); seriesCache.clear();
   guideCache.clear(); guidePending.clear(); state.showFavorites = false;
   $("catalog-view").hidden = true; $("logout").hidden = true; $("login-view").hidden = false;
@@ -719,6 +871,7 @@ $("clear-saved").addEventListener("click", () => {
 });
 
 window.yosHandleBack = () => {
+  if ($("parental-dialog").open) { closeParentalDialog(); return true; }
   if ($("movie-dialog").open) { $("movie-dialog").close(); return true; }
   if ($("episodes-dialog").open) { $("episodes-dialog").close(); return true; }
   if (!$("catalog-view").hidden) { $("logout").click(); return true; }
@@ -753,10 +906,15 @@ try {
         const origin = active && active !== document.body ? active.getBoundingClientRect() : null;
         const cx = origin ? origin.left + origin.width / 2 : innerWidth / 2;
         const cy = origin ? origin.top + origin.height / 2 : innerHeight / 2;
-        const candidates = [...document.querySelectorAll("a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex='-1'])")]
+        const selector = "a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex='-1'])";
+        const activeDialog = active?.closest("dialog[open]");
+        const activeGrid = active?.closest(".content-grid, .episode-list, .browse-shortcuts, .recent-grid");
+        const scope = activeDialog || activeGrid;
+        const collect = root => [...root.querySelectorAll(selector)]
           .filter(element => element !== active && !element.closest("[hidden],[inert]") && getComputedStyle(element).visibility !== "hidden")
           .map(element => ({ element, rect: element.getBoundingClientRect() }))
           .filter(candidate => candidate.rect.width > 0 && candidate.rect.height > 0);
+        let candidates = scope ? collect(scope) : collect(document);
         let best = null;
         let bestScore = Infinity;
         for (const candidate of candidates) {
@@ -767,6 +925,18 @@ try {
           const cross = dx ? Math.abs(y - cy) : Math.abs(x - cx);
           const score = primary + cross * 1.7;
           if (score < bestScore) { best = candidate.element; bestScore = score; }
+        }
+        if (!best && scope && !activeDialog) {
+          candidates = collect(document);
+          for (const candidate of candidates) {
+            const x = candidate.rect.left + candidate.rect.width / 2;
+            const y = candidate.rect.top + candidate.rect.height / 2;
+            const primary = dx ? (x - cx) * dx : (y - cy) * dy;
+            if (primary < 5) continue;
+            const cross = dx ? Math.abs(y - cy) : Math.abs(x - cx);
+            const score = primary + cross * 1.7;
+            if (score < bestScore) { best = candidate.element; bestScore = score; }
+          }
         }
         if (best) {
           event.preventDefault();

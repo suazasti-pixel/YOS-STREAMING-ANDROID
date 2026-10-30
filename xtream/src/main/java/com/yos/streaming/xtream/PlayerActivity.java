@@ -1,6 +1,7 @@
 package com.yos.streaming.xtream;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
@@ -21,9 +22,13 @@ import androidx.media3.common.MediaMetadata;
 import androidx.media3.common.MimeTypes;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
+import androidx.media3.common.C;
+import androidx.media3.common.Tracks;
+import androidx.media3.common.util.UnstableApi;
 import androidx.media3.exoplayer.DefaultLoadControl;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.ui.PlayerView;
+import androidx.media3.ui.TrackSelectionDialogBuilder;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -31,6 +36,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+@UnstableApi
 public final class PlayerActivity extends Activity {
     public static final String EXTRA_URL = "stream_url";
     public static final String EXTRA_TITLE = "stream_title";
@@ -85,6 +91,11 @@ public final class PlayerActivity extends Activity {
         titleParams.leftMargin = dp(14);
         top.addView(back);
         top.addView(title, titleParams);
+        Button trackButton = new Button(this);
+        trackButton.setText("PISTAS");
+        trackButton.setContentDescription("Elegir pista de audio o subtítulos");
+        trackButton.setOnClickListener(view -> showTrackMenu());
+        top.addView(trackButton);
         FrameLayout.LayoutParams topParams = new FrameLayout.LayoutParams(-1, -2, Gravity.TOP);
         root.addView(top, topParams);
 
@@ -187,6 +198,33 @@ public final class PlayerActivity extends Activity {
         if (player == null) return;
         player.prepare();
         player.play();
+    }
+
+    private void showTrackMenu() {
+        new AlertDialog.Builder(this)
+            .setTitle("Pistas de reproducción")
+            .setItems(new String[] { "Audio", "Subtítulos" }, (dialog, which) ->
+                showTrackSelection(which == 0 ? C.TRACK_TYPE_AUDIO : C.TRACK_TYPE_TEXT))
+            .setNegativeButton("Cerrar", null)
+            .show();
+    }
+
+    private void showTrackSelection(int trackType) {
+        if (player == null) return;
+        boolean found = false;
+        for (Tracks.Group group : player.getCurrentTracks().getGroups()) {
+            if (group.getType() == trackType && group.isSupported()) { found = true; break; }
+        }
+        if (!found) {
+            Toast.makeText(this, trackType == C.TRACK_TYPE_AUDIO ? "Esta señal no informa otras pistas de audio." : "Esta señal no incluye subtítulos seleccionables.", Toast.LENGTH_LONG).show();
+            return;
+        }
+        new TrackSelectionDialogBuilder(this,
+            trackType == C.TRACK_TYPE_AUDIO ? "Pista de audio" : "Subtítulos", player, trackType)
+            .setShowDisableOption(trackType == C.TRACK_TYPE_TEXT)
+            .setAllowAdaptiveSelections(false)
+            .build()
+            .show();
     }
 
     private int dp(int value) { return Math.round(value * getResources().getDisplayMetrics().density); }

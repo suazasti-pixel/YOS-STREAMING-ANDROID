@@ -2,7 +2,8 @@
 
 const $ = id => document.getElementById(id);
 const PAGE_SIZE = 60;
-const ITEM_CACHE_LIMIT = 3;
+const ITEM_CACHE_LIMIT = 5;
+const ITEM_CACHE_ROW_LIMIT = 18000;
 const state = { credentials: null, kind: "live", categories: [], items: [], localItems: [], filtered: [], limit: PAGE_SIZE, series: null, movie: null, showFavorites: false, globalSearch: false, sportsMode: false, parentalHash: "", parentalUnlocked: false, parentalMode: "setup", parentalFailures: 0, parentalBlockedUntil: 0, episodes: [] };
 const kinds = {
   live: { title: "Canales en vivo", categories: "get_live_categories", items: "get_live_streams", singular: "live" },
@@ -25,9 +26,24 @@ const guidePending = new Map();
 let lastPlaybackFocus = null;
 
 function cacheItems(key, rows) {
+  if (rows.length > ITEM_CACHE_ROW_LIMIT) return;
   itemCache.delete(key);
   itemCache.set(key, rows);
-  while (itemCache.size > ITEM_CACHE_LIMIT) itemCache.delete(itemCache.keys().next().value);
+  const cachedRows = () => [...itemCache.values()].reduce((total, items) => total + items.length, 0);
+  while (itemCache.size > ITEM_CACHE_LIMIT || (itemCache.size > 1 && cachedRows() > ITEM_CACHE_ROW_LIMIT)) {
+    itemCache.delete(itemCache.keys().next().value);
+  }
+}
+
+function cancelPendingApiRequests() {
+  const native = bridge();
+  if (native?.cancelApiRequests) native.cancelApiRequests();
+  for (const [id, job] of pending) {
+    clearTimeout(job.timer);
+    pending.delete(id);
+    job.reject(new Error("Solicitud reemplazada por la navegación actual."));
+  }
+  guidePending.clear();
 }
 
 function providerStoreKey() {
@@ -194,6 +210,9 @@ function toggleFavorite(item, kind) {
 
 function showFavoritesView() {
   searchSequence++;
+  itemRequestSequence++;
+  categoryRequestSequence++;
+  cancelPendingApiRequests();
   state.showFavorites = true;
   state.sportsMode = false;
   state.globalSearch = false;
@@ -414,6 +433,7 @@ async function loadCategories(kind) {
   searchSequence++;
   const requestId = ++categoryRequestSequence;
   itemRequestSequence++;
+  cancelPendingApiRequests();
   state.kind = kind;
   state.showFavorites = false;
   state.globalSearch = false;
@@ -473,6 +493,8 @@ function showCategories(kind, rows) {
 
 async function loadItems(categoryId) {
   searchSequence++;
+  const requestId = ++itemRequestSequence;
+  cancelPendingApiRequests();
   if (!categoryId) {
     state.items = [];
     state.localItems = [];
@@ -482,7 +504,6 @@ async function loadItems(categoryId) {
     return;
   }
   const kind = state.kind;
-  const requestId = ++itemRequestSequence;
   const cacheKey = kind + ":" + categoryId;
   const cachedRows = itemCache.get(cacheKey);
   if (cachedRows) {
@@ -536,6 +557,7 @@ async function searchCatalog(query) {
   const kind = state.kind;
   const q = query.trim().toLocaleLowerCase();
   if (q.length < 2 || state.showFavorites) {
+    if (state.globalSearch) cancelPendingApiRequests();
     if (state.globalSearch && !state.showFavorites) state.items = state.localItems;
     state.globalSearch = false;
     applySearch();
@@ -543,6 +565,7 @@ async function searchCatalog(query) {
     return;
   }
   if (!state.categories.length) { setStatus("catalog-status", "Espera a que carguen las categorías para buscar."); return; }
+  cancelPendingApiRequests();
   state.globalSearch = true;
   state.items = [];
   state.filtered = [];
@@ -589,6 +612,7 @@ async function searchCatalog(query) {
 function renderItems() {
   const box = $("content-grid");
   box.replaceChildren();
+  const fragment = document.createDocumentFragment();
   const page = state.filtered.slice(0, state.limit);
   const favoriteIds = new Set(readFavorites().map(row => row.favoriteId));
   if (!page.length) {
@@ -613,6 +637,7 @@ function renderItems() {
       img.className = "poster";
       img.loading = "lazy";
       img.decoding = "async";
+      img.fetchPriority = "low";
       img.alt = "";
       img.src = posterUrl;
       img.onerror = () => img.replaceWith(posterPlaceholder(item.name));
@@ -644,8 +669,9 @@ function renderItems() {
     favorite.setAttribute("aria-label", (favored ? "Quitar de favoritos " : "Agregar a favoritos ") + (item.name || "contenido"));
     favorite.addEventListener("click", () => toggleFavorite(item, kind));
     wrapper.append(button, favorite);
-    box.append(wrapper);
+    fragment.append(wrapper);
   }
+  box.append(fragment);
   $("catalog-count").textContent = state.filtered.length ? state.filtered.length + " elementos" : "";
   $("load-more").hidden = page.length >= state.filtered.length;
 }
@@ -977,6 +1003,7 @@ $("parental-form").addEventListener("submit", async event => {
   } catch (error) { setStatus("parental-status", error.message || "No se pudo guardar el PIN.", "error"); }
 });
 $("logout").addEventListener("click", () => {
+  cancelPendingApiRequests();
   state.credentials = null; state.items = []; state.filtered = []; state.globalSearch = false; state.sportsMode = false; searchSequence++;
   state.parentalHash = ""; state.parentalUnlocked = false; $("parental-control").hidden = true;
   categoryCache.clear(); itemCache.clear(); seriesCache.clear();

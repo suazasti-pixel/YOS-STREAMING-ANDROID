@@ -5,12 +5,12 @@ Estas son las tres ediciones principales que vamos a mantener y actualizar por s
 | Edición | Dispositivo | Instalador en GitHub Actions | Proyecto |
 |---|---|---|---|
 | **1.1** | Celular Android | `YOS-1.1-CELULAR-APK` | YOS Streaming, listas M3U |
-| **2.7** | Celular Android y Android TV Box | `YOS-2.7-XTREAM-ANDROID-APK` | YOS Xtream Android |
+| **2.8** | Celular Android y Android TV Box | `YOS-2.8-XTREAM-ANDROID-APK` | YOS Xtream Android |
 | **3.2** | Televisor LG webOS | `YOS-3.2-LG-webOS-IPK` | YOS Xtream para webOS |
 
 ## Regla de numeración
 
-Cada edición avanza por separado: celular **1.1 → 1.2 → 1.3**, Xtream Android **2.1 → 2.2 → 2.3 → 2.4 → 2.5 → 2.6 → 2.7** y LG webOS **3.1 → 3.2 → 3.3**. Cuando un cambio afecte varias ediciones, incrementaremos la serie de cada una de ellas. Así cada instalador y sus notas de cambios indicarán qué versión recibió la mejora.
+Cada edición avanza por separado: celular **1.1 → 1.2 → 1.3**, Xtream Android **2.1 → 2.2 → 2.3 → 2.4 → 2.5 → 2.6 → 2.7 → 2.8** y LG webOS **3.1 → 3.2 → 3.3**. Cuando un cambio afecte varias ediciones, incrementaremos la serie de cada una de ellas. Así cada instalador y sus notas de cambios indicarán qué versión recibió la mejora.
 
 YOS Play sigue siendo un proyecto Android adicional y no forma parte de esta lista de tres instaladores.
 
@@ -52,3 +52,10 @@ Abre la ejecución más reciente que terminó correctamente en [GitHub Actions](
 - Diagnóstico de conexión comprueba autenticación y tiempo de respuesta de categorías, e indica HTTP/HTTPS. No mide ni promete la disponibilidad de cada stream.
 - El reproductor permite seleccionar calidad/resolución si la señal ofrece más de una pista de video; conserva selección de audio y subtítulos.
 - Android `versionCode 12`, `versionName 2.7`. Artifact de Actions: `YOS-2.7-XTREAM-ANDROID-APK`.
+
+## YOS Xtream 2.8 — carga más ágil de canales y catálogo
+
+- Se cancelan solicitudes de catálogo que quedaron obsoletas al cambiar de sección, categoría, búsqueda o favoritos; así dejan de ocupar los tres espacios de red usados por la app.
+- Se mantienen en caché hasta cinco categorías recientes con un límite aproximado de 18.000 elementos, para volver a verlas sin pedirlas otra vez al proveedor.
+- El catálogo crea sus tarjetas en un fragmento y las inserta en un solo paso. Las carátulas siguen cargándose de forma diferida y ahora se marcan como de baja prioridad.
+- Android `versionCode 13`, `versionName 2.8`. Artifact de Actions: `YOS-2.8-XTREAM-ANDROID-APK`.

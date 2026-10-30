@@ -4,11 +4,12 @@
 
 - Proyecto principal guardado en GitHub: https://github.com/suazasti-pixel/YOS-STREAMING-ANDROID, rama `main`.
 - Versión estable anterior de **YOS Xtream para Android y TV Box: 2.6**, `versionCode 11`. Commit: `126938150434138cb1eedc164d1e91c30405811b`; ejecución exitosa: https://github.com/suazasti-pixel/YOS-STREAMING-ANDROID/actions/runs/41093266559.
-- Versión actual de **YOS Xtream para Android y TV Box: 2.7**, `versionCode 12`. Compilación correcta en GitHub Actions: https://github.com/suazasti-pixel/YOS-STREAMING-ANDROID/actions/runs/41117306355. Descarga el artefacto `YOS-2.7-XTREAM-ANDROID-APK`.
+- Versión estable anterior de **YOS Xtream para Android y TV Box: 2.7**, `versionCode 12`. Compilación correcta en GitHub Actions: https://github.com/suazasti-pixel/YOS-STREAMING-ANDROID/actions/runs/41117306355. Descarga el artefacto `YOS-2.7-XTREAM-ANDROID-APK`.
+- Versión actual de **YOS Xtream para Android y TV Box: 2.8**, `versionCode 13`. Mejora la carga de canales y películas cancelando consultas obsoletas, conservando cinco categorías recientes con un tope aproximado de 18.000 elementos y dibujando las tarjetas en un solo paso. Artifact: `YOS-2.8-XTREAM-ANDROID-APK`.
 - Cambios 2.7: deportes reunidos por categorías reconocibles, guía extendida hasta ocho entradas EPG, búsqueda por voz Android en español de Colombia, diagnóstico de tiempos del API y selección de calidad de video si hay pistas disponibles. El diagnóstico mide API/categorías, no prueba streams individuales; la guía depende de que el proveedor envíe EPG.
 - Proyecto editable independiente creado localmente en `YOS-Xtream-2.6-Editable/`; ZIP local: `YOS-Xtream-2.6-Editable.zip`. La fuente de referencia compartida y versionada está en `xtream/`.
-- Para continuar desde otra cuenta de Codex/ChatGPT: abrir o clonar el repositorio de arriba, leer primero este archivo y trabajar en la rama `main`. Mantener los números: celular `1.x`, Xtream Android `2.x`, LG webOS `3.x`; la siguiente mejora de Xtream después de 2.7 será **2.8**.
-- Próximo paso: instalar 2.7 y probar en celular/TV Box las vistas Deportes, búsqueda por voz, diagnóstico y menú de calidad. La guía extendida depende de los datos EPG del proveedor.
+- Para continuar desde otra cuenta de Codex/ChatGPT: abrir o clonar el repositorio de arriba, leer primero este archivo y trabajar en la rama `main`. Mantener los números: celular `1.x`, Xtream Android `2.x`, LG webOS `3.x`; la siguiente mejora de Xtream después de 2.8 será **2.9**.
+- Próximo paso: instalar 2.8 y comparar el cambio de sección y el regreso a categorías ya visitadas en celular/TV Box. El tiempo inicial seguirá dependiendo de la velocidad y respuesta del proveedor Xtream.
 
 ## Repositorio
 

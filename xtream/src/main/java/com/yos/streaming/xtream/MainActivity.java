@@ -34,6 +34,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.FutureTask;
 import java.util.zip.GZIPInputStream;
 
 import javax.crypto.Cipher;
@@ -51,6 +53,8 @@ public class MainActivity extends Activity {
         "get_vod_streams", "get_vod_info", "get_series_categories", "get_series", "get_series_info", "get_short_epg"
     ));
     private final ExecutorService requests = Executors.newFixedThreadPool(3);
+    private final ConcurrentHashMap<String, FutureTask<Void>> apiTasks = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, HttpURLConnection> apiConnections = new ConcurrentHashMap<>();
     private WebView webView;
     private View customView;
     private WebChromeClient.CustomViewCallback customViewCallback;
@@ -162,6 +166,7 @@ public class MainActivity extends Activity {
     }
 
     @Override protected void onDestroy() {
+        cancelAllApiRequests();
         requests.shutdownNow();
         if (webView != null) { webView.removeJavascriptInterface("YOSXtream"); webView.destroy(); webView = null; }
         super.onDestroy();
@@ -237,22 +242,36 @@ public class MainActivity extends Activity {
             getSharedPreferences(PREFS, MODE_PRIVATE).edit().remove("credentials").apply();
         }
 
+        @JavascriptInterface public void cancelApiRequests() { cancelAllApiRequests(); }
+
         @JavascriptInterface public void requestApi(String requestId, String server, String username, String password,
                                                     String action, String categoryId, String itemId) {
-            requests.execute(() -> {
+            FutureTask<Void> task = new FutureTask<>(() -> {
                 String response;
-                try { response = requestXtream(server, username, password, action, categoryId, itemId); }
-                catch (Exception e) {
-                    JSONObject error = new JSONObject();
-                    try { error.put("_error", safeError(e)); } catch (Exception ignored) { }
-                    response = error.toString();
+                try {
+                    try { response = requestXtream(requestId, server, username, password, action, categoryId, itemId); }
+                    catch (Exception e) {
+                        if (Thread.currentThread().isInterrupted()) return null;
+                        JSONObject error = new JSONObject();
+                        try { error.put("_error", safeError(e)); } catch (Exception ignored) { }
+                        response = error.toString();
+                    }
+                } finally {
+                    apiTasks.remove(requestId);
+                    HttpURLConnection connection = apiConnections.remove(requestId);
+                    if (connection != null) connection.disconnect();
                 }
                 String finalResponse = response;
                 runOnUiThread(() -> {
                     if (webView != null) webView.evaluateJavascript("window.yosXtreamResponse&&window.yosXtreamResponse(" +
                         JSONObject.quote(requestId) + "," + JSONObject.quote(finalResponse) + ")", null);
                 });
+                return null;
             });
+            FutureTask<Void> previous = apiTasks.put(requestId, task);
+            if (previous != null) previous.cancel(true);
+            try { requests.execute(task); }
+            catch (RuntimeException error) { apiTasks.remove(requestId, task); task.cancel(true); }
         }
 
         @JavascriptInterface public void playNative(String url, String title, String queueJson, int index, long resumePositionMs) {
@@ -269,7 +288,16 @@ public class MainActivity extends Activity {
         }
     }
 
-    private String requestXtream(String server, String username, String password, String action,
+    private void cancelAllApiRequests() {
+        for (String requestId : apiTasks.keySet()) {
+            FutureTask<Void> task = apiTasks.remove(requestId);
+            if (task != null) task.cancel(true);
+            HttpURLConnection connection = apiConnections.remove(requestId);
+            if (connection != null) connection.disconnect();
+        }
+    }
+
+    private String requestXtream(String requestId, String server, String username, String password, String action,
                                  String categoryId, String itemId) throws Exception {
         if (!ACTIONS.contains(action)) throw new Exception("Acción API no permitida.");
         Uri base = Uri.parse(server == null ? "" : server.trim());
@@ -289,6 +317,13 @@ public class MainActivity extends Activity {
         }
         URL url = new URL(builder.build().toString());
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        apiConnections.put(requestId, connection);
+        FutureTask<Void> task = apiTasks.get(requestId);
+        if (task == null || task.isCancelled() || Thread.currentThread().isInterrupted()) {
+            apiConnections.remove(requestId, connection);
+            connection.disconnect();
+            throw new InterruptedException("Solicitud cancelada.");
+        }
         connection.setConnectTimeout(12000);
         connection.setReadTimeout(25000);
         connection.setRequestMethod("GET");
@@ -311,7 +346,11 @@ public class MainActivity extends Activity {
                 if (!(text.startsWith("{") || text.startsWith("["))) throw new Exception("El servidor no devolvió datos JSON de Xtream.");
                 return text;
             }
-        } finally { connection.disconnect(); }
+        } finally {
+            apiConnections.remove(requestId, connection);
+            apiTasks.remove(requestId);
+            connection.disconnect();
+        }
     }
 
     private SecretKey secretKey() throws Exception {

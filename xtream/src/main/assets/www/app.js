@@ -4,7 +4,7 @@ const $ = id => document.getElementById(id);
 const PAGE_SIZE = 60;
 const ITEM_CACHE_LIMIT = 5;
 const ITEM_CACHE_ROW_LIMIT = 18000;
-const state = { credentials: null, kind: "live", categories: [], items: [], localItems: [], filtered: [], limit: PAGE_SIZE, series: null, movie: null, showFavorites: false, globalSearch: false, sportsMode: false, parentalHash: "", parentalUnlocked: false, parentalMode: "setup", parentalFailures: 0, parentalBlockedUntil: 0, episodes: [] };
+const state = { credentials: null, kind: "live", categories: [], items: [], localItems: [], localCategoryFallback: false, localFallbackCategory: "", filtered: [], limit: PAGE_SIZE, series: null, movie: null, showFavorites: false, globalSearch: false, sportsMode: false, parentalHash: "", parentalUnlocked: false, parentalMode: "setup", parentalFailures: 0, parentalBlockedUntil: 0, episodes: [] };
 const kinds = {
   live: { title: "Canales en vivo", categories: "get_live_categories", items: "get_live_streams", singular: "live" },
   movie: { title: "Películas", categories: "get_vod_categories", items: "get_vod_streams", singular: "movie" },
@@ -20,6 +20,7 @@ let guideRequestSequence = 0;
 const pending = new Map();
 const categoryCache = new Map();
 const itemCache = new Map();
+const fallbackCatalogCache = new Map();
 const seriesCache = new Map();
 const guideCache = new Map();
 const guidePending = new Map();
@@ -33,6 +34,31 @@ function cacheItems(key, rows) {
   while (itemCache.size > ITEM_CACHE_LIMIT || (itemCache.size > 1 && cachedRows() > ITEM_CACHE_ROW_LIMIT)) {
     itemCache.delete(itemCache.keys().next().value);
   }
+}
+
+function showFallbackCatalog(kind, catalog, requestId) {
+  if (requestId !== categoryRequestSequence || state.kind !== kind) return;
+  const categories = catalog.categories;
+  state.localCategoryFallback = true;
+  state.localFallbackCategory = "";
+  state.categories = categories;
+  showCategories(kind, categories);
+  const categoryNames = new Map(categories.map(row => [String(row.category_id), row.category_name || "Categoría"]));
+  const categorizedItems = catalog.items.map(item => ({ ...item, category_name: item.category_name || categoryNames.get(String(item.category_id)) || "" }));
+  const visibleIds = new Set(categories.filter(row => visibleCategory(row.category_name) && (!state.sportsMode || isSportsCategory(row.category_name))).map(row => String(row.category_id)));
+  const visibleItems = categorizedItems.filter(item => {
+    const categoryId = item.category_id == null ? "" : String(item.category_id);
+    return (!categoryId || visibleIds.has(categoryId)) && visibleCategory(item.category_name) && (!state.sportsMode || isSportsCategory(item.category_name));
+  });
+  state.localItems = visibleItems;
+  state.items = visibleItems;
+  state.limit = PAGE_SIZE;
+  applySearch();
+  const kindName = kinds[kind].title.toLowerCase();
+  setStatus("catalog-status", visibleItems.length
+    ? "Catálogo de " + kindName + " listo · categorías reconstruidas desde el contenido del proveedor."
+    : "El proveedor no devolvió contenido para esta sección.", visibleItems.length ? "ok" : "");
+  if (visibleItems.length && document.body.classList.contains("tv-remote")) requestAnimationFrame(() => document.querySelector(".content-card")?.focus());
 }
 
 function cancelPendingApiRequests() {
@@ -243,6 +269,13 @@ function isSportsCategory(name) {
 }
 
 async function loadSportsItems(selectedCategory = "") {
+  if (state.localCategoryFallback && !selectedCategory) {
+    state.items = state.localItems;
+    state.limit = PAGE_SIZE;
+    applySearch();
+    setStatus("catalog-status", state.items.length ? "Canales deportivos filtrados desde el catálogo cargado." : "No hay canales deportivos en el catálogo devuelto por el proveedor.", state.items.length ? "ok" : "");
+    return;
+  }
   const sportsCategories = state.categories.filter(row => row?.category_id != null && visibleCategory(row) && isSportsCategory(row.category_name));
   if (selectedCategory) return loadItems(selectedCategory);
   const requestId = ++itemRequestSequence;
@@ -406,6 +439,7 @@ $("login-form").addEventListener("submit", async event => {
     if (!storageResult.ok) throw new Error(storageResult.error || "No se pudieron guardar las credenciales.");
     categoryCache.clear();
     itemCache.clear();
+    fallbackCatalogCache.clear();
     seriesCache.clear();
     guideCache.clear();
     guidePending.clear();
@@ -443,6 +477,8 @@ async function loadCategories(kind) {
   state.categories = [];
   state.items = [];
   state.localItems = [];
+  state.localCategoryFallback = false;
+  state.localFallbackCategory = "";
   state.filtered = [];
   state.limit = PAGE_SIZE;
   $("catalog-title").textContent = state.sportsMode ? "Deportes" : kinds[kind].title;
@@ -451,6 +487,12 @@ async function loadCategories(kind) {
   $("load-more").hidden = true;
   $("search").value = "";
   $("category").disabled = false;
+  const fallbackCatalog = fallbackCatalogCache.get(kind);
+  if (fallbackCatalog) {
+    state.localCategoryFallback = true;
+    showFallbackCatalog(kind, fallbackCatalog, requestId);
+    return;
+  }
   const cachedRows = categoryCache.get(kind);
   if (cachedRows) {
     showCategories(kind, cachedRows);
@@ -470,6 +512,30 @@ async function loadCategories(kind) {
     else setStatus("catalog-status", rows.length ? categoriesStatus(rows) : "El proveedor no devolvió categorías para esta sección.");
   } catch (error) {
     if (requestId !== categoryRequestSequence) return;
+    if (/HTTP 404\b/.test(error.message || "")) {
+      $("category").innerHTML = '<option value="">Cargando catálogo…</option>';
+      setStatus("catalog-status", "El proveedor rechazó la lista de categorías. Intentando cargar el catálogo completo…");
+      try {
+        const items = await callApi(kinds[kind].items);
+        if (requestId !== categoryRequestSequence || state.kind !== kind) return;
+        if (!Array.isArray(items)) throw new Error("el catálogo completo devolvió un formato no reconocido");
+        const categoryMap = new Map();
+        for (const item of items) {
+          if (item?.category_id == null) continue;
+          const id = String(item.category_id);
+          if (!categoryMap.has(id)) categoryMap.set(id, { category_id: id, category_name: item.category_name || "Categoría " + id });
+        }
+        const catalog = { categories: [...categoryMap.values()], items };
+        fallbackCatalogCache.delete(kind);
+        fallbackCatalogCache.set(kind, catalog);
+        while (fallbackCatalogCache.size > 1) fallbackCatalogCache.delete(fallbackCatalogCache.keys().next().value);
+        showFallbackCatalog(kind, catalog, requestId);
+        return;
+      } catch (fallbackError) {
+        if (requestId !== categoryRequestSequence) return;
+        error = new Error("El proveedor respondió HTTP 404 al cargar categorías y tampoco permitió cargar el catálogo completo: " + (fallbackError.message || "revisa el proveedor"));
+      }
+    }
     $("category").innerHTML = '<option value="">Sin categorías</option>';
     setStatus("catalog-status", error.message, "error");
   }
@@ -501,6 +567,14 @@ async function loadItems(categoryId) {
     state.filtered = [];
     renderItems();
     setStatus("catalog-status", "Elige una categoría para cargar el contenido.");
+    return;
+  }
+  if (state.localCategoryFallback) {
+    state.localFallbackCategory = String(categoryId);
+    state.items = state.localItems.filter(item => String(item.category_id ?? "") === String(categoryId));
+    state.limit = PAGE_SIZE;
+    applySearch();
+    setStatus("catalog-status", state.items.length ? "Categoría filtrada localmente." : "Esta categoría no tiene contenido.", state.items.length ? "ok" : "");
     return;
   }
   const kind = state.kind;
@@ -558,10 +632,21 @@ async function searchCatalog(query) {
   const q = query.trim().toLocaleLowerCase();
   if (q.length < 2 || state.showFavorites) {
     if (state.globalSearch) cancelPendingApiRequests();
-    if (state.globalSearch && !state.showFavorites) state.items = state.localItems;
+    if (state.globalSearch && !state.showFavorites) {
+      state.items = state.localCategoryFallback && state.localFallbackCategory
+        ? state.localItems.filter(item => String(item.category_id ?? "") === state.localFallbackCategory)
+        : state.localItems;
+    }
     state.globalSearch = false;
     applySearch();
     if (q.length === 1 && !state.showFavorites) setStatus("catalog-status", "Escribe al menos 2 caracteres para buscar en todo el catálogo.");
+    return;
+  }
+  if (state.localCategoryFallback) {
+    state.globalSearch = true;
+    state.items = state.localItems;
+    applySearch();
+    setStatus("catalog-status", state.filtered.length ? "Resultados en el catálogo cargado localmente." : "No encontramos coincidencias en este tipo de contenido.", state.filtered.length ? "ok" : "");
     return;
   }
   if (!state.categories.length) { setStatus("catalog-status", "Espera a que carguen las categorías para buscar."); return; }
@@ -1007,6 +1092,7 @@ $("logout").addEventListener("click", () => {
   state.credentials = null; state.items = []; state.filtered = []; state.globalSearch = false; state.sportsMode = false; searchSequence++;
   state.parentalHash = ""; state.parentalUnlocked = false; $("parental-control").hidden = true;
   categoryCache.clear(); itemCache.clear(); seriesCache.clear();
+  fallbackCatalogCache.clear();
   guideCache.clear(); guidePending.clear(); state.showFavorites = false;
   $("catalog-view").hidden = true; $("logout").hidden = true; $("login-view").hidden = false;
   renderRecent();

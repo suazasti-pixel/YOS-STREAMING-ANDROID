@@ -5,12 +5,12 @@ Estas son las tres ediciones principales que vamos a mantener y actualizar por s
 | Edición | Dispositivo | Instalador en GitHub Actions | Proyecto |
 |---|---|---|---|
 | **1.1** | Celular Android | `YOS-1.1-CELULAR-APK` | YOS Streaming, listas M3U |
-| **2.8** | Celular Android y Android TV Box | `YOS-2.8-XTREAM-ANDROID-APK` | YOS Xtream Android |
+| **2.9** | Celular Android y Android TV Box | `YOS-2.9-XTREAM-ANDROID-APK` | YOS Xtream Android |
 | **3.2** | Televisor LG webOS | `YOS-3.2-LG-webOS-IPK` | YOS Xtream para webOS |
 
 ## Regla de numeración
 
-Cada edición avanza por separado: celular **1.1 → 1.2 → 1.3**, Xtream Android **2.1 → 2.2 → 2.3 → 2.4 → 2.5 → 2.6 → 2.7 → 2.8** y LG webOS **3.1 → 3.2 → 3.3**. Cuando un cambio afecte varias ediciones, incrementaremos la serie de cada una de ellas. Así cada instalador y sus notas de cambios indicarán qué versión recibió la mejora.
+Cada edición avanza por separado: celular **1.1 → 1.2 → 1.3**, Xtream Android **2.1 → 2.2 → 2.3 → 2.4 → 2.5 → 2.6 → 2.7 → 2.8 → 2.9** y LG webOS **3.1 → 3.2 → 3.3**. Cuando un cambio afecte varias ediciones, incrementaremos la serie de cada una de ellas. Así cada instalador y sus notas de cambios indicarán qué versión recibió la mejora.
 
 YOS Play sigue siendo un proyecto Android adicional y no forma parte de esta lista de tres instaladores.
 
@@ -59,3 +59,10 @@ Abre la ejecución más reciente que terminó correctamente en [GitHub Actions](
 - Se mantienen en caché hasta cinco categorías recientes con un límite aproximado de 18.000 elementos, para volver a verlas sin pedirlas otra vez al proveedor.
 - El catálogo crea sus tarjetas en un fragmento y las inserta en un solo paso. Las carátulas siguen cargándose de forma diferida y ahora se marcan como de baja prioridad.
 - Android `versionCode 13`, `versionName 2.8`. Artifact de Actions: `YOS-2.8-XTREAM-ANDROID-APK`.
+
+## YOS Xtream 2.9 — búsqueda compatible con proveedores sin categorías
+
+- Si el proveedor devuelve HTTP 404 al solicitar las categorías de una sección, la app intenta cargar el catálogo completo de esa sección. Si funciona, reconstruye las categorías con los datos recibidos y filtra en el dispositivo.
+- La búsqueda por texto y voz consulta el catálogo local de respaldo; también permite volver a una categoría sin repetir la solicitud de red.
+- El respaldo queda en memoria solo para la sesión/cuenta actual y se borra al cerrar sesión o cambiar de cuenta. Si el proveedor rechaza tanto las categorías como el catálogo completo, el mensaje muestra ambos errores.
+- Android `versionCode 14`, `versionName 2.9`. Artifact de Actions: `YOS-2.9-XTREAM-ANDROID-APK`.

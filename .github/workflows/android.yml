@@ -36,7 +36,7 @@ jobs:
       - name: Guardar APK Xtream para descargar
         uses: actions/upload-artifact@v4
         with:
-          name: YOS-2.6-XTREAM-ANDROID-APK
+          name: YOS-2.7-XTREAM-ANDROID-APK
           path: xtream/build/outputs/apk/debug/xtream-debug.apk
           if-no-files-found: error
 

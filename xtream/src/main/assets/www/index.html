@@ -14,6 +14,7 @@
       <span class="brand-logo-window"><img class="brand-mark" src="yos-logo-header.png" alt=""></span><span class="brand-wordmark">YOS<small>XTREAM</small></span>
     </a>
     <span class="header-caption">TU CONTENIDO, EN UN SOLO LUGAR</span>
+    <button id="diagnostics-open" class="button subtle" type="button" aria-label="Diagnóstico de conexión">DIAGNÓSTICO</button>
     <button id="parental-control" class="button subtle" type="button" hidden>🔒 CONTROL PARENTAL</button>
     <button id="logout" class="button subtle" hidden>CERRAR SESIÓN</button>
   </header>
@@ -45,7 +46,7 @@
     <section id="catalog-view" hidden>
       <div class="catalog-head">
         <div><span class="eyebrow">TU BIBLIOTECA</span><h1 id="catalog-title">Canales en vivo</h1><p id="account-summary" class="muted"></p></div>
-        <label class="search-box"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Buscar en todo el catálogo" autocomplete="off"></label>
+        <div class="search-box"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Buscar en todo el catálogo" autocomplete="off"><button id="voice-search" class="voice-search" type="button" aria-label="Buscar por voz" title="Buscar por voz">🎙</button></div>
       </div>
       <section class="browse-shortcuts" aria-label="Accesos rápidos">
         <span class="eyebrow">EXPLORAR</span>
@@ -60,6 +61,7 @@
       </section>
       <nav class="tabs" aria-label="Tipo de contenido">
         <button class="tab active" data-kind="live">TV EN VIVO</button>
+        <button class="tab" data-kind="sports">⚽ DEPORTES</button>
         <button class="tab" data-kind="movie">PELÍCULAS</button>
         <button class="tab" data-kind="series">SERIES</button>
         <button id="favorites-tab" class="tab" type="button">☆ FAVORITOS</button>
@@ -76,6 +78,7 @@
           <article><span>AHORA <small id="guide-now-time"></small></span><p id="guide-now">Consultando programación…</p></article>
           <article><span>SIGUE <small id="guide-next-time"></small></span><p id="guide-next">Consultando programación…</p></article>
         </div>
+        <div id="guide-upcoming" class="guide-upcoming" aria-label="Próximos programas"></div>
       </section>
       <div id="content-grid" class="content-grid"></div>
       <button id="load-more" class="button subtle load-more" hidden>CARGAR MÁS</button>
@@ -104,6 +107,12 @@
       <button id="parental-lock-now" class="button" type="button" hidden>BLOQUEAR AHORA</button>
     </form>
     <p class="fine-print">El PIN se guarda como un resumen criptográfico local y no se envía al proveedor. Solo se restringen categorías cuyo nombre indique +18, adultos, XXX o contenido similar; no es un filtro infalible.</p>
+  </dialog>
+  <dialog id="diagnostics-dialog" class="diagnostics-dialog">
+    <div class="dialog-head"><div><span class="eyebrow">ESTADO DE CONEXIÓN</span><h2>Diagnóstico YOS</h2></div><button id="diagnostics-close" class="icon-button" aria-label="Cerrar diagnóstico">×</button></div>
+    <p class="muted">Comprueba el acceso Xtream y cuánto tarda en responder el catálogo. No prueba ni garantiza la reproducción de cada canal.</p>
+    <div id="diagnostics-result" class="diagnostics-result" role="status" aria-live="polite">Pulsa para revisar la conexión.</div>
+    <button id="diagnostics-run" class="button primary" type="button">REVISAR CONEXIÓN</button>
   </dialog>
   <script src="app.js"></script>
 </body>

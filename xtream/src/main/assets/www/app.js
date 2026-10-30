@@ -3,7 +3,7 @@
 const $ = id => document.getElementById(id);
 const PAGE_SIZE = 60;
 const ITEM_CACHE_LIMIT = 3;
-const state = { credentials: null, kind: "live", categories: [], items: [], localItems: [], filtered: [], limit: PAGE_SIZE, series: null, movie: null, showFavorites: false, globalSearch: false, parentalHash: "", parentalUnlocked: false, parentalMode: "setup", parentalFailures: 0, parentalBlockedUntil: 0, episodes: [] };
+const state = { credentials: null, kind: "live", categories: [], items: [], localItems: [], filtered: [], limit: PAGE_SIZE, series: null, movie: null, showFavorites: false, globalSearch: false, sportsMode: false, parentalHash: "", parentalUnlocked: false, parentalMode: "setup", parentalFailures: 0, parentalBlockedUntil: 0, episodes: [] };
 const kinds = {
   live: { title: "Canales en vivo", categories: "get_live_categories", items: "get_live_streams", singular: "live" },
   movie: { title: "Películas", categories: "get_vod_categories", items: "get_vod_streams", singular: "movie" },
@@ -195,6 +195,7 @@ function toggleFavorite(item, kind) {
 function showFavoritesView() {
   searchSequence++;
   state.showFavorites = true;
+  state.sportsMode = false;
   state.globalSearch = false;
   state.items = [];
   state.filtered = readFavorites().filter(item => state.parentalUnlocked || !isRestrictedCategory(item.category_name));
@@ -203,6 +204,7 @@ function showFavoritesView() {
   $("favorites-tab").classList.add("active");
   document.querySelectorAll(".tab[data-kind]").forEach(tab => tab.classList.remove("active"));
   $("category").closest(".filters").classList.add("favorites-mode");
+  $("category").closest(".filters").classList.remove("sports-mode");
   $("catalog-title").textContent = "Favoritos";
   $("guide-panel").hidden = true;
   setStatus("catalog-status", state.filtered.length ? "Tus canales, películas y series guardados." : "Agrega favoritos con ☆ en una tarjeta.");
@@ -210,9 +212,54 @@ function showFavoritesView() {
 }
 
 function showBrowseKind(kind) {
+  const sportsMode = kind === "sports";
+  state.sportsMode = sportsMode;
   document.querySelectorAll(".tab[data-kind]").forEach(tab => tab.classList.toggle("active", tab.dataset.kind === kind));
-  loadCategories(kind);
+  loadCategories(sportsMode ? "live" : kind);
   document.querySelector(".tabs")?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+
+function isSportsCategory(name) {
+  return /\b(sport\w*|deport\w*|f[uú]tbol|football|soccer|fifa|uefa|conmebol|champions|liga\s*mx|premier\s*league|nba|wnba|nfl|nhl|mlb|ufc|formula\s*1|f1|moto\s*gp|tenis|tennis|golf|boxeo|boxing|espn|fox\s*sports|win\s*sports|winsports|tudn|tyc|dazn|directv\s*sports|gol\s*tv)\b/i.test(String(name || ""));
+}
+
+async function loadSportsItems(selectedCategory = "") {
+  const sportsCategories = state.categories.filter(row => row?.category_id != null && visibleCategory(row) && isSportsCategory(row.category_name));
+  if (selectedCategory) return loadItems(selectedCategory);
+  const requestId = ++itemRequestSequence;
+  searchSequence++;
+  state.items = []; state.localItems = []; state.filtered = []; state.limit = PAGE_SIZE;
+  $("content-grid").replaceChildren(); $("catalog-count").textContent = ""; $("load-more").hidden = true;
+  if (!sportsCategories.length) {
+    setStatus("catalog-status", "Tu proveedor no tiene categorías con nombres deportivos reconocibles.");
+    renderItems();
+    return;
+  }
+  setStatus("catalog-status", "Cargando deportes desde " + sportsCategories.length + " categorías…");
+  let next = 0;
+  const found = new Map();
+  const worker = async () => {
+    while (next < sportsCategories.length && requestId === itemRequestSequence) {
+      const category = sportsCategories[next++];
+      try {
+        let rows = itemCache.get("live:" + category.category_id);
+        if (!rows) {
+          const response = await callApi(kinds.live.items, category.category_id);
+          if (!Array.isArray(response)) continue;
+          rows = response.map(item => ({ ...item, category_name: item.category_name || category.category_name }));
+          cacheItems("live:" + category.category_id, rows);
+        }
+        if (requestId !== itemRequestSequence || !state.sportsMode) return;
+        for (const item of rows) if (item.stream_id != null) found.set(String(item.stream_id), item);
+      } catch { /* Una categoría con error no impide cargar las otras. */ }
+    }
+  };
+  await Promise.all([worker(), worker(), worker()]);
+  if (requestId !== itemRequestSequence || !state.sportsMode) return;
+  state.items = [...found.values()]; state.localItems = state.items;
+  applySearch();
+  setStatus("catalog-status", state.items.length ? state.items.length + " canales deportivos listos en " + sportsCategories.length + " categorías." : "No se pudo cargar contenido deportivo. Revisa el diagnóstico o el proveedor.", state.items.length ? "ok" : "error");
+  if (state.items.length && document.body.classList.contains("tv-remote")) requestAnimationFrame(() => document.querySelector(".content-card")?.focus());
 }
 
 function setStatus(id, message, type = "") {
@@ -246,6 +293,35 @@ window.yosXtreamResponse = (id, raw) => {
     job.resolve(data);
   } catch (error) { job.reject(error); }
 };
+
+window.yosVoiceSearchResult = text => {
+  const query = String(text || "").trim();
+  if (!query) return;
+  $("search").value = query;
+  $("search").dispatchEvent(new Event("input", { bubbles: true }));
+};
+window.yosVoiceSearchError = () => setStatus("catalog-status", "La búsqueda por voz se canceló o no está disponible en este dispositivo.");
+
+async function runDiagnostics() {
+  const result = $("diagnostics-result");
+  const button = $("diagnostics-run");
+  if (!state.credentials) { result.textContent = "Conecta primero tu cuenta Xtream para revisar el proveedor."; return; }
+  button.disabled = true;
+  result.textContent = "Probando autenticación y catálogo…";
+  const started = performance.now();
+  try {
+    const auth = await callApi();
+    const authMs = Math.round(performance.now() - started);
+    if (!auth?.user_info || String(auth.user_info.auth) !== "1") throw new Error("El proveedor no confirmó una cuenta activa.");
+    const categoriesStarted = performance.now();
+    const categories = await callApi("get_live_categories");
+    const categoriesMs = Math.round(performance.now() - categoriesStarted);
+    if (!Array.isArray(categories)) throw new Error("El proveedor devolvió una respuesta de categorías no reconocida.");
+    result.textContent = "Conexión correcta · Autenticación " + authMs + " ms · " + categories.length + " categorías en " + categoriesMs + " ms · " + (/^https:/i.test(state.credentials.server) ? "HTTPS" : "HTTP sin cifrado");
+  } catch (error) {
+    result.textContent = "No completó la prueba: " + (error.message || "revisa internet, servidor o cuenta.");
+  } finally { button.disabled = false; }
+}
 
 function readAccount(raw) {
   try { return JSON.parse(raw || "{}"); }
@@ -317,6 +393,7 @@ $("login-form").addEventListener("submit", async event => {
     state.parentalHash = localStorage.getItem(parentalStoreKey()) || "";
     state.parentalUnlocked = false;
     state.parentalFailures = 0;
+    state.sportsMode = false;
     $("parental-control").hidden = false;
     updateParentalButton();
     $("login-view").hidden = true;
@@ -348,7 +425,7 @@ async function loadCategories(kind) {
   state.localItems = [];
   state.filtered = [];
   state.limit = PAGE_SIZE;
-  $("catalog-title").textContent = kinds[kind].title;
+  $("catalog-title").textContent = state.sportsMode ? "Deportes" : kinds[kind].title;
   $("content-grid").replaceChildren();
   $("catalog-count").textContent = "";
   $("load-more").hidden = true;
@@ -357,7 +434,8 @@ async function loadCategories(kind) {
   const cachedRows = categoryCache.get(kind);
   if (cachedRows) {
     showCategories(kind, cachedRows);
-    setStatus("catalog-status", cachedRows.length ? categoriesStatus(cachedRows) : "El proveedor no devolvió categorías para esta sección.");
+    if (state.sportsMode) loadSportsItems();
+    else setStatus("catalog-status", cachedRows.length ? categoriesStatus(cachedRows) : "El proveedor no devolvió categorías para esta sección.");
     return;
   }
   $("category").innerHTML = '<option value="">Cargando categorías…</option>';
@@ -368,7 +446,8 @@ async function loadCategories(kind) {
     if (!Array.isArray(rows)) throw new Error("El proveedor devolvió categorías con formato no reconocido.");
     categoryCache.set(kind, rows);
     showCategories(kind, rows);
-    setStatus("catalog-status", rows.length ? categoriesStatus(rows) : "El proveedor no devolvió categorías para esta sección.");
+    if (state.sportsMode) loadSportsItems();
+    else setStatus("catalog-status", rows.length ? categoriesStatus(rows) : "El proveedor no devolvió categorías para esta sección.");
   } catch (error) {
     if (requestId !== categoryRequestSequence) return;
     $("category").innerHTML = '<option value="">Sin categorías</option>';
@@ -378,8 +457,9 @@ async function loadCategories(kind) {
 
 function showCategories(kind, rows) {
   state.categories = rows;
-  $("category").innerHTML = '<option value="">Selecciona una categoría</option>';
-  const visibleRows = rows.filter(visibleCategory);
+  $("category").closest(".filters").classList.toggle("sports-mode", state.sportsMode);
+  $("category").innerHTML = state.sportsMode ? '<option value="">Todas las categorías deportivas</option>' : '<option value="">Selecciona una categoría</option>';
+  const visibleRows = rows.filter(row => visibleCategory(row) && (!state.sportsMode || isSportsCategory(row.category_name)));
   for (const row of visibleRows) {
     if (!row || row.category_id == null) continue;
     const option = document.createElement("option");
@@ -387,7 +467,7 @@ function showCategories(kind, rows) {
     option.textContent = row.category_name || "Categoría";
     $("category").append(option);
   }
-  if (rows.length > visibleRows.length) setStatus("catalog-status", "Categorías para adultos ocultas. Usa Control parental para mostrarlas.");
+  if (rows.length > visibleRows.length && !state.sportsMode) setStatus("catalog-status", "Categorías para adultos ocultas. Usa Control parental para mostrarlas.");
   if (document.body.classList.contains("tv-remote")) requestAnimationFrame(() => $("category").focus());
 }
 
@@ -468,7 +548,7 @@ async function searchCatalog(query) {
   state.filtered = [];
   state.limit = PAGE_SIZE;
   renderItems();
-  const categories = state.categories.filter(row => row && row.category_id != null && visibleCategory(row));
+  const categories = state.categories.filter(row => row && row.category_id != null && visibleCategory(row) && (!state.sportsMode || isSportsCategory(row.category_name)));
   let next = 0;
   let checked = 0;
   const found = new Map();
@@ -592,6 +672,7 @@ async function showProgramGuide(item) {
   $("guide-next").textContent = "Consultando programación…";
   $("guide-now-time").textContent = "";
   $("guide-next-time").textContent = "";
+  $("guide-upcoming").replaceChildren();
   try {
     let programs = guideCache.get(key);
     if (!programs) {
@@ -610,10 +691,19 @@ async function showProgramGuide(item) {
     $("guide-next").textContent = programs[1]?.title || "Sin siguiente programa disponible.";
     $("guide-now-time").textContent = formatProgramTime(programs[0]);
     $("guide-next-time").textContent = formatProgramTime(programs[1]);
+    const upcoming = $("guide-upcoming");
+    for (const program of programs.slice(2, 8)) {
+      const card = document.createElement("article");
+      const time = document.createElement("span"); time.textContent = [formatProgramTime(program), formatProgramEndTime(program)].filter(Boolean).join(" – ") || "PRÓXIMO";
+      const title = document.createElement("strong"); title.textContent = program.title || "Programa";
+      card.append(time, title); upcoming.append(card);
+    }
+    if (!programs.length) upcoming.textContent = "El proveedor no ofrece programación para este canal.";
   } catch {
     if (requestId !== guideRequestSequence) return;
     $("guide-now").textContent = "Guía no disponible para este canal.";
     $("guide-next").textContent = "La reproducción del canal sigue disponible.";
+    $("guide-upcoming").textContent = "No se pudo consultar la programación extendida.";
   }
 }
 
@@ -624,6 +714,16 @@ function formatProgramTime(program) {
   const numeric = Number(raw);
   const dateValue = Number.isFinite(numeric) ? (numeric < 100000000000 ? numeric * 1000 : numeric) : String(raw).replace(" ", "T");
   const date = new Date(dateValue);
+  return Number.isNaN(date.getTime()) ? "" : new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit" }).format(date);
+}
+
+function formatProgramEndTime(program) {
+  if (!program) return "";
+  const raw = program.stop_timestamp || program.end_timestamp || program.stop || program.end || "";
+  if (!raw) return "";
+  const numeric = Number(raw);
+  const value = Number.isFinite(numeric) ? (numeric < 100000000000 ? numeric * 1000 : numeric) : String(raw).replace(" ", "T");
+  const date = new Date(value);
   return Number.isNaN(date.getTime()) ? "" : new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit" }).format(date);
 }
 
@@ -675,7 +775,7 @@ window.yosPlaybackFinished = raw => {
         target.focus({ preventScroll: true });
         target.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
       } else {
-        const activeTab = state.showFavorites ? $("favorites-tab") : document.querySelector('.tab[data-kind="' + state.kind + '"]');
+        const activeTab = state.showFavorites ? $("favorites-tab") : document.querySelector('.tab[data-kind="' + (state.sportsMode ? "sports" : state.kind) + '"]');
         activeTab?.focus({ preventScroll: true });
       }
     });
@@ -799,11 +899,19 @@ document.querySelectorAll(".tab[data-kind]").forEach(button => button.addEventLi
   showBrowseKind(button.dataset.kind);
 }));
 $("favorites-tab").addEventListener("click", showFavoritesView);
-$("category").addEventListener("change", () => { $("search").value = ""; state.globalSearch = false; state.items = state.localItems; loadItems($("category").value); });
+$("category").addEventListener("change", () => { $("search").value = ""; state.globalSearch = false; state.items = state.localItems; if (state.sportsMode) loadSportsItems($("category").value); else loadItems($("category").value); });
 $("search").addEventListener("input", () => {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(() => searchCatalog($("search").value), 350);
 });
+$("voice-search").addEventListener("click", () => {
+  if (bridge()?.startVoiceSearch) bridge().startVoiceSearch();
+  else setStatus("catalog-status", "La búsqueda por voz requiere la app Android YOS Xtream y un servicio de reconocimiento instalado.");
+});
+$("diagnostics-open").addEventListener("click", () => { $("diagnostics-dialog").showModal(); runDiagnostics(); });
+$("diagnostics-close").addEventListener("click", () => $("diagnostics-dialog").close());
+$("diagnostics-run").addEventListener("click", runDiagnostics);
+$("diagnostics-dialog").addEventListener("click", event => { if (event.target === $("diagnostics-dialog")) $("diagnostics-dialog").close(); });
 document.querySelectorAll(".shortcut[data-kind]").forEach(button => button.addEventListener("click", () => showBrowseKind(button.dataset.kind)));
 $("home-favorites").addEventListener("click", showFavoritesView);
 $("clear-recent").addEventListener("click", () => { saveRecent([]); renderRecent(); });
@@ -869,7 +977,7 @@ $("parental-form").addEventListener("submit", async event => {
   } catch (error) { setStatus("parental-status", error.message || "No se pudo guardar el PIN.", "error"); }
 });
 $("logout").addEventListener("click", () => {
-  state.credentials = null; state.items = []; state.filtered = []; state.globalSearch = false; searchSequence++;
+  state.credentials = null; state.items = []; state.filtered = []; state.globalSearch = false; state.sportsMode = false; searchSequence++;
   state.parentalHash = ""; state.parentalUnlocked = false; $("parental-control").hidden = true;
   categoryCache.clear(); itemCache.clear(); seriesCache.clear();
   guideCache.clear(); guidePending.clear(); state.showFavorites = false;
@@ -886,6 +994,7 @@ $("clear-saved").addEventListener("click", () => {
 
 window.yosHandleBack = () => {
   if ($("parental-dialog").open) { closeParentalDialog(); return true; }
+  if ($("diagnostics-dialog").open) { $("diagnostics-dialog").close(); return true; }
   if ($("movie-dialog").open) { $("movie-dialog").close(); return true; }
   if ($("episodes-dialog").open) { $("episodes-dialog").close(); return true; }
   if (!$("catalog-view").hidden) {
@@ -898,7 +1007,7 @@ window.yosHandleBack = () => {
       applySearch();
     }
     if (document.body.classList.contains("tv-remote")) {
-      const tab = state.showFavorites ? $("favorites-tab") : document.querySelector('.tab[data-kind="' + state.kind + '"]');
+      const tab = state.showFavorites ? $("favorites-tab") : document.querySelector('.tab[data-kind="' + (state.sportsMode ? "sports" : state.kind) + '"]');
       if (tab && document.activeElement !== tab) {
         tab.focus({ preventScroll: true });
         tab.scrollIntoView({ block: "nearest", behavior: "smooth" });

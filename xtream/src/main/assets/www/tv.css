@@ -269,6 +269,15 @@ body.tv-remote .guide-programs article p {
   font-size: 17px;
 }
 
+body.tv-remote .voice-search,
+body.tv-remote .diagnostics-result,
+body.tv-remote .guide-upcoming article {
+  min-height: 58px;
+  font-size: 17px;
+}
+
+body.tv-remote .guide-upcoming article strong { font-size: 16px; }
+
 body.tv-remote .status {
   font-size: 15px;
 }

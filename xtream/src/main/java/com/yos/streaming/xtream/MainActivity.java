@@ -2,6 +2,7 @@ package com.yos.streaming.xtream;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.ActivityNotFoundException;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
@@ -9,6 +10,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
+import android.speech.RecognizerIntent;
 import android.util.Base64;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
@@ -54,6 +56,7 @@ public class MainActivity extends Activity {
     private WebChromeClient.CustomViewCallback customViewCallback;
     private FrameLayout root;
     private static final int PLAYER_REQUEST = 41;
+    private static final int VOICE_REQUEST = 42;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -129,6 +132,15 @@ public class MainActivity extends Activity {
 
     @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == VOICE_REQUEST) {
+            if (webView == null) return;
+            java.util.ArrayList<String> results = data == null ? null : data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+            String speech = resultCode == RESULT_OK && results != null && !results.isEmpty() ? results.get(0) : null;
+            String callback = speech == null ? "window.yosVoiceSearchError&&window.yosVoiceSearchError()" :
+                "window.yosVoiceSearchResult&&window.yosVoiceSearchResult(" + JSONObject.quote(speech) + ")";
+            webView.evaluateJavascript(callback, null);
+            return;
+        }
         if (requestCode != PLAYER_REQUEST || data == null || webView == null) return;
         String playback = data.getStringExtra(PlayerActivity.RESULT_DATA);
         if (playback != null) webView.evaluateJavascript("window.yosPlaybackFinished&&window.yosPlaybackFinished(" +
@@ -159,6 +171,19 @@ public class MainActivity extends Activity {
         @JavascriptInterface public boolean isTelevision() {
             return getPackageManager().hasSystemFeature("android.software.leanback") ||
                 (getResources().getConfiguration().uiMode & Configuration.UI_MODE_TYPE_MASK) == Configuration.UI_MODE_TYPE_TELEVISION;
+        }
+
+        @JavascriptInterface public void startVoiceSearch() {
+            runOnUiThread(() -> {
+                Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "es-CO");
+                intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Busca un canal, película o serie");
+                try { startActivityForResult(intent, VOICE_REQUEST); }
+                catch (ActivityNotFoundException error) {
+                    if (webView != null) webView.evaluateJavascript("window.yosVoiceSearchError&&window.yosVoiceSearchError()", null);
+                }
+            });
         }
 
         @JavascriptInterface public String getSavedCredentials() {
@@ -260,7 +285,7 @@ public class MainActivity extends Activity {
         if ("get_series_info".equals(action) && itemId != null && !itemId.isEmpty()) builder.appendQueryParameter("series_id", itemId);
         if ("get_vod_info".equals(action) && itemId != null && !itemId.isEmpty()) builder.appendQueryParameter("vod_id", itemId);
         if ("get_short_epg".equals(action) && itemId != null && !itemId.isEmpty()) {
-            builder.appendQueryParameter("stream_id", itemId).appendQueryParameter("limit", "2");
+            builder.appendQueryParameter("stream_id", itemId).appendQueryParameter("limit", "8");
         }
         URL url = new URL(builder.build().toString());
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();

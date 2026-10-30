@@ -3,12 +3,11 @@
 ## Punto de continuación actual — 2026-10-30
 
 - Proyecto principal guardado en GitHub: https://github.com/suazasti-pixel/YOS-STREAMING-ANDROID, rama `main`.
-- Versión activa de **YOS Xtream para Android y TV Box: 2.6**, `versionCode 11`. Último commit: `126938150434138cb1eedc164d1e91c30405811b` (`Improve Claro TV Box remote navigation in Xtream 2.6`).
-- La ejecución Android de GitHub Actions terminó correctamente: https://github.com/suazasti-pixel/YOS-STREAMING-ANDROID/actions/runs/41093266559. El artefacto `YOS-2.6-XTREAM-ANDROID-APK` contiene el APK para celular y TV Box.
-- Cambios 2.6: Atrás desde el reproductor regresa al catálogo; desde el catálogo devuelve el foco a la pestaña actual en vez de cerrar sesión; se restaura el foco del canal al volver; barra de secciones fija y modo remoto activado por las flechas.
+- Versión estable anterior de **YOS Xtream para Android y TV Box: 2.6**, `versionCode 11`. Commit: `126938150434138cb1eedc164d1e91c30405811b`; ejecución exitosa: https://github.com/suazasti-pixel/YOS-STREAMING-ANDROID/actions/runs/41093266559.
+- En desarrollo ahora: **YOS Xtream 2.7**, `versionCode 12`; deportes reunidos por categorías, guía extendida hasta 8 horarios, búsqueda por voz en Android, diagnóstico de respuesta del API y selección de calidad de video si hay pistas disponibles. Los cambios están en proceso y aún requieren compilación CI antes de instalar.
 - Proyecto editable independiente creado localmente en `YOS-Xtream-2.6-Editable/`; ZIP local: `YOS-Xtream-2.6-Editable.zip`. La fuente de referencia compartida y versionada está en `xtream/`.
-- Para continuar desde otra cuenta de Codex/ChatGPT: abrir o clonar el repositorio de arriba, leer primero este archivo y trabajar en la rama `main`. Mantener los números: celular `1.x`, Xtream Android `2.x`, LG webOS `3.x`; la siguiente mejora de Xtream será **2.7**.
-- Próximo paso sugerido: instalar el APK 2.6 en el Claro TV Box y probar Atrás desde un canal, volver a la pestaña TV en Vivo y moverse con flechas hasta Películas. Anotar cualquier tecla que se comporte distinto en ese control para ajustar el foco.
+- Para continuar desde otra cuenta de Codex/ChatGPT: abrir o clonar el repositorio de arriba, leer primero este archivo y trabajar en la rama `main`. Mantener los números: celular `1.x`, Xtream Android `2.x`, LG webOS `3.x`; la siguiente mejora de Xtream después de 2.7 será **2.8**.
+- Próximo paso: compilar YOS Xtream 2.7 en GitHub Actions, revisar que termine correctamente y probar deportes, voz, diagnóstico y menú de calidad en celular/TV Box. La guía extendida depende de los datos EPG del proveedor.
 
 ## Repositorio
 

@@ -203,9 +203,9 @@ public final class PlayerActivity extends Activity {
 
     private void showTrackMenu() {
         new AlertDialog.Builder(this)
-            .setTitle("Pistas de reproducción")
-            .setItems(new String[] { "Audio", "Subtítulos" }, (dialog, which) ->
-                showTrackSelection(which == 0 ? C.TRACK_TYPE_AUDIO : C.TRACK_TYPE_TEXT))
+            .setTitle("Audio, imagen y subtítulos")
+            .setItems(new String[] { "Audio", "Calidad de video", "Subtítulos" }, (dialog, which) ->
+                showTrackSelection(which == 0 ? C.TRACK_TYPE_AUDIO : which == 1 ? C.TRACK_TYPE_VIDEO : C.TRACK_TYPE_TEXT))
             .setNegativeButton("Cerrar", null)
             .show();
     }
@@ -217,13 +217,16 @@ public final class PlayerActivity extends Activity {
             if (group.getType() == trackType && group.isSupported()) { found = true; break; }
         }
         if (!found) {
-            Toast.makeText(this, trackType == C.TRACK_TYPE_AUDIO ? "Esta señal no informa otras pistas de audio." : "Esta señal no incluye subtítulos seleccionables.", Toast.LENGTH_LONG).show();
+            String message = trackType == C.TRACK_TYPE_AUDIO ? "Esta señal no informa otras pistas de audio." :
+                trackType == C.TRACK_TYPE_VIDEO ? "Esta señal no ofrece varias calidades de video." :
+                "Esta señal no incluye subtítulos seleccionables.";
+            Toast.makeText(this, message, Toast.LENGTH_LONG).show();
             return;
         }
         new TrackSelectionDialogBuilder(this,
-            trackType == C.TRACK_TYPE_AUDIO ? "Pista de audio" : "Subtítulos", player, trackType)
+            trackType == C.TRACK_TYPE_AUDIO ? "Pista de audio" : trackType == C.TRACK_TYPE_VIDEO ? "Calidad de video" : "Subtítulos", player, trackType)
             .setShowDisableOption(trackType == C.TRACK_TYPE_TEXT)
-            .setAllowAdaptiveSelections(false)
+            .setAllowAdaptiveSelections(trackType == C.TRACK_TYPE_VIDEO)
             .build()
             .show();
     }

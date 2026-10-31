@@ -324,7 +324,7 @@ public class MainActivity extends Activity {
             connection.setReadTimeout(25000);
             connection.setInstanceFollowRedirects(false);
             connection.setRequestProperty("Accept", "application/vnd.apple.mpegurl, audio/x-mpegurl, text/plain, */*");
-            connection.setRequestProperty("User-Agent", "YOS-Xtream-Android/2.10");
+            connection.setRequestProperty("User-Agent", "YOS-Xtream-Android/2.13");
             try {
                 int status = connection.getResponseCode();
                 if (status == 301 || status == 302 || status == 303 || status == 307 || status == 308) {
@@ -406,7 +406,7 @@ public class MainActivity extends Activity {
         connection.setRequestMethod("GET");
         connection.setRequestProperty("Accept", "application/json, */*");
         connection.setRequestProperty("Accept-Encoding", "gzip");
-        connection.setRequestProperty("User-Agent", "YOS-Xtream-Android/1.0");
+        connection.setRequestProperty("User-Agent", "YOS-Xtream-Android/2.13");
         try {
             int status = connection.getResponseCode();
             if (status < 200 || status >= 300) throw new Exception("El servidor respondió HTTP " + status + ".");

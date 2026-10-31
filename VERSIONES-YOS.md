@@ -5,12 +5,20 @@ Estas son las tres ediciones principales que vamos a mantener y actualizar por s
 | Edición | Dispositivo | Instalador en GitHub Actions | Proyecto |
 |---|---|---|---|
 | **1.1** | Celular Android | `YOS-1.1-CELULAR-APK` | YOS Streaming, listas M3U |
-| **2.12** | Celular Android y Android TV Box | `YOS-2.12-XTREAM-ANDROID-APK` | YOS Xtream Android |
-| **3.5** | Televisor LG webOS | `YOS-3.5-LG-webOS-IPK` | YOS Xtream para webOS |
+| **2.13** | Celular Android y Android TV Box | `YOS-2.13-XTREAM-ANDROID-APK` | YOS Xtream Android |
+| **3.6** | Televisor LG webOS | `YOS-3.6-LG-webOS-IPK` | YOS Xtream para webOS |
 
 ## Regla de numeración
 
-Cada edición avanza por separado: celular **1.1 → 1.2 → 1.3**, Xtream Android **2.1 → 2.2 → 2.3 → 2.4 → 2.5 → 2.6 → 2.7 → 2.8 → 2.9 → 2.10 → 2.11 → 2.12** y LG webOS **3.1 → 3.2 → 3.3 → 3.4 → 3.5**. Cuando un cambio afecte varias ediciones, incrementaremos la serie de cada una de ellas. Así cada instalador y sus notas de cambios indicarán qué versión recibió la mejora.
+Cada edición avanza por separado: celular **1.1 → 1.2 → 1.3**, Xtream Android **2.1 → 2.2 → 2.3 → 2.4 → 2.5 → 2.6 → 2.7 → 2.8 → 2.9 → 2.10 → 2.11 → 2.12 → 2.13** y LG webOS **3.1 → 3.2 → 3.3 → 3.4 → 3.5 → 3.6**. Cuando un cambio afecte varias ediciones, incrementaremos la serie de cada una de ellas. Así cada instalador y sus notas de cambios indicarán qué versión recibió la mejora.
+
+## YOS Xtream Android 2.13 y LG 3.6 — categorías más rápidas
+
+- Se recuerda localmente la última categoría usada por proveedor (solo sección e identificador; no se almacenan enlaces de reproducción ni contraseñas) y se precarga como máximo una categoría en tiempo inactivo tras iniciar sesión.
+- El catálogo muestra 36 elementos primero y añade grupos conforme se desplaza; los controles remotos conservan el botón **Cargar más**.
+- Las tarjetas nuevas se anexan al catálogo sin reconstruir las anteriores; carátulas siguen en carga diferida y baja prioridad.
+- Al cargar una categoría se informa el tiempo de respuesta del servidor para ayudar a distinguir demoras del proveedor.
+- Android `versionCode 18`, `versionName 2.13`. Artefacto: `YOS-2.13-XTREAM-ANDROID-APK`. LG `version 3.6.0`. Artefacto: `YOS-3.6-LG-webOS-IPK`.
 
 ## YOS Xtream Android 2.12 y LG 3.5 — inicio renovado
 

@@ -1,7 +1,8 @@
 "use strict";
 
 const $ = id => document.getElementById(id);
-const PAGE_SIZE = 60;
+const PAGE_SIZE = 36;
+const LAST_CATEGORY_MAX_AGE = 14 * 24 * 60 * 60 * 1000;
 const ITEM_CACHE_LIMIT = 5;
 const ITEM_CACHE_ROW_LIMIT = 18000;
 const state = { credentials: null, kind: "live", categories: [], items: [], localItems: [], localCategoryFallback: false, localFallbackCategory: "", filtered: [], limit: PAGE_SIZE, series: null, movie: null, showFavorites: false, globalSearch: false, sportsMode: false, parentalHash: "", parentalUnlocked: false, parentalMode: "setup", parentalFailures: 0, parentalBlockedUntil: 0, episodes: [] };
@@ -155,6 +156,43 @@ function providerStoreKey() {
 function historyStoreKey() {
   const account = state.credentials;
   return account ? "yos-xtream-recent-v1:" + encodeURIComponent(account.server + "|" + account.username) : "";
+}
+
+function lastCategoryStoreKey() {
+  const account = state.credentials;
+  return account ? "yos-xtream-last-category-v1:" + encodeURIComponent(account.server + "|" + account.username) : "";
+}
+
+function rememberLastCategory(kind, categoryId) {
+  if (!state.credentials || state.credentials.m3uMode || !kinds[kind] || categoryId == null || String(categoryId) === "") return;
+  try {
+    const key = lastCategoryStoreKey();
+    const categoryName = state.categories.find(row => String(row.category_id) === String(categoryId))?.category_name || "";
+    if (key) localStorage.setItem(key, JSON.stringify({ kind, categoryId: String(categoryId), categoryName, savedAt: Date.now() }));
+  } catch { /* El catálogo funciona aunque el almacenamiento local no esté disponible. */ }
+}
+
+function prefetchLastCategory() {
+  if (!state.credentials || state.credentials.m3uMode) return;
+  let saved;
+  try {
+    const key = lastCategoryStoreKey();
+    saved = key ? JSON.parse(localStorage.getItem(key) || "null") : null;
+  } catch { return; }
+  if (!saved || Date.now() - Number(saved.savedAt) > LAST_CATEGORY_MAX_AGE || !kinds[saved.kind] || !saved.categoryId) return;
+  const providerKey = state.credentials.server + "|" + state.credentials.username;
+  const cacheKey = saved.kind + ":" + saved.categoryId;
+  if (itemCache.has(cacheKey)) return;
+  const prefetch = () => {
+    if (!state.credentials || state.credentials.m3uMode || state.credentials.server + "|" + state.credentials.username !== providerKey || itemCache.has(cacheKey)) return;
+    callApi(kinds[saved.kind].items, saved.categoryId).then(rows => {
+      if (!Array.isArray(rows) || !state.credentials || state.credentials.server + "|" + state.credentials.username !== providerKey) return;
+      const categoryName = saved.categoryName || "";
+      cacheItems(cacheKey, rows.map(item => ({ ...item, category_name: item.category_name || categoryName })));
+    }).catch(() => { /* La precarga es opcional; se vuelve a intentar al abrir la categoría. */ });
+  };
+  if (typeof window.requestIdleCallback === "function") window.requestIdleCallback(prefetch, { timeout: 2500 });
+  else setTimeout(prefetch, 700);
 }
 
 function parentalStoreKey() {
@@ -370,6 +408,7 @@ function setHomeMode(enabled) {
 
 function showHome() {
   setHomeMode(true);
+  prefetchLastCategory();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -723,6 +762,7 @@ async function loadItems(categoryId) {
     return;
   }
   const kind = state.kind;
+  rememberLastCategory(kind, categoryId);
   const cacheKey = kind + ":" + categoryId;
   const cachedRows = itemCache.get(cacheKey);
   if (cachedRows) {
@@ -739,6 +779,7 @@ async function loadItems(categoryId) {
   $("category").disabled = true;
   $("content-grid").replaceChildren();
   setStatus("catalog-status", "Cargando " + kinds[state.kind].title.toLowerCase() + "…");
+  const requestStartedAt = performance.now();
   try {
     const rows = await callApi(kinds[kind].items, categoryId);
     if (requestId !== itemRequestSequence || state.kind !== kind || $("category").value !== String(categoryId)) return;
@@ -750,7 +791,8 @@ async function loadItems(categoryId) {
     state.localItems = rows;
     state.limit = PAGE_SIZE;
     applySearch();
-    setStatus("catalog-status", rows.length ? "Selecciona un elemento para reproducir." : "Esta categoría no tiene contenido.", rows.length ? "ok" : "");
+    const providerSeconds = ((performance.now() - requestStartedAt) / 1000).toFixed(1);
+    setStatus("catalog-status", rows.length ? rows.length + " elementos listos · servidor " + providerSeconds + " s." : "Esta categoría no tiene contenido.", rows.length ? "ok" : "");
     if (rows.length && document.body.classList.contains("tv-remote")) {
       requestAnimationFrame(() => document.querySelector(".content-card")?.focus());
     }
@@ -859,13 +901,14 @@ async function searchCatalog(query) {
   if (document.body.classList.contains("tv-remote")) requestAnimationFrame(() => document.querySelector(".content-card")?.focus());
 }
 
-function renderItems() {
+function renderItems(append = false) {
   const box = $("content-grid");
-  box.replaceChildren();
+  const startAt = append ? Math.max(0, state.limit - PAGE_SIZE) : 0;
+  if (!append) box.replaceChildren();
   const fragment = document.createDocumentFragment();
-  const page = state.filtered.slice(0, state.limit);
+  const page = state.filtered.slice(startAt, state.limit);
   const favoriteIds = new Set(readFavorites().map(row => row.favoriteId));
-  if (!page.length) {
+  if (!append && !state.filtered.length) {
     const empty = document.createElement("p");
     empty.className = "muted empty-state";
     empty.textContent = state.showFavorites ? "Todavía no tienes favoritos." : "No se encontraron elementos en esta categoría.";
@@ -923,7 +966,13 @@ function renderItems() {
   }
   box.append(fragment);
   $("catalog-count").textContent = state.filtered.length ? state.filtered.length + " elementos" : "";
-  $("load-more").hidden = page.length >= state.filtered.length;
+  $("load-more").hidden = state.limit >= state.filtered.length;
+}
+
+function loadNextPage() {
+  if (state.limit >= state.filtered.length) return;
+  state.limit = Math.min(state.filtered.length, state.limit + PAGE_SIZE);
+  renderItems(true);
 }
 
 function posterPlaceholder(name) {
@@ -1216,7 +1265,14 @@ $("diagnostics-dialog").addEventListener("click", event => { if (event.target ==
 document.querySelectorAll(".shortcut[data-kind]").forEach(button => button.addEventListener("click", () => showBrowseKind(button.dataset.kind)));
 $("home-favorites").addEventListener("click", showFavoritesView);
 $("clear-recent").addEventListener("click", () => { saveRecent([]); renderRecent(); });
-$("load-more").addEventListener("click", () => { state.limit += PAGE_SIZE; renderItems(); });
+$("load-more").addEventListener("click", loadNextPage);
+if ("IntersectionObserver" in window) {
+  const loadMoreObserver = new IntersectionObserver(entries => {
+    if (document.body.classList.contains("tv-remote") || document.visibilityState === "hidden") return;
+    if (entries.some(entry => entry.isIntersecting) && !$("load-more").hidden) loadNextPage();
+  }, { rootMargin: "520px 0px" });
+  loadMoreObserver.observe($("load-more"));
+}
 $("close-episodes").addEventListener("click", () => $("episodes-dialog").close());
 $("season-picker").addEventListener("change", () => renderEpisodes($("season-picker").value));
 $("episodes-dialog").addEventListener("click", event => { if (event.target === $("episodes-dialog")) $("episodes-dialog").close(); });

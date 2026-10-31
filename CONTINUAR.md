@@ -1,18 +1,18 @@
 # Continuar YOS STREAMING
 
-## Punto de continuación actual — 2026-10-30
+## Punto de continuación actual — 2026-10-31
 
 - Proyecto principal guardado en GitHub: https://github.com/suazasti-pixel/YOS-STREAMING-ANDROID, rama `main`.
 - Versión estable anterior de **YOS Xtream para Android y TV Box: 2.6**, `versionCode 11`. Commit: `126938150434138cb1eedc164d1e91c30405811b`; ejecución exitosa: https://github.com/suazasti-pixel/YOS-STREAMING-ANDROID/actions/runs/41093266559.
 - Versión estable anterior de **YOS Xtream para Android y TV Box: 2.7**, `versionCode 12`. Compilación correcta en GitHub Actions: https://github.com/suazasti-pixel/YOS-STREAMING-ANDROID/actions/runs/41117306355. Descarga el artefacto `YOS-2.7-XTREAM-ANDROID-APK`.
 - Versión estable anterior de **YOS Xtream para Android y TV Box: 2.8**, `versionCode 13`. Mejora la carga de canales y películas cancelando consultas obsoletas, conservando cinco categorías recientes con un tope aproximado de 18.000 elementos y dibujando las tarjetas en un solo paso. Compilación correcta en GitHub Actions: https://github.com/suazasti-pixel/YOS-STREAMING-ANDROID/actions/runs/41131354429. Artifact: `YOS-2.8-XTREAM-ANDROID-APK`.
 - Versión estable anterior de **YOS Xtream para Android y TV Box: 2.9**, `versionCode 14`. Si la consulta de categorías devuelve 404, intenta cargar la sección completa y reconstruir categorías en memoria para mantener búsqueda por texto/voz y filtros locales. Compilación correcta en GitHub Actions: https://github.com/suazasti-pixel/YOS-STREAMING-ANDROID/actions/runs/41135664583. Artifact: `YOS-2.9-XTREAM-ANDROID-APK`.
-- Versión actual de **YOS Xtream para Android y TV Box: 2.12**, `versionCode 17`. Incluye portada Inicio y carga diferida del catálogo hasta elegir una sección; Artifact: `YOS-2.12-XTREAM-ANDROID-APK`.
-- Versión actual de **YOS Xtream para LG webOS: 3.5**. Incluye la misma portada Inicio, accesos grandes para Magic Remote y carga diferida; mantiene respaldo M3U, progreso y reintento. Artifact: `YOS-3.5-LG-webOS-IPK`.
+- Versión actual de **YOS Xtream para Android y TV Box: 2.13**, `versionCode 18`. Añade precarga en inactividad de una categoría reciente, render progresivo en grupos de 36 y tiempos de respuesta del servidor; Artifact: `YOS-2.13-XTREAM-ANDROID-APK`.
+- Versión actual de **YOS Xtream para LG webOS: 3.6**. Incluye las mismas mejoras; conserva el botón **Cargar más** para el Magic Remote, el respaldo M3U, el progreso y reintento del reproductor; Artifact: `YOS-3.6-LG-webOS-IPK`.
 - Cambios 2.7: deportes reunidos por categorías reconocibles, guía extendida hasta ocho entradas EPG, búsqueda por voz Android en español de Colombia, diagnóstico de tiempos del API y selección de calidad de video si hay pistas disponibles. El diagnóstico mide API/categorías, no prueba streams individuales; la guía depende de que el proveedor envíe EPG.
 - Proyecto editable independiente creado localmente en `YOS-Xtream-2.6-Editable/`; ZIP local: `YOS-Xtream-2.6-Editable.zip`. La fuente de referencia compartida y versionada está en `xtream/`.
-- Para continuar desde otra cuenta de Codex/ChatGPT: abrir o clonar el repositorio de arriba, leer primero este archivo y trabajar en la rama `main`. Mantener los números: celular `1.x`, Xtream Android `2.x`, LG webOS `3.x`; la siguiente mejora de Xtream después de 2.10 será **2.11**.
-- Próximo paso: instalar 2.10 en celular/TV Box y 3.3 en LG para validar reanudar, reintento y Magic Remote. En modo M3U no hay datos API de guía, temporadas o vencimiento.
+- Para continuar desde otra cuenta de Codex/ChatGPT: abrir o clonar el repositorio de arriba, leer primero este archivo y trabajar en la rama `main`. Mantener los números: celular `1.x`, Xtream Android `2.x`, LG webOS `3.x`; la próxima mejora será Android **2.14** y LG **3.7**.
+- Próximo paso: instalar Android 2.13 y LG 3.6, comprobar que la categoría usada se precarga tras iniciar sesión, que las páginas adicionales aparecen al desplazarse y que **Cargar más** conserva el control en TV Box/LG. El tiempo de inicio de video sigue dependiendo del proveedor.
 
 ## Repositorio
 

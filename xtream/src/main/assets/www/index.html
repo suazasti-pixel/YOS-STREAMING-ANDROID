@@ -10,7 +10,7 @@
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="#inicio" aria-label="YOS Xtream inicio">
+    <a id="home-brand" class="brand" href="#inicio" aria-label="YOS Xtream inicio">
       <span class="brand-logo-window"><img class="brand-mark" src="yos-logo-header.png" alt=""></span><span class="brand-wordmark">YOS<small>XTREAM</small></span>
     </a>
     <span class="header-caption">TU CONTENIDO, EN UN SOLO LUGAR</span>
@@ -48,6 +48,10 @@
         <div><span class="eyebrow">TU BIBLIOTECA</span><h1 id="catalog-title">Canales en vivo</h1><p id="account-summary" class="muted"></p></div>
         <div class="search-box"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Buscar en todo el catálogo" autocomplete="off"><button id="voice-search" class="voice-search" type="button" aria-label="Buscar por voz" title="Buscar por voz">🎙</button></div>
       </div>
+      <section id="home-hero" class="home-hero" aria-label="Inicio YOS">
+        <div><span class="eyebrow">YOS XTREAM</span><h2>Tu entretenimiento.<br><em>A tu manera.</em></h2><p id="home-message">Elige una sección o continúa donde lo dejaste.</p></div>
+        <div class="home-hero-mark" aria-hidden="true"><img src="yos-logo-header.png" alt=""></div>
+      </section>
       <section class="browse-shortcuts" aria-label="Accesos rápidos">
         <span class="eyebrow">EXPLORAR</span>
         <button class="shortcut" data-kind="live" type="button"><span>▶</span><b>TV en vivo</b><small>Canales y guía</small></button>
@@ -60,6 +64,7 @@
         <div id="recent-grid" class="recent-grid"></div>
       </section>
       <nav class="tabs" aria-label="Tipo de contenido">
+        <button id="home-tab" class="tab" type="button">⌂ INICIO</button>
         <button class="tab active" data-kind="live">TV EN VIVO</button>
         <button class="tab" data-kind="sports">⚽ DEPORTES</button>
         <button class="tab" data-kind="movie">PELÍCULAS</button>

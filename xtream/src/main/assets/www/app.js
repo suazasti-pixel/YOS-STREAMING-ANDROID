@@ -320,6 +320,7 @@ function toggleFavorite(item, kind) {
 }
 
 function showFavoritesView() {
+  setHomeMode(false);
   searchSequence++;
   itemRequestSequence++;
   categoryRequestSequence++;
@@ -342,11 +343,34 @@ function showFavoritesView() {
 }
 
 function showBrowseKind(kind) {
+  setHomeMode(false);
   const sportsMode = kind === "sports";
   state.sportsMode = sportsMode;
   document.querySelectorAll(".tab[data-kind]").forEach(tab => tab.classList.toggle("active", tab.dataset.kind === kind));
   loadCategories(sportsMode ? "live" : kind);
   document.querySelector(".tabs")?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+
+function setHomeMode(enabled) {
+  const home = Boolean(enabled);
+  document.body.classList.toggle("home-mode", home);
+  $("home-hero").hidden = !home;
+  $("home-tab").classList.toggle("active", home);
+  [".filters", "#catalog-status", "#guide-panel", "#content-grid", "#load-more"].forEach(selector => {
+    const element = document.querySelector(selector);
+    if (element) element.hidden = home;
+  });
+  if (home) {
+    document.querySelectorAll(".tab[data-kind]").forEach(tab => tab.classList.remove("active"));
+    $("favorites-tab").classList.remove("active");
+    $("catalog-title").textContent = "Inicio";
+    $("home-message").textContent = readRecent().length ? "Continúa viendo o explora tu biblioteca." : "Elige una sección para empezar a disfrutar.";
+  }
+}
+
+function showHome() {
+  setHomeMode(true);
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function isSportsCategory(name) {
@@ -554,7 +578,7 @@ $("login-form").addEventListener("submit", async event => {
     $("account-summary").textContent = state.credentials.m3uMode ? "Lista M3U · " + state.credentials.m3uItems.length + " elementos" : "Cuenta conectada" + (exp ? " · Vence " + exp : "");
     renderRecent();
     setStatus("login-status", "");
-    await loadCategories("live");
+    showHome();
   } catch (error) {
     state.credentials = null;
     setStatus("login-status", error.message || "No se pudo conectar. Revisa servidor, usuario y contraseña.", "error");
@@ -562,6 +586,7 @@ $("login-form").addEventListener("submit", async event => {
 });
 
 async function loadCategories(kind) {
+  setHomeMode(false);
   searchSequence++;
   const requestId = ++categoryRequestSequence;
   itemRequestSequence++;
@@ -1010,7 +1035,7 @@ function playItems(items, kind, index = 0, resumePosition = 0) {
   });
   if (!queue.length) return;
   const selected = queue[Math.max(0, Math.min(index, queue.length - 1))];
-  lastPlaybackFocus = document.activeElement?.closest?.(".content-card") || null;
+  lastPlaybackFocus = document.activeElement?.closest?.(".content-card, .recent-card") || null;
   const recent = readRecent().find(row => row.kind === kind && row.id === selected.id);
   const startAt = resumePosition || (kind !== "live" && recent ? Number(recent.position) || 0 : 0);
   if (bridge()) bridge().playNative(selected.url, selected.name, JSON.stringify(queue), Math.max(0, Math.min(index, queue.length - 1)), startAt);
@@ -1165,11 +1190,20 @@ function renderEpisodes(season) {
 document.querySelectorAll(".tab[data-kind]").forEach(button => button.addEventListener("click", () => {
   showBrowseKind(button.dataset.kind);
 }));
+$("home-tab").addEventListener("click", showHome);
+$("home-brand").addEventListener("click", event => {
+  if ($("catalog-view").hidden) return;
+  event.preventDefault();
+  showHome();
+});
 $("favorites-tab").addEventListener("click", showFavoritesView);
 $("category").addEventListener("change", () => { $("search").value = ""; state.globalSearch = false; state.items = state.localItems; if (state.sportsMode) loadSportsItems($("category").value); else loadItems($("category").value); });
 $("search").addEventListener("input", () => {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(() => searchCatalog($("search").value), 350);
+});
+$("search").addEventListener("focus", () => {
+  if ($("home-tab").classList.contains("active")) showBrowseKind(state.kind || "live");
 });
 $("voice-search").addEventListener("click", () => {
   if (bridge()?.startVoiceSearch) bridge().startVoiceSearch();

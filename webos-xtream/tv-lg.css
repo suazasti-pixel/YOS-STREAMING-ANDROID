@@ -40,6 +40,11 @@ button, a, input, select, [tabindex] { cursor: pointer; }
 :focus-visible, .remote-focus { outline: 5px solid #ff5276 !important; outline-offset: 5px !important; box-shadow: 0 0 0 9px #ff174d40, 0 0 32px #ff174d99 !important; position: relative; z-index: 5; }
 .content-card:focus-visible, .tab:focus-visible, .remote-focus { transform: scale(1.035); }
 .tv-lg-private-note { margin: 18px 0 0; color: #b9c9d7; font-size: 17px; }
+.home-hero { min-height: 260px; padding: 38px 46px; border-radius: 22px; }
+.home-hero h2 { font-size: 56px; }
+.home-hero p { font-size: 22px; }
+.home-hero-mark { width: 300px; height: 300px; right: 9%; }
+.browse-shortcuts { margin-top: 24px; }
 body.player-open { overflow: hidden; }
 .yos-lg-player { position: fixed; z-index: 9999; inset: 0; display: grid; grid-template-rows: 82px 1fr 84px; gap: 12px; padding: 24px 38px; background: #03070b; color: #fff; }
 .yos-lg-player[hidden] { display: none; }

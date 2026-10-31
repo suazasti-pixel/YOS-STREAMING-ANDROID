@@ -1030,7 +1030,7 @@ window.yosPlaybackFinished = raw => {
     });
     saveRecent(rows);
     renderRecent();
-    if (document.body.classList.contains("tv-remote")) requestAnimationFrame(() => {
+    if (document.body.classList.contains("tv-remote") && !document.body.classList.contains("player-open")) requestAnimationFrame(() => {
       const target = lastPlaybackFocus?.isConnected ? lastPlaybackFocus : null;
       if (target && !target.closest("[hidden]")) {
         target.focus({ preventScroll: true });

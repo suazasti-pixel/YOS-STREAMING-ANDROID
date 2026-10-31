@@ -48,7 +48,7 @@ jobs:
       - name: Guardar instalador YOS Xtream para TV LG
         uses: actions/upload-artifact@v4
         with:
-          name: YOS-3.2-LG-webOS-IPK
+          name: YOS-3.3-LG-webOS-IPK
           path: build/webos-xtream-package/*.ipk
           if-no-files-found: error
           retention-days: 30

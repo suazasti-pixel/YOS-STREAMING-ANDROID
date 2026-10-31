@@ -46,6 +46,9 @@ body.player-open { overflow: hidden; }
 .yos-lg-player header, .yos-lg-player footer { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .yos-lg-player header strong { font-size: 28px; }
 .yos-lg-player button { min-width: 190px; min-height: 64px; padding: 12px 22px; border: 2px solid #354858; border-radius: 14px; background: #111c25; color: #fff; font-size: 20px; font-weight: 800; }
+.yos-lg-player button:focus-visible { border-color: #ff5276; background: #3a1420; }
+.yos-lg-player #yos-lg-retry { min-width: 220px; border-color: #ff5276; }
+.yos-lg-player #yos-lg-retry[hidden] { display: none; }
 .yos-lg-player video { width: 100%; height: 100%; min-height: 0; background: #000; object-fit: contain; }
 .yos-lg-player footer span { font-size: 20px; color: #b9c9d7; }
 @media (max-width: 1200px) {

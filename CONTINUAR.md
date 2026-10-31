@@ -8,10 +8,11 @@
 - Versión estable anterior de **YOS Xtream para Android y TV Box: 2.8**, `versionCode 13`. Mejora la carga de canales y películas cancelando consultas obsoletas, conservando cinco categorías recientes con un tope aproximado de 18.000 elementos y dibujando las tarjetas en un solo paso. Compilación correcta en GitHub Actions: https://github.com/suazasti-pixel/YOS-STREAMING-ANDROID/actions/runs/41131354429. Artifact: `YOS-2.8-XTREAM-ANDROID-APK`.
 - Versión estable anterior de **YOS Xtream para Android y TV Box: 2.9**, `versionCode 14`. Si la consulta de categorías devuelve 404, intenta cargar la sección completa y reconstruir categorías en memoria para mantener búsqueda por texto/voz y filtros locales. Compilación correcta en GitHub Actions: https://github.com/suazasti-pixel/YOS-STREAMING-ANDROID/actions/runs/41135664583. Artifact: `YOS-2.9-XTREAM-ANDROID-APK`.
 - Versión actual de **YOS Xtream para Android y TV Box: 2.10**, `versionCode 15`. Si una consulta API responde HTTP 404, prueba el enlace M3U `get.php`, organiza sus grupos para búsqueda/filtros y reproduce enlaces directos. Artifact: `YOS-2.10-XTREAM-ANDROID-APK`.
+- Versión actual de **YOS Xtream para LG webOS: 3.3**. Reanuda películas y episodios desde «Visto recientemente», guarda el progreso durante reproducción y ofrece reintento de señales fallidas. Artifact: `YOS-3.3-LG-webOS-IPK`.
 - Cambios 2.7: deportes reunidos por categorías reconocibles, guía extendida hasta ocho entradas EPG, búsqueda por voz Android en español de Colombia, diagnóstico de tiempos del API y selección de calidad de video si hay pistas disponibles. El diagnóstico mide API/categorías, no prueba streams individuales; la guía depende de que el proveedor envíe EPG.
 - Proyecto editable independiente creado localmente en `YOS-Xtream-2.6-Editable/`; ZIP local: `YOS-Xtream-2.6-Editable.zip`. La fuente de referencia compartida y versionada está en `xtream/`.
 - Para continuar desde otra cuenta de Codex/ChatGPT: abrir o clonar el repositorio de arriba, leer primero este archivo y trabajar en la rama `main`. Mantener los números: celular `1.x`, Xtream Android `2.x`, LG webOS `3.x`; la siguiente mejora de Xtream después de 2.10 será **2.11**.
-- Próximo paso: instalar 2.10 en celular y TV Box y probar la cuenta M3U compartida. En modo M3U no hay datos API de guía, temporadas o vencimiento.
+- Próximo paso: instalar 2.10 en celular/TV Box y 3.3 en LG para validar reanudar, reintento y Magic Remote. En modo M3U no hay datos API de guía, temporadas o vencimiento.
 
 ## Repositorio
 

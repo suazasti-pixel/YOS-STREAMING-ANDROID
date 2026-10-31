@@ -6,11 +6,18 @@ Estas son las tres ediciones principales que vamos a mantener y actualizar por s
 |---|---|---|---|
 | **1.1** | Celular Android | `YOS-1.1-CELULAR-APK` | YOS Streaming, listas M3U |
 | **2.10** | Celular Android y Android TV Box | `YOS-2.10-XTREAM-ANDROID-APK` | YOS Xtream Android |
-| **3.2** | Televisor LG webOS | `YOS-3.2-LG-webOS-IPK` | YOS Xtream para webOS |
+| **3.3** | Televisor LG webOS | `YOS-3.3-LG-webOS-IPK` | YOS Xtream para webOS |
 
 ## Regla de numeración
 
-Cada edición avanza por separado: celular **1.1 → 1.2 → 1.3**, Xtream Android **2.1 → 2.2 → 2.3 → 2.4 → 2.5 → 2.6 → 2.7 → 2.8 → 2.9 → 2.10** y LG webOS **3.1 → 3.2 → 3.3**. Cuando un cambio afecte varias ediciones, incrementaremos la serie de cada una de ellas. Así cada instalador y sus notas de cambios indicarán qué versión recibió la mejora.
+Cada edición avanza por separado: celular **1.1 → 1.2 → 1.3**, Xtream Android **2.1 → 2.2 → 2.3 → 2.4 → 2.5 → 2.6 → 2.7 → 2.8 → 2.9 → 2.10 → 2.11** y LG webOS **3.1 → 3.2 → 3.3**. Cuando un cambio afecte varias ediciones, incrementaremos la serie de cada una de ellas. Así cada instalador y sus notas de cambios indicarán qué versión recibió la mejora.
+
+## YOS Xtream LG 3.3 — reanudar y recuperar reproducción
+
+- Guarda el progreso de películas y episodios durante la reproducción para que «Visto recientemente» permita continuar en el televisor.
+- Al abrir un elemento con progreso, el reproductor webOS busca continuar desde esa posición; el control «Reintentar» permite volver a intentar una señal que falló.
+- Actualiza el historial sin mover el foco del Magic Remote mientras el reproductor está abierto.
+- Implementado sobre la base YOS; no utiliza los servidores del APK externo que se revisó.
 
 YOS Play sigue siendo un proyecto Android adicional y no forma parte de esta lista de tres instaladores.
 

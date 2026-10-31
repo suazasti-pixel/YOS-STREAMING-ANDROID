@@ -3,6 +3,9 @@
 (function () {
   var pending = Object.create(null);
   var sequence = 0;
+  var resumeAt = 0;
+  var progressLastAt = 0;
+  var progressLastPosition = -1;
 
   function apiRequest(requestId, server, username, password, action, categoryId, itemId) {
     if (!window.webOS || !window.webOS.service) {
@@ -41,22 +44,70 @@
     overlay.id = "yos-lg-player";
     overlay.className = "yos-lg-player";
     overlay.setAttribute("aria-label", "Reproductor");
-    overlay.innerHTML = '<header><strong id="yos-lg-title"></strong><button id="yos-lg-close" type="button">CERRAR <span>✕</span></button></header><video id="yos-lg-video" controls autoplay playsinline></video><footer><button id="yos-lg-prev" type="button">◀ ANTERIOR</button><span id="yos-lg-state">Conectando…</span><button id="yos-lg-next" type="button">SIGUIENTE ▶</button></footer>';
+    overlay.innerHTML = '<header><strong id="yos-lg-title"></strong><button id="yos-lg-close" type="button">CERRAR <span>✕</span></button></header><video id="yos-lg-video" controls autoplay playsinline></video><footer><button id="yos-lg-prev" type="button">◀ ANTERIOR</button><span id="yos-lg-state">Conectando…</span><button id="yos-lg-retry" type="button" hidden>REINTENTAR</button><button id="yos-lg-next" type="button">SIGUIENTE ▶</button></footer>';
     document.body.appendChild(overlay);
     overlay.querySelector("#yos-lg-close").addEventListener("click", closePlayer);
     overlay.querySelector("#yos-lg-prev").addEventListener("click", function () { step(-1); });
     overlay.querySelector("#yos-lg-next").addEventListener("click", function () { step(1); });
+    overlay.querySelector("#yos-lg-retry").addEventListener("click", function () { playCurrent(video.currentTime || resumeAt); });
     var video = overlay.querySelector("video");
+    video.addEventListener("loadedmetadata", function () {
+      if (resumeAt > 0 && (!video.duration || resumeAt < video.duration - 15)) {
+        try { video.currentTime = resumeAt; } catch (_) {}
+      }
+      resumeAt = 0;
+    });
     video.addEventListener("waiting", function () { overlay.querySelector("#yos-lg-state").textContent = "Cargando transmisión…"; });
-    video.addEventListener("playing", function () { overlay.querySelector("#yos-lg-state").textContent = "Reproduciendo"; });
-    video.addEventListener("error", function () { overlay.querySelector("#yos-lg-state").textContent = "No se pudo reproducir este formato o transmisión."; });
+    video.addEventListener("playing", function () {
+      overlay.querySelector("#yos-lg-state").textContent = "Reproduciendo";
+      overlay.querySelector("#yos-lg-retry").hidden = true;
+      reportPlayback(true);
+    });
+    video.addEventListener("timeupdate", function () { reportPlayback(false); });
+    video.addEventListener("ended", function () {
+      reportPlayback(true, true);
+      overlay.querySelector("#yos-lg-state").textContent = "Reproducción terminada";
+      var retry = overlay.querySelector("#yos-lg-retry");
+      retry.textContent = "REPRODUCIR DE NUEVO";
+      retry.hidden = false;
+      retry.focus();
+    });
+    video.addEventListener("error", function () {
+      overlay.querySelector("#yos-lg-state").textContent = "No se pudo reproducir este formato o transmisión.";
+      var retry = overlay.querySelector("#yos-lg-retry");
+      retry.textContent = "REINTENTAR";
+      retry.hidden = false;
+      retry.focus();
+    });
     return overlay;
+  }
+
+  function reportPlayback(force, completed) {
+    var overlay = document.getElementById("yos-lg-player");
+    var video = overlay && overlay.querySelector("#yos-lg-video");
+    var item = window.YOSXtream && window.YOSXtream.queue[window.YOSXtream.index];
+    if (!video || !item || typeof window.yosPlaybackFinished !== "function") return;
+    var position = item.kind === "live" ? 0 : Math.max(0, Number(video.currentTime) || 0);
+    var duration = item.kind === "live" ? 0 : (Number.isFinite(video.duration) ? Math.max(0, video.duration) : 0);
+    var now = Date.now();
+    if (!force && (now - progressLastAt < 15000 || position - progressLastPosition < 15)) return;
+    progressLastAt = now;
+    progressLastPosition = position;
+    try {
+      window.yosPlaybackFinished(JSON.stringify({
+        id: String(item.id || ""), title: String(item.name || "YOS Xtream"),
+        kind: ["live", "movie", "series"].indexOf(item.kind) >= 0 ? item.kind : "live",
+        category: String(item.category || ""), extension: String(item.extension || ""),
+        cover: String(item.cover || ""), position: completed ? 0 : position, duration: duration
+      }));
+    } catch (_) {}
   }
 
   function closePlayer() {
     var overlay = document.getElementById("yos-lg-player");
     if (!overlay) return;
     var video = overlay.querySelector("video");
+    reportPlayback(true);
     video.pause();
     video.removeAttribute("src");
     video.load();
@@ -68,18 +119,25 @@
 
   function step(delta) {
     if (!window.YOSXtream.queue.length) return;
+    reportPlayback(true);
     window.YOSXtream.index = Math.max(0, Math.min(window.YOSXtream.queue.length - 1, window.YOSXtream.index + delta));
-    playCurrent();
+    playCurrent(0);
   }
 
-  function playCurrent() {
+  function playCurrent(resumeSeconds) {
     var overlay = ensurePlayer();
     var item = window.YOSXtream.queue[window.YOSXtream.index];
     if (!item) return;
+    resumeAt = Math.max(0, Number(resumeSeconds) || 0);
+    progressLastAt = 0;
+    progressLastPosition = -1;
     overlay.hidden = false;
     document.body.classList.add("player-open");
     overlay.querySelector("#yos-lg-title").textContent = item.name || "YOS Xtream";
     overlay.querySelector("#yos-lg-state").textContent = "Conectando…";
+    var retry = overlay.querySelector("#yos-lg-retry");
+    retry.hidden = true;
+    retry.textContent = "REINTENTAR";
     var video = overlay.querySelector("video");
     video.src = item.url;
     video.load();
@@ -96,12 +154,12 @@
     },
     getSavedCredentials: function () { return JSON.stringify({ saved: false }); },
     clearSavedCredentials: function () {},
-    playNative: function (url, title, queueJson, index) {
+    playNative: function (url, title, queueJson, index, resumePosition) {
       var queue = [];
       try { queue = JSON.parse(queueJson || "[]"); } catch (_) {}
       window.YOSXtream.queue = queue.length ? queue : [{ url: url, name: title }];
       window.YOSXtream.index = Math.max(0, Math.min(window.YOSXtream.queue.length - 1, Number(index) || 0));
-      playCurrent();
+      playCurrent(resumePosition);
     },
     queue: [],
     index: 0

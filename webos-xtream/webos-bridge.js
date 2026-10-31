@@ -37,6 +37,50 @@
     });
   }
 
+  function downloadM3u(rawUrl) {
+    return new Promise(function (resolve) {
+      if (!window.webOS || !window.webOS.service) {
+        resolve(JSON.stringify({ ok: false, error: "El servicio webOS no está disponible." }));
+        return;
+      }
+      window.webOS.service.request("luna://com.yos.streaming.xtreamtv.service/", {
+        method: "downloadM3u",
+        parameters: { url: rawUrl },
+        onSuccess: function (result) {
+          if (!result || !result.ok || !result.playlistId) {
+            resolve(JSON.stringify({ ok: false, error: result && result.error || "No se pudo descargar la lista M3U." }));
+            return;
+          }
+          var playlistId = result.playlistId;
+          var offset = 0;
+          var parts = [];
+          function readNext() {
+            window.webOS.service.request("luna://com.yos.streaming.xtreamtv.service/", {
+              method: "readM3uChunk",
+              parameters: { playlistId: playlistId, offset: offset, limit: 262144 },
+              onSuccess: function (chunk) {
+                if (!chunk || !chunk.ok) {
+                  resolve(JSON.stringify({ ok: false, error: chunk && chunk.error || "No se pudo leer la lista descargada." }));
+                  return;
+                }
+                parts.push(String(chunk.text || ""));
+                offset += Number(chunk.length) || 0;
+                if (chunk.done) {
+                  resolve(JSON.stringify({ ok: true, text: parts.join("") }));
+                  return;
+                }
+                readNext();
+              },
+              onFailure: function () { resolve(JSON.stringify({ ok: false, error: "No se pudo leer la lista M3U desde el servicio webOS." })); }
+            });
+          }
+          readNext();
+        },
+        onFailure: function () { resolve(JSON.stringify({ ok: false, error: "No se pudo conectar con el servicio webOS para leer M3U." })); }
+      });
+    });
+  }
+
   function ensurePlayer() {
     var overlay = document.getElementById("yos-lg-player");
     if (overlay) return overlay;
@@ -149,11 +193,12 @@
   window.YOSXtream = {
     requestApi: apiRequest,
     isTelevision: function () { return true; },
-    saveCredentials: function (_server, _username, _password, remember) {
+    saveCredentials: function (_server, _username, _password, _playlistUrl, remember) {
       return JSON.stringify(remember ? { ok: false, error: "Esta edición no guarda credenciales en el televisor. Deja desmarcada la opción de recordar cuenta." } : { ok: true });
     },
     getSavedCredentials: function () { return JSON.stringify({ saved: false }); },
     clearSavedCredentials: function () {},
+    downloadM3u: downloadM3u,
     playNative: function (url, title, queueJson, index, resumePosition) {
       var queue = [];
       try { queue = JSON.parse(queueJson || "[]"); } catch (_) {}

@@ -5,12 +5,20 @@ Estas son las tres ediciones principales que vamos a mantener y actualizar por s
 | Edición | Dispositivo | Instalador en GitHub Actions | Proyecto |
 |---|---|---|---|
 | **1.1** | Celular Android | `YOS-1.1-CELULAR-APK` | YOS Streaming, listas M3U |
-| **2.10** | Celular Android y Android TV Box | `YOS-2.10-XTREAM-ANDROID-APK` | YOS Xtream Android |
-| **3.3** | Televisor LG webOS | `YOS-3.3-LG-webOS-IPK` | YOS Xtream para webOS |
+| **2.11** | Celular Android y Android TV Box | `YOS-2.11-XTREAM-ANDROID-APK` | YOS Xtream Android |
+| **3.4** | Televisor LG webOS | `YOS-3.4-LG-webOS-IPK` | YOS Xtream para webOS |
 
 ## Regla de numeración
 
-Cada edición avanza por separado: celular **1.1 → 1.2 → 1.3**, Xtream Android **2.1 → 2.2 → 2.3 → 2.4 → 2.5 → 2.6 → 2.7 → 2.8 → 2.9 → 2.10 → 2.11** y LG webOS **3.1 → 3.2 → 3.3**. Cuando un cambio afecte varias ediciones, incrementaremos la serie de cada una de ellas. Así cada instalador y sus notas de cambios indicarán qué versión recibió la mejora.
+Cada edición avanza por separado: celular **1.1 → 1.2 → 1.3**, Xtream Android **2.1 → 2.2 → 2.3 → 2.4 → 2.5 → 2.6 → 2.7 → 2.8 → 2.9 → 2.10 → 2.11** y LG webOS **3.1 → 3.2 → 3.3 → 3.4**. Cuando un cambio afecte varias ediciones, incrementaremos la serie de cada una de ellas. Así cada instalador y sus notas de cambios indicarán qué versión recibió la mejora.
+
+## YOS Xtream 2.11 y YOS Xtream LG 3.4 — M3U también en webOS
+
+- La edición LG ahora puede descargar listas M3U autorizadas mediante un servicio nativo webOS; el texto se entrega en fragmentos temporales para evitar respuestas Luna demasiado grandes.
+- La descarga tiene límite de 10 MB, vence de la memoria temporal en dos minutos y solo permite redirecciones al mismo host; nunca escribe la URL con credenciales en los registros.
+- Se corrige el argumento de «recordar cuenta» entre la interfaz compartida y el puente LG.
+- Android y LG comparten el flujo de respaldo M3U, búsqueda y filtros; las opciones de Xtream API que no están en M3U siguen dependiendo del proveedor.
+- Android `versionCode 16`, `versionName 2.11`. Artefacto: `YOS-2.11-XTREAM-ANDROID-APK`. LG `version 3.4.0`. Artefacto: `YOS-3.4-LG-webOS-IPK`.
 
 ## YOS Xtream LG 3.3 — reanudar y recuperar reproducción
 

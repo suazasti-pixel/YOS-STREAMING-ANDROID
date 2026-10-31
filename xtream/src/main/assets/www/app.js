@@ -110,13 +110,14 @@ function makeM3uUrl(server, username, password, suppliedUrl = "") {
 
 function loadM3uUrl(url) {
   const native = bridge();
-  if (!native?.downloadM3u) return Promise.reject(new Error("La carga de una lista M3U requiere la app Android o TV Box instalada."));
-  try {
-    const result = JSON.parse(native.downloadM3u(url));
+  if (!native?.downloadM3u) return Promise.reject(new Error("Esta versión de YOS no tiene habilitada la carga de listas M3U."));
+  return Promise.resolve().then(() => native.downloadM3u(url)).then(raw => {
+    const result = typeof raw === "string" ? JSON.parse(raw) : raw;
     if (!result.ok) return Promise.reject(new Error(result.error || "No se pudo descargar la lista M3U."));
-    if (!String(result.text || "").includes("#EXTINF:")) return Promise.reject(new Error("El servidor no devolvió una lista M3U válida."));
-    return Promise.resolve(parseM3uPlaylist(result.text));
-  } catch (error) { return Promise.reject(error); }
+    if (Array.isArray(result.items)) return result.items;
+    if (!String(result.text || "").includes("#EXTINF:")) throw new Error("El servidor no devolvió una lista M3U válida.");
+    return parseM3uPlaylist(result.text);
+  });
 }
 
 async function switchToM3uMode() {

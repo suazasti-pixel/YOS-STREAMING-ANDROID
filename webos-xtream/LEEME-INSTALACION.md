@@ -1,12 +1,12 @@
 # YOS Xtream para LG webOS
 
-Aplicación **YOS 3.3 para LG webOS**, independiente de las apps Android YOS Streaming y YOS Xtream. El televisor LG usa el paquete `.ipk`; no se le instala el APK Android.
+Aplicación **YOS 3.4 para LG webOS**, independiente de las apps Android YOS Streaming y YOS Xtream. El televisor LG usa el paquete `.ipk`; no se le instala el APK Android.
 
 ## Descargar el instalador
 
 1. En GitHub, abre **Actions** y entra en **Crear app YOS para LG webOS**.
 2. Abre la ejecución más reciente que terminó correctamente.
-3. En **Artifacts**, descarga **YOS-3.3-LG-webOS-IPK** y extrae el archivo `.ipk`.
+3. En **Artifacts**, descarga **YOS-3.4-LG-webOS-IPK** y extrae el archivo `.ipk`.
 
 ## Instalar para pruebas personales
 
@@ -24,7 +24,7 @@ Developer Mode es para desarrollo y pruebas personales; su sesión puede necesit
 
 ## Uso y compatibilidad
 
-La interfaz incluye TV en vivo, películas, series, favoritos, guía EPG cuando el proveedor la ofrece, búsqueda y reproducción HTML5. Está adaptada a pantalla grande, Magic Remote, flechas y teclas de canal. El reproductor guarda el progreso de películas y episodios para continuar después, y permite reintentar una transmisión que falla. Usuario y contraseña solo se mantienen durante la sesión y no se guardan en el TV.
+La interfaz incluye TV en vivo, películas, series, favoritos, guía EPG cuando el proveedor la ofrece, búsqueda y reproducción HTML5. Está adaptada a pantalla grande, Magic Remote, flechas y teclas de canal. El reproductor guarda el progreso de películas y episodios para continuar después, y permite reintentar una transmisión que falla. Si la API Xtream autorizada no ofrece el catálogo, puede usar el enlace M3U `get.php` como alternativa. Las listas se descargan temporalmente por el servicio webOS, con límite de 10 MB y sin registrar el enlace; usuario y contraseña solo se mantienen durante la sesión y no se guardan en el TV.
 
 Usa únicamente cuentas de proveedores autorizados. La reproducción depende de la disponibilidad del servidor, su soporte de Xtream y de los formatos/códecs compatibles con el modelo y la versión de webOS. No se puede garantizar que una transmisión externa abra o cargue rápido.
 

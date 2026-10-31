@@ -65,6 +65,7 @@ public class MainActivity extends Activity {
     private FrameLayout root;
     private static final int PLAYER_REQUEST = 41;
     private static final int VOICE_REQUEST = 42;
+    private boolean playerLaunchInProgress;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -149,7 +150,13 @@ public class MainActivity extends Activity {
             webView.evaluateJavascript(callback, null);
             return;
         }
-        if (requestCode != PLAYER_REQUEST || data == null || webView == null) return;
+        if (requestCode != PLAYER_REQUEST) return;
+        playerLaunchInProgress = false;
+        if (webView == null) return;
+        if (data == null || resultCode != RESULT_OK) {
+            webView.evaluateJavascript("window.yosPlaybackReturned&&window.yosPlaybackReturned()", null);
+            return;
+        }
         String playback = data.getStringExtra(PlayerActivity.RESULT_DATA);
         if (playback != null) webView.evaluateJavascript("window.yosPlaybackFinished&&window.yosPlaybackFinished(" +
             JSONObject.quote(playback) + ")", null);
@@ -293,13 +300,20 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void playNative(String url, String title, String queueJson, int index, long resumePositionMs) {
             if (url == null || !(url.startsWith("http://") || url.startsWith("https://"))) return;
             runOnUiThread(() -> {
-                Intent intent = new Intent(MainActivity.this, PlayerActivity.class);
-                intent.putExtra(PlayerActivity.EXTRA_URL, url);
-                intent.putExtra(PlayerActivity.EXTRA_TITLE, title == null ? "YOS XTREAM" : title);
-                intent.putExtra(PlayerActivity.EXTRA_QUEUE, queueJson);
-                intent.putExtra(PlayerActivity.EXTRA_INDEX, index);
-                intent.putExtra(PlayerActivity.EXTRA_RESUME_MS, resumePositionMs);
-                startActivityForResult(intent, PLAYER_REQUEST);
+                if (playerLaunchInProgress || isFinishing() || isDestroyed()) return;
+                playerLaunchInProgress = true;
+                try {
+                    Intent intent = new Intent(MainActivity.this, PlayerActivity.class);
+                    intent.putExtra(PlayerActivity.EXTRA_URL, url);
+                    intent.putExtra(PlayerActivity.EXTRA_TITLE, title == null ? "YOS XTREAM" : title);
+                    intent.putExtra(PlayerActivity.EXTRA_QUEUE, queueJson);
+                    intent.putExtra(PlayerActivity.EXTRA_INDEX, index);
+                    intent.putExtra(PlayerActivity.EXTRA_RESUME_MS, resumePositionMs);
+                    startActivityForResult(intent, PLAYER_REQUEST);
+                } catch (RuntimeException error) {
+                    playerLaunchInProgress = false;
+                    if (webView != null) webView.evaluateJavascript("window.yosPlaybackReturned&&window.yosPlaybackReturned()", null);
+                }
             });
         }
     }
@@ -324,7 +338,7 @@ public class MainActivity extends Activity {
             connection.setReadTimeout(25000);
             connection.setInstanceFollowRedirects(false);
             connection.setRequestProperty("Accept", "application/vnd.apple.mpegurl, audio/x-mpegurl, text/plain, */*");
-            connection.setRequestProperty("User-Agent", "YOS-Xtream-Android/2.13");
+            connection.setRequestProperty("User-Agent", "YOS-Xtream-Android/2.14");
             try {
                 int status = connection.getResponseCode();
                 if (status == 301 || status == 302 || status == 303 || status == 307 || status == 308) {
@@ -406,7 +420,7 @@ public class MainActivity extends Activity {
         connection.setRequestMethod("GET");
         connection.setRequestProperty("Accept", "application/json, */*");
         connection.setRequestProperty("Accept-Encoding", "gzip");
-        connection.setRequestProperty("User-Agent", "YOS-Xtream-Android/2.13");
+        connection.setRequestProperty("User-Agent", "YOS-Xtream-Android/2.14");
         try {
             int status = connection.getResponseCode();
             if (status < 200 || status >= 300) throw new Exception("El servidor respondió HTTP " + status + ".");

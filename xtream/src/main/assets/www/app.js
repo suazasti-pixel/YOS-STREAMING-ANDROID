@@ -2,6 +2,7 @@
 
 const $ = id => document.getElementById(id);
 const PAGE_SIZE = 36;
+const PLAYBACK_QUEUE_LIMIT = 51;
 const LAST_CATEGORY_MAX_AGE = 14 * 24 * 60 * 60 * 1000;
 const ITEM_CACHE_LIMIT = 5;
 const ITEM_CACHE_ROW_LIMIT = 18000;
@@ -1073,7 +1074,11 @@ function streamUrl(kind, item) {
 }
 
 function playItems(items, kind, index = 0, resumePosition = 0) {
-  const queue = items.map(item => {
+  if (!Array.isArray(items) || !items.length) return;
+  const selectedIndex = Math.max(0, Math.min(Number(index) || 0, items.length - 1));
+  const queueStart = Math.max(0, Math.min(selectedIndex - Math.floor(PLAYBACK_QUEUE_LIMIT / 2), items.length - PLAYBACK_QUEUE_LIMIT));
+  const queueItems = items.slice(queueStart, queueStart + PLAYBACK_QUEUE_LIMIT);
+  const queue = queueItems.map(item => {
     const id = kind === "series" ? (item.id || item.stream_id || item.series_id) : item.stream_id;
     return {
       url: streamUrl(kind, item), name: item.title || item.name || "YOS Xtream", kind,
@@ -1083,39 +1088,46 @@ function playItems(items, kind, index = 0, resumePosition = 0) {
     };
   });
   if (!queue.length) return;
-  const selected = queue[Math.max(0, Math.min(index, queue.length - 1))];
+  const queueIndex = selectedIndex - queueStart;
+  const selected = queue[queueIndex];
   lastPlaybackFocus = document.activeElement?.closest?.(".content-card, .recent-card") || null;
   const recent = readRecent().find(row => row.kind === kind && row.id === selected.id);
   const startAt = resumePosition || (kind !== "live" && recent ? Number(recent.position) || 0 : 0);
-  if (bridge()) bridge().playNative(selected.url, selected.name, JSON.stringify(queue), Math.max(0, Math.min(index, queue.length - 1)), startAt);
+  if (bridge()) bridge().playNative(selected.url, selected.name, JSON.stringify(queue), queueIndex, startAt);
   else setStatus("catalog-status", "La reproducción está disponible en el APK Android/TV Box.");
 }
 
+function restorePlaybackFocus() {
+  if (document.body.classList.contains("tv-remote") && !document.body.classList.contains("player-open")) requestAnimationFrame(() => {
+    const target = lastPlaybackFocus?.isConnected ? lastPlaybackFocus : null;
+    if (target && !target.closest("[hidden]")) {
+      target.focus({ preventScroll: true });
+      target.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
+    } else {
+      const activeTab = state.showFavorites ? $("favorites-tab") : document.querySelector('.tab[data-kind="' + (state.sportsMode ? "sports" : state.kind) + '"]');
+      activeTab?.focus({ preventScroll: true });
+    }
+  });
+}
+
+window.yosPlaybackReturned = restorePlaybackFocus;
 window.yosPlaybackFinished = raw => {
   try {
     const playback = JSON.parse(raw || "{}");
-    if (!playback.id || !playback.title) return;
-    const kind = ["live", "movie", "series"].includes(playback.kind) ? playback.kind : "live";
-    const rows = readRecent().filter(row => !(row.kind === kind && row.id === String(playback.id)));
-    rows.unshift({
-      id: String(playback.id), kind, title: String(playback.title), category: String(playback.category || ""),
-      extension: String(playback.extension || ""), cover: /^https?:\/\//i.test(playback.cover || "") ? playback.cover : "",
-      position: kind === "live" ? 0 : Math.max(0, Number(playback.position) || 0),
-      duration: kind === "live" ? 0 : Math.max(0, Number(playback.duration) || 0)
-    });
-    saveRecent(rows);
-    renderRecent();
-    if (document.body.classList.contains("tv-remote") && !document.body.classList.contains("player-open")) requestAnimationFrame(() => {
-      const target = lastPlaybackFocus?.isConnected ? lastPlaybackFocus : null;
-      if (target && !target.closest("[hidden]")) {
-        target.focus({ preventScroll: true });
-        target.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
-      } else {
-        const activeTab = state.showFavorites ? $("favorites-tab") : document.querySelector('.tab[data-kind="' + (state.sportsMode ? "sports" : state.kind) + '"]');
-        activeTab?.focus({ preventScroll: true });
-      }
-    });
+    if (playback.id && playback.title) {
+      const kind = ["live", "movie", "series"].includes(playback.kind) ? playback.kind : "live";
+      const rows = readRecent().filter(row => !(row.kind === kind && row.id === String(playback.id)));
+      rows.unshift({
+        id: String(playback.id), kind, title: String(playback.title), category: String(playback.category || ""),
+        extension: String(playback.extension || ""), cover: /^https?:\/\//i.test(playback.cover || "") ? playback.cover : "",
+        position: kind === "live" ? 0 : Math.max(0, Number(playback.position) || 0),
+        duration: kind === "live" ? 0 : Math.max(0, Number(playback.duration) || 0)
+      });
+      saveRecent(rows);
+      renderRecent();
+    }
   } catch { /* Los datos del player no son necesarios para seguir navegando. */ }
+  restorePlaybackFocus();
 };
 
 async function selectItem(item) {

@@ -1,12 +1,12 @@
 # YOS Xtream para LG webOS
 
-Aplicación **YOS 3.4 para LG webOS**, independiente de las apps Android YOS Streaming y YOS Xtream. El televisor LG usa el paquete `.ipk`; no se le instala el APK Android.
+Aplicación **YOS Xtream LG 3.8.0 para LG webOS**, independiente de las apps Android YOS Streaming y YOS Xtream. El televisor LG usa el paquete `.ipk`; no se le instala el APK Android. Esta versión amplía la interfaz para que textos, controles, fichas y foco del Magic Remote se distingan mejor a distancia.
 
 ## Descargar el instalador
 
 1. En GitHub, abre **Actions** y entra en **Crear app YOS para LG webOS**.
 2. Abre la ejecución más reciente que terminó correctamente.
-3. En **Artifacts**, descarga **YOS-3.4-LG-webOS-IPK** y extrae el archivo `.ipk`.
+3. En **Artifacts**, descarga **YOS-3.8-LG-webOS-IPK** y extrae el archivo `.ipk`.
 
 ## Instalar para pruebas personales
 

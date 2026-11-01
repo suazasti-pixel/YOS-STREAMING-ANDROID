@@ -4,6 +4,7 @@ const $ = id => document.getElementById(id);
 const PAGE_SIZE = 36;
 const PLAYBACK_QUEUE_LIMIT = 51;
 const LAST_CATEGORY_MAX_AGE = 14 * 24 * 60 * 60 * 1000;
+const PROFILE_STORAGE_KEY = "yos-xtream-account-profiles-v1";
 const ITEM_CACHE_LIMIT = 5;
 const ITEM_CACHE_ROW_LIMIT = 18000;
 const state = { credentials: null, kind: "live", categories: [], items: [], localItems: [], localCategoryFallback: false, localFallbackCategory: "", filtered: [], limit: PAGE_SIZE, series: null, movie: null, showFavorites: false, globalSearch: false, sportsMode: false, parentalHash: "", parentalUnlocked: false, parentalMode: "setup", parentalFailures: 0, parentalBlockedUntil: 0, episodes: [] };
@@ -132,7 +133,7 @@ async function switchToM3uMode() {
   account.m3uItems = items;
   account.playlistUrl = m3uUrl;
   categoryCache.clear(); itemCache.clear(); fallbackCatalogCache.clear(); seriesCache.clear(); guideCache.clear();
-  try { bridge()?.saveCredentials(account.server, account.username, account.password, m3uUrl, $("remember").checked); }
+  try { bridge()?.saveCredentials(account.server, account.username, account.password, m3uUrl, !document.body.classList.contains("tv-remote") && $("remember").checked); }
   catch { /* El catálogo sigue disponible aunque no se pueda recordar la cuenta. */ }
   $("account-summary").textContent = "Lista M3U · " + items.length + " elementos";
   return true;
@@ -530,6 +531,135 @@ function readAccount(raw) {
   catch { return {}; }
 }
 
+function readProfileState() {
+  try {
+    const value = JSON.parse(localStorage.getItem(PROFILE_STORAGE_KEY) || "{}");
+    return { profiles: Array.isArray(value.profiles) ? value.profiles : [], removed: Array.isArray(value.removed) ? value.removed : [] };
+  } catch { return { profiles: [], removed: [] }; }
+}
+
+function allAccountProfiles() {
+  const stored = readProfileState();
+  const profiles = new Map();
+  const preset = Array.isArray(window.YOSXtreamPresetAccounts) ? window.YOSXtreamPresetAccounts : [];
+  const presetIds = new Set(preset.filter(item => item && item.id).map(item => String(item.id)));
+  for (const item of preset) {
+    if (!item || !item.id || !item.name || !item.server || !item.username || !item.password) continue;
+    profiles.set(String(item.id), { ...item, preset: true });
+  }
+  for (const item of stored.profiles) {
+    if (!item || !item.id) continue;
+    profiles.set(String(item.id), { ...item, preset: presetIds.has(String(item.id)) });
+  }
+  for (const id of stored.removed) profiles.delete(String(id));
+  return [...profiles.values()].sort((a, b) => String(a.name).localeCompare(String(b.name), "es"));
+}
+
+function saveProfileState(value) {
+  localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(value));
+}
+
+function selectedProfile() {
+  const id = $("profile-picker").value;
+  return allAccountProfiles().find(item => String(item.id) === id) || null;
+}
+
+function renderAccountProfiles(selectedId = "") {
+  const panel = $("account-profiles");
+  if (!panel) return;
+  panel.hidden = false;
+  const picker = $("profile-picker");
+  const profiles = allAccountProfiles();
+  picker.replaceChildren(new Option("Selecciona una cuenta", ""));
+  for (const profile of profiles) {
+    const option = new Option(profile.name + (profile.preset ? " · incluida en este paquete" : ""), String(profile.id));
+    picker.add(option);
+  }
+  picker.value = profiles.some(item => String(item.id) === String(selectedId)) ? String(selectedId) : "";
+  const hasSelection = Boolean(picker.value);
+  $("profile-use").disabled = !hasSelection;
+  $("profile-update").disabled = !hasSelection;
+  $("profile-delete").disabled = !hasSelection;
+  const current = selectedProfile();
+  if (current && !$("profile-name").value) $("profile-name").value = current.name;
+}
+
+function profileConnection() {
+  const { server, username, password, playlistUrl } = readConnectionFields();
+  if (!server || !username || !password) throw new Error("Completa servidor, usuario y contraseña antes de guardar el perfil.");
+  if (!/^https?:\/\/[^/]+(?::\d+)?(?:\/[^?#]*)?$/i.test(server)) throw new Error("Escribe un servidor con http:// o https:// y su puerto si aplica.");
+  return { server, username, password, playlistUrl };
+}
+
+$("profile-picker").addEventListener("change", () => {
+  const item = selectedProfile();
+  $("profile-use").disabled = !item;
+  $("profile-update").disabled = !item;
+  $("profile-delete").disabled = !item;
+  $("profile-name").value = item?.name || "";
+});
+$("profile-use").addEventListener("click", () => {
+  const item = selectedProfile();
+  if (!item) return;
+  $("server").value = item.server;
+  $("username").value = item.username;
+  $("password").value = item.password;
+  $("profile-name").value = item.name;
+  savedPlaylistUrl = item.playlistUrl || "";
+  setHttpWarning();
+  $("login-form").dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+});
+$("profile-save").addEventListener("click", () => {
+  try {
+    const name = $("profile-name").value.trim();
+    if (!name) throw new Error("Escribe un nombre para este perfil.");
+    const entry = profileConnection();
+    const id = "local-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 7);
+    const stored = readProfileState();
+    stored.profiles.push({ id, name, ...entry });
+    stored.removed = stored.removed.filter(value => String(value) !== id);
+    saveProfileState(stored);
+    renderAccountProfiles(id);
+    $("profile-status").textContent = "Perfil guardado localmente en este TV.";
+    $("profile-status").className = "status ok";
+  } catch (error) {
+    $("profile-status").textContent = error.message;
+    $("profile-status").className = "status error";
+  }
+});
+$("profile-update").addEventListener("click", () => {
+  try {
+    const current = selectedProfile();
+    if (!current) return;
+    const name = $("profile-name").value.trim();
+    if (!name) throw new Error("Escribe un nombre para este perfil.");
+    const entry = profileConnection();
+    const stored = readProfileState();
+    stored.profiles = stored.profiles.filter(item => String(item.id) !== String(current.id));
+    stored.profiles.push({ id: String(current.id), name, ...entry });
+    stored.removed = stored.removed.filter(value => String(value) !== String(current.id));
+    saveProfileState(stored);
+    renderAccountProfiles(current.id);
+    $("profile-status").textContent = "Perfil actualizado en este TV.";
+    $("profile-status").className = "status ok";
+  } catch (error) {
+    $("profile-status").textContent = error.message;
+    $("profile-status").className = "status error";
+  }
+});
+$("profile-delete").addEventListener("click", () => {
+  const current = selectedProfile();
+  if (!current || !window.confirm("¿Eliminar el perfil «" + current.name + "» de esta app?")) return;
+  const stored = readProfileState();
+  stored.profiles = stored.profiles.filter(item => String(item.id) !== String(current.id));
+  if (current.preset && !stored.removed.some(value => String(value) === String(current.id))) stored.removed.push(String(current.id));
+  saveProfileState(stored);
+  $("profile-name").value = "";
+  renderAccountProfiles();
+  $("profile-status").textContent = "Perfil eliminado de la lista de esta app.";
+  $("profile-status").className = "status ok";
+});
+
 function setHttpWarning() {
   const value = $("server").value.trim();
   $("http-warning").hidden = !/^http:\/\//i.test(value);
@@ -596,7 +726,8 @@ $("login-form").addEventListener("submit", async event => {
     const info = auth && auth.user_info;
     if (!state.credentials.m3uMode && (!info || String(info.auth) !== "1")) throw new Error("El proveedor no autenticó esta cuenta o no ofrece una API Xtream compatible.");
     if (!state.credentials.m3uMode && info.status && !/^active$/i.test(String(info.status))) throw new Error("La cuenta aparece como " + info.status + ".");
-    const stored = bridge().saveCredentials(server, username, password, state.credentials.playlistUrl || "", $("remember").checked);
+    const remember = !document.body.classList.contains("tv-remote") && $("remember").checked;
+    const stored = bridge().saveCredentials(server, username, password, state.credentials.playlistUrl || "", remember);
     const storageResult = readAccount(stored);
     if (!storageResult.ok) throw new Error(storageResult.error || "No se pudieron guardar las credenciales.");
     categoryCache.clear();
@@ -1406,7 +1537,10 @@ try {
 
 try {
   const nativeBridge = bridge();
-  if (nativeBridge?.isTelevision()) document.body.classList.add("tv-remote");
+  if (nativeBridge?.isTelevision()) {
+    document.body.classList.add("tv-remote");
+    try { renderAccountProfiles(); } catch { /* Los perfiles son opcionales si el almacenamiento está bloqueado. */ }
+  }
   if (nativeBridge) {
     document.addEventListener("keydown", event => {
       const direction = {

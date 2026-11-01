@@ -37,6 +37,21 @@
           <p id="http-warning" class="warning" hidden>Este servidor usa HTTP: usuario y contraseña viajan sin cifrado. Si tu proveedor ofrece HTTPS, úsalo.</p>
           <button id="login-button" class="button primary" type="submit">INICIAR SESIÓN</button>
         </form>
+        <section id="account-profiles" class="account-profiles" hidden aria-label="Cuentas guardadas">
+          <span class="eyebrow">ACCESO RÁPIDO</span>
+          <label for="profile-picker">Cuentas Xtream guardadas</label>
+          <select id="profile-picker"><option value="">Selecciona una cuenta</option></select>
+          <label for="profile-name">Nombre del perfil</label>
+          <input id="profile-name" type="text" maxlength="48" placeholder="Ej.: Deportes">
+          <div class="profile-actions">
+            <button id="profile-use" class="button primary" type="button" disabled>CONECTAR</button>
+            <button id="profile-save" class="button" type="button">GUARDAR COMO PERFIL</button>
+            <button id="profile-update" class="button" type="button" disabled>ACTUALIZAR PERFIL</button>
+            <button id="profile-delete" class="button" type="button" disabled>ELIMINAR PERFIL</button>
+          </div>
+          <p id="profile-status" class="status" role="status" aria-live="polite"></p>
+          <p class="fine-print">Los perfiles se guardan en el almacenamiento local de esta app en este TV. No compartas el paquete personal que trae una cuenta preconfigurada.</p>
+        </section>
         <button id="clear-saved" class="text-button" type="button" hidden>Quitar cuenta guardada</button>
         <p id="login-status" class="status" role="status" aria-live="polite"></p>
         <p class="fine-print">Las credenciales recordadas se cifran en este dispositivo. Se envían al servidor que escribas al iniciar sesión.</p>

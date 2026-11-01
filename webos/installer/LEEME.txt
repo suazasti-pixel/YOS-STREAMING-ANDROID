@@ -1,0 +1,21 @@
+YOS STREAMING 1.1 PARA LG webOS - INSTALADOR WINDOWS
+
+CONTENIDO
+- INSTALAR-YOS-STREAMING-LG.bat: inicia la instalacion guiada.
+- instalar-yos-streaming-tv.ps1: instala y abre YOS Streaming.
+- Archivo .ipk: aplicacion para televisores LG con webOS.
+
+ANTES DE EMPEZAR
+1. Instala la webOS TV CLI oficial de LG: https://webostv.developer.lge.com/develop/tools/cli-dev-guide
+2. Conecta TV y computador a la misma red.
+3. Activa Developer Mode y Key Server en el televisor.
+4. Registra el TV una vez con ares-setup-device.
+
+INSTALAR O ACTUALIZAR
+1. Extrae todos los archivos del ZIP.
+2. Haz doble clic en INSTALAR-YOS-STREAMING-LG.bat.
+3. Escribe el nombre exacto del TV registrado (por ejemplo, myTV).
+4. El instalador instala o actualiza YOS Streaming y la abre.
+
+El instalador usa la CLI oficial de webOS; no almacena la clave del TV.
+Developer Mode es para pruebas y LG puede quitar la app al vencer la sesión.

@@ -37,8 +37,27 @@ jobs:
       - name: Guardar instalador para TV LG
         uses: actions/upload-artifact@v4
         with:
-          name: YOS-STREAMING-LG-webOS-IPK
+          name: YOS-1.1-LG-webOS-IPK
           path: build/webos-package/*.ipk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Preparar instalador guiado de YOS Streaming LG
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/yos-streaming-lg-installer
+          cp webos/installer/INSTALAR-YOS-STREAMING-LG.bat build/yos-streaming-lg-installer/
+          cp webos/installer/instalar-yos-streaming-tv.ps1 build/yos-streaming-lg-installer/
+          cp webos/installer/LEEME.txt build/yos-streaming-lg-installer/
+          cp build/webos-package/*.ipk build/yos-streaming-lg-installer/
+          (cd build/yos-streaming-lg-installer && zip -q ../YOS-1.1-LG-Instalador-Windows.zip ./*)
+
+      - name: Guardar instalador YOS Streaming para LG
+        uses: actions/upload-artifact@v4
+        with:
+          name: YOS-1.1-LG-Instalador-Windows
+          path: build/YOS-1.1-LG-Instalador-Windows.zip
           if-no-files-found: error
           retention-days: 30
 

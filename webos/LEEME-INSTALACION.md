@@ -4,9 +4,16 @@
 
 1. En GitHub abre **Actions** y entra en **Crear app YOS para LG webOS**.
 2. Abre la ejecución más reciente que terminó correctamente.
-3. Descarga el artefacto **YOS-STREAMING-LG-webOS-IPK** y extrae el archivo `.ipk`.
+3. Descarga el artefacto **YOS-1.1-LG-Instalador-Windows** para instalarla con doble clic. Si prefieres, el artefacto **YOS-1.1-LG-webOS-IPK** contiene solo el paquete `.ipk`.
 
-## Instalar para uso personal/pruebas
+## Instalar con el paquete guiado
+
+1. Extrae el ZIP completo.
+2. En el TV activa Developer Mode y Key Server; el computador y el televisor deben estar en la misma red.
+3. Instala la webOS TV CLI oficial de LG y registra el TV una vez con `ares-setup-device`.
+4. Ejecuta `INSTALAR-YOS-STREAMING-LG.bat`, escribe el alias del TV y espera a que YOS Streaming se abra.
+
+## Instalar manualmente
 
 La instalación manual requiere una computadora en la misma red que el televisor y Developer Mode habilitado en el TV. Esta app no es un APK de Android.
 

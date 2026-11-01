@@ -1,6 +1,6 @@
 {
   "id": "com.yos.streaming.tv",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "vendor": "YOS STREAMING",
   "type": "web",
   "main": "index.html",
@@ -8,5 +8,6 @@
   "icon": "icon.png",
   "largeIcon": "largeIcon.png",
   "iconColor": "#03070b",
-  "appDescription": "Reproductor de listas M3U para YOS STREAMING"
+  "requiredACG": [],
+  "appDescription": "YOS Streaming para LG webOS con navegación adaptada al control Magic"
 }

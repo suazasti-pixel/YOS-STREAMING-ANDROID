@@ -45,10 +45,29 @@ jobs:
       - name: Crear paquete YOS Xtream para LG webOS
         run: bash scripts/build-webos-xtream.sh
 
+      - name: Preparar instalador guiado para Windows
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/yos-xtream-lg-installer
+          cp webos-xtream/installer/INSTALAR-YOS-XTREAM-LG.bat build/yos-xtream-lg-installer/
+          cp webos-xtream/installer/instalar-yos-xtream-tv.ps1 build/yos-xtream-lg-installer/
+          cp webos-xtream/installer/LEEME.txt build/yos-xtream-lg-installer/
+          cp build/webos-xtream-package/*.ipk build/yos-xtream-lg-installer/
+          (cd build/yos-xtream-lg-installer && zip -q ../YOS-3.9-LG-Instalador-Windows.zip ./*)
+
       - name: Guardar instalador YOS Xtream para TV LG
         uses: actions/upload-artifact@v4
         with:
           name: YOS-3.9-LG-webOS-IPK
           path: build/webos-xtream-package/*.ipk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Guardar paquete completo para instalar desde Windows
+        uses: actions/upload-artifact@v4
+        with:
+          name: YOS-3.9-LG-Instalador-Windows
+          path: build/YOS-3.9-LG-Instalador-Windows.zip
           if-no-files-found: error
           retention-days: 30

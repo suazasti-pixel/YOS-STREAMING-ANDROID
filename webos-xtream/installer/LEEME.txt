@@ -1,0 +1,28 @@
+YOS XTREAM PARA LG webOS - INSTALADOR WINDOWS
+
+CONTENIDO DEL ZIP
+- INSTALAR-YOS-XTREAM-LG.bat: inicia el instalador con doble clic.
+- instalar-yos-xtream-tv.ps1: instala o actualiza el IPK y abre YOS Xtream.
+- Archivo .ipk: paquete de YOS Xtream para el TV LG.
+
+ANTES DE EMPEZAR
+1. Instala la webOS TV CLI oficial de LG en Windows.
+   Guia: https://webostv.developer.lge.com/develop/tools/cli-dev-guide
+2. Conecta el computador y el televisor a la misma red.
+3. En el TV, activa Developer Mode y Key Server.
+4. Registra el TV una sola vez con ares-setup-device y configura la llave
+   siguiendo la guia oficial:
+   https://webostv.developer.lge.com/develop/getting-started/developer-mode-app
+
+INSTALAR O ACTUALIZAR
+1. Extrae todos los archivos del ZIP a una carpeta.
+2. Haz doble clic en INSTALAR-YOS-XTREAM-LG.bat.
+3. Escribe el nombre exacto del TV que registraste (por ejemplo: myTV).
+4. Espera a que termine. El instalador instala/actualiza YOS Xtream y la abre.
+
+El instalador no almacena la passphrase del televisor. La conexion y sus claves
+son administradas por la herramienta oficial webOS CLI.
+
+NOTA
+Developer Mode sirve para pruebas. Cuando venza la sesion de desarrollador,
+LG puede desinstalar las aplicaciones instaladas de esta manera.

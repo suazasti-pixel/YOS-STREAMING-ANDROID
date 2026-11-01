@@ -6,14 +6,15 @@ Aplicación **YOS Xtream LG 3.9.0 para LG webOS**, independiente de las apps And
 
 1. En GitHub, abre **Actions** y entra en **Crear app YOS para LG webOS**.
 2. Abre la ejecución más reciente que terminó correctamente.
-3. En **Artifacts**, descarga **YOS-3.9-LG-webOS-IPK** y extrae el archivo `.ipk`.
+3. En **Artifacts**, descarga **YOS-3.9-LG-Instalador-Windows** si quieres el instalador guiado. Extrae el ZIP completo y ejecuta `INSTALAR-YOS-XTREAM-LG.bat`.
+4. También puedes descargar **YOS-3.9-LG-webOS-IPK** si solo necesitas el paquete `.ipk` para instalarlo manualmente.
 
 ## Instalar para pruebas personales
 
 1. En el televisor, abre **Developer Mode** y activa **Dev Mode Status** y **Key Server**. Mantén el TV y el computador en la misma red.
-2. En PowerShell, confirma que la CLI de webOS esté instalada: `npm install -g @webos-tools/cli`.
-3. Registra el TV siguiendo la guía oficial de la CLI de LG. Usa la IP inalámbrica que muestra el televisor; la dirección cableada puede decir `disconnected` si no conectaste Ethernet.
-4. Instala y abre el archivo reemplazando el nombre del dispositivo y la ruta del paquete:
+2. Instala la CLI de webOS y registra el televisor una vez siguiendo la guía oficial enlazada abajo.
+3. Para la instalación guiada, ejecuta `INSTALAR-YOS-XTREAM-LG.bat` desde el ZIP extraído y escribe el alias del TV. El instalador instala o actualiza la app y la abre.
+4. Para la instalación manual, usa la IP inalámbrica que muestra el televisor (la dirección cableada puede decir `disconnected` si no conectaste Ethernet) y estos comandos:
 
 ```powershell
 ares-install --device NOMBRE_DEL_TV C:\ruta\a\com.yos.streaming.xtreamtv_1.0.0_all.ipk

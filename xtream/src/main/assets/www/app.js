@@ -1537,7 +1537,8 @@ try {
 
 try {
   const nativeBridge = bridge();
-  if (nativeBridge?.isTelevision()) {
+  const hasPresetAccounts = Array.isArray(window.YOSXtreamPresetAccounts) && window.YOSXtreamPresetAccounts.length > 0;
+  if (nativeBridge?.isTelevision() || hasPresetAccounts) {
     document.body.classList.add("tv-remote");
     try { renderAccountProfiles(); } catch { /* Los perfiles son opcionales si el almacenamiento está bloqueado. */ }
   }

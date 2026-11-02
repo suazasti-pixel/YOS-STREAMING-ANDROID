@@ -1,4 +1,4 @@
-YOS XTREAM 3.13 PARA LG webOS - INSTALADOR WINDOWS
+YOS XTREAM 3.14 PARA LG webOS - INSTALADOR WINDOWS
 
 CONTENIDO DEL ZIP
 - INSTALAR-YOS-XTREAM-LG.bat: inicia el instalador con doble clic.
@@ -20,8 +20,8 @@ INSTALAR O ACTUALIZAR
 3. Escribe el nombre exacto del TV que registraste (por ejemplo: myTV).
 4. Espera a que termine. El instalador instala/actualiza YOS Xtream y la abre.
 
-La versión 3.13 actualiza el icono YOS, hace más visibles Buscar y Favoritos y
-recupera la última categoría usada al volver a TV, películas o series.
+La versión 3.14 añade un botón directo para buscar en la sección abierta,
+actualiza el icono YOS, destaca Favoritos y recuerda la última categoría usada.
 
 El instalador no almacena la passphrase del televisor. La conexion y sus claves
 son administradas por la herramienta oficial webOS CLI.

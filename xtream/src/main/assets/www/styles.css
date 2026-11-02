@@ -27,8 +27,11 @@ body.tv-remote .account-profiles{padding:18px;gap:12px}body.tv-remote .profile-a
 .favorites-shortcut{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-width:150px;min-height:58px;padding:0 17px;border:1px solid #785d19;border-radius:12px;background:#211b10;color:#ffda65;font-weight:900;font-size:13px;white-space:nowrap;cursor:pointer}
 .favorites-shortcut span{font-size:23px;line-height:1}
 .favorites-shortcut:focus-visible,.favorites-shortcut:hover{outline:3px solid #ffd65c88;outline-offset:2px;background:#392b11}
+.search-shortcut{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-width:195px;min-height:58px;padding:0 17px;border:1px solid #ff426777;border-radius:12px;background:#32111d;color:#fff;font-weight:900;font-size:13px;white-space:nowrap;cursor:pointer}
+.search-shortcut svg{width:25px;height:25px;fill:none;stroke:#ff7893;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.search-shortcut:focus-visible,.search-shortcut:hover{outline:3px solid #ff416988;outline-offset:2px;background:#501528}
 .tab span{font-size:1.25em;margin-right:5px;color:#ffd65c}
-@media(max-width:650px){.catalog-actions{width:100%;gap:8px}.search-box{min-width:0;width:auto;flex:1 1 auto}.favorites-shortcut{min-width:112px;min-height:48px;padding:0 10px;font-size:10px;gap:5px}.favorites-shortcut span{font-size:19px}.search-icon{flex-basis:22px}.search-icon svg{width:21px;height:21px}}
+@media(max-width:650px){.catalog-actions{width:100%;gap:8px;flex-wrap:wrap}.search-shortcut,.favorites-shortcut{flex:1 1 calc(50% - 4px);min-width:0;min-height:46px;padding:0 8px;font-size:10px;gap:5px}.search-shortcut svg{width:20px;height:20px}.favorites-shortcut span{font-size:19px}.search-box{order:1;min-width:0;width:100%;flex:1 0 100%}.search-icon{flex-basis:22px}.search-icon svg{width:21px;height:21px}}
 
 /* Inicio de sesión compacto para teléfonos; tv.css conserva el tamaño de TV Box. */
 @media(max-width:650px){

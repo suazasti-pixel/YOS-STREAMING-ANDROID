@@ -5,12 +5,18 @@ Estas son las tres ediciones principales que vamos a mantener y actualizar por s
 | Edición | Dispositivo | Instalador en GitHub Actions | Proyecto |
 |---|---|---|---|
 | **1.1** | Celular Android | `YOS-1.1-CELULAR-APK` | YOS Streaming, listas M3U |
-| **2.15** | Celular Android y Android TV Box | `YOS-2.15-XTREAM-ANDROID-APK` | YOS Xtream Android |
-| **3.13** | Televisor LG webOS | `YOS-3.13-LG-webOS-IPK` | YOS Xtream para webOS |
+| **2.16** | Celular Android y Android TV Box | `YOS-2.16-XTREAM-ANDROID-APK` | YOS Xtream Android |
+| **3.14** | Televisor LG webOS | `YOS-3.14-LG-webOS-IPK` | YOS Xtream para webOS |
 
 ## Regla de numeración
 
-Cada edición avanza por separado: celular **1.1 → 1.2 → 1.3**, Xtream Android **2.1 → 2.2 → 2.3 → 2.4 → 2.5 → 2.6 → 2.7 → 2.8 → 2.9 → 2.10 → 2.11 → 2.12 → 2.13 → 2.14 → 2.15** y LG webOS **3.1 → 3.2 → 3.3 → 3.4 → 3.5 → 3.6 → 3.7 → 3.8 → 3.9 → 3.10 → 3.11 → 3.12 → 3.13**. Cuando un cambio afecte varias ediciones, incrementaremos la serie de cada una de ellas. Así cada instalador y sus notas de cambios indicarán qué versión recibió la mejora.
+Cada edición avanza por separado: celular **1.1 → 1.2 → 1.3**, Xtream Android **2.1 → 2.2 → 2.3 → 2.4 → 2.5 → 2.6 → 2.7 → 2.8 → 2.9 → 2.10 → 2.11 → 2.12 → 2.13 → 2.14 → 2.15 → 2.16** y LG webOS **3.1 → 3.2 → 3.3 → 3.4 → 3.5 → 3.6 → 3.7 → 3.8 → 3.9 → 3.10 → 3.11 → 3.12 → 3.13 → 3.14**. Cuando un cambio afecte varias ediciones, incrementaremos la serie de cada una de ellas. Así cada instalador y sus notas de cambios indicarán qué versión recibió la mejora.
+
+## YOS Xtream Android 2.16 y LG 3.14 — acceso directo a Buscar
+
+- Se añadió junto al campo una acción grande **BUSCAR CANALES**; al seleccionarla con Magic Remote, el foco pasa al buscador y la sección activa determina si se buscan canales, películas, series o favoritos.
+- El botón cambia su texto según la sección abierta y conserva la búsqueda por texto existente; Favoritos sigue a un solo clic en la cabecera.
+- Android `versionCode 21`, `versionName 2.16`. Artefacto: `YOS-2.16-XTREAM-ANDROID-APK`. LG `version 3.14.0`. Artefactos: `YOS-3.14-LG-webOS-IPK` y `YOS-3.14-LG-Instalador-Windows`.
 
 ## YOS Xtream Android 2.15 y LG 3.13 — icono, búsqueda y canales a mano
 

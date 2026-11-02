@@ -366,6 +366,7 @@ function showFavoritesView() {
   categoryRequestSequence++;
   cancelPendingApiRequests();
   state.showFavorites = true;
+  updateSearchControls();
   state.sportsMode = false;
   state.globalSearch = false;
   state.items = [];
@@ -764,6 +765,7 @@ async function loadCategories(kind) {
   cancelPendingApiRequests();
   state.kind = kind;
   state.showFavorites = false;
+  updateSearchControls();
   state.globalSearch = false;
   $("favorites-tab").classList.remove("active");
   $("category").closest(".filters").classList.remove("favorites-mode");
@@ -855,6 +857,15 @@ async function loadCategories(kind) {
     $("category").innerHTML = '<option value="">Sin categorías</option>';
     setStatus("catalog-status", error.message, "error");
   }
+}
+
+function updateSearchControls() {
+  const label = state.showFavorites ? "FAVORITOS" : state.sportsMode ? "DEPORTES" : state.kind === "live" ? "CANALES" : state.kind === "movie" ? "PELÍCULAS" : "SERIES";
+  const inputLabel = state.showFavorites ? "favoritos" : state.sportsMode ? "canales deportivos" : state.kind === "live" ? "canales" : state.kind === "movie" ? "películas" : "series";
+  $("search-shortcut-label").textContent = "BUSCAR " + label;
+  $("search-shortcut").setAttribute("aria-label", "Buscar " + inputLabel);
+  $("search").placeholder = "Buscar " + inputLabel;
+  $("search").setAttribute("aria-label", "Buscar " + inputLabel);
 }
 
 function loadRememberedCategory(kind, rows) {
@@ -1412,6 +1423,10 @@ $("home-brand").addEventListener("click", event => {
 });
 $("favorites-tab").addEventListener("click", showFavoritesView);
 $("favorites-shortcut").addEventListener("click", showFavoritesView);
+$("search-shortcut").addEventListener("click", () => {
+  $("search").focus();
+  $("search").scrollIntoView({ block: "center", behavior: "smooth" });
+});
 $("category").addEventListener("change", () => { $("search").value = ""; state.globalSearch = false; state.items = state.localItems; if (state.sportsMode) loadSportsItems($("category").value); else loadItems($("category").value); });
 $("search").addEventListener("input", () => {
   clearTimeout(searchTimer);

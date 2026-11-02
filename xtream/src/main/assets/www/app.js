@@ -343,9 +343,28 @@ function makeFavorite(item, kind) {
   return {
     favoriteId: favoriteId(item, kind), _kind: kind,
     stream_id: item.stream_id, series_id: item.series_id, id: item.id,
+    _yosChannelNumber: item._yosChannelNumber,
     container_extension: item.container_extension, name: item.name || item.title || "Sin título",
     category_name: item.category_name, stream_icon: item.stream_icon, cover: item.cover
   };
+}
+
+function channelNumber(item, index) {
+  const raw = item?._yosChannelNumber ?? item?.num ?? item?.channel_number ?? item?.channelNumber ?? item?.number ?? item?.lcn;
+  const value = String(raw == null || raw === "" ? Math.max(1, index + 1) : raw).trim().replace(/^0+(?=\d)/, "");
+  return /^\d+$/.test(value) ? value : String(Math.max(1, index + 1));
+}
+
+function normalizeCatalogText(value) {
+  return String(value || "").toLocaleLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+function matchesCatalogSearch(item, query, index, kind = state.kind) {
+  const name = normalizeCatalogText([item?.name, item?.title, item?.category_name, item?.categoryName].join(" "));
+  const q = normalizeCatalogText(query);
+  if (name.includes(q)) return true;
+  const explicitNumber = item?._yosChannelNumber ?? item?.num ?? item?.channel_number ?? item?.channelNumber ?? item?.number ?? item?.lcn;
+  return kind === "live" && /^\d+$/.test(q) && !(state.showFavorites && explicitNumber == null) && channelNumber(item, index) === q.replace(/^0+(?=\d)/, "");
 }
 
 function toggleFavorite(item, kind) {
@@ -864,7 +883,9 @@ function updateSearchControls() {
   const inputLabel = state.showFavorites ? "favoritos" : state.sportsMode ? "canales deportivos" : state.kind === "live" ? "canales" : state.kind === "movie" ? "películas" : "series";
   $("search-shortcut-label").textContent = "BUSCAR " + label;
   $("search-shortcut").setAttribute("aria-label", "Buscar " + inputLabel);
-  $("search").placeholder = "Buscar " + inputLabel;
+  $("search").placeholder = state.kind === "live" && !state.showFavorites
+    ? "Buscar " + inputLabel + " por nombre o número (ej. 222)"
+    : "Buscar " + inputLabel;
   $("search").setAttribute("aria-label", "Buscar " + inputLabel);
 }
 
@@ -942,7 +963,7 @@ async function loadItems(categoryId) {
     if (requestId !== itemRequestSequence || state.kind !== kind || $("category").value !== String(categoryId)) return;
     if (!Array.isArray(rows)) throw new Error("El proveedor devolvió contenido con formato no reconocido.");
     const categoryName = state.categories.find(row => String(row.category_id) === String(categoryId))?.category_name || "";
-    const categorizedRows = rows.map(item => ({ ...item, category_name: item.category_name || categoryName }));
+    const categorizedRows = rows.map((item, index) => ({ ...item, _yosChannelNumber: channelNumber(item, index), category_name: item.category_name || categoryName }));
     cacheItems(cacheKey, categorizedRows);
     state.items = categorizedRows;
     state.localItems = rows;
@@ -971,9 +992,10 @@ async function loadItems(categoryId) {
 }
 
 function applySearch() {
-  const q = $("search").value.trim().toLocaleLowerCase();
+  const q = $("search").value.trim();
   const source = state.showFavorites ? readFavorites() : state.items;
-  state.filtered = q ? source.filter(item => String(item.name || "").toLocaleLowerCase().includes(q)) : [...source];
+  const kind = state.showFavorites ? "live" : state.kind;
+  state.filtered = q ? source.filter((item, index) => matchesCatalogSearch(item, q, index, item._kind || kind)) : [...source];
   state.limit = PAGE_SIZE;
   renderItems();
 }
@@ -981,7 +1003,7 @@ function applySearch() {
 async function searchCatalog(query) {
   const requestId = ++searchSequence;
   const kind = state.kind;
-  const q = query.trim().toLocaleLowerCase();
+  const q = query.trim();
   if (q.length < 2 || state.showFavorites) {
     if (state.globalSearch) cancelPendingApiRequests();
     if (state.globalSearch && !state.showFavorites) {
@@ -991,7 +1013,7 @@ async function searchCatalog(query) {
     }
     state.globalSearch = false;
     applySearch();
-    if (q.length === 1 && !state.showFavorites) setStatus("catalog-status", "Escribe al menos 2 caracteres para buscar en todo el catálogo.");
+    if (q.length === 1 && !state.showFavorites) setStatus("catalog-status", /^\d$/.test(q) && kind === "live" ? "Canal #" + q + " en la categoría cargada. Escribe más dígitos para buscar en todo el catálogo." : "Escribe al menos 2 caracteres para buscar en todo el catálogo.");
     return;
   }
   if (state.localCategoryFallback) {
@@ -1028,12 +1050,12 @@ async function searchCatalog(query) {
           cacheItems(kind + ":" + row.category_id, items);
         }
         if (requestId !== searchSequence || state.kind !== kind) return;
-        for (const item of items) {
-          if (String(item.name || item.title || "").toLocaleLowerCase().includes(q)) {
+        items.forEach((item, itemIndex) => {
+          if (matchesCatalogSearch(item, q, itemIndex, kind)) {
             const id = kind === "series" ? (item.series_id || item.id) : item.stream_id;
-            if (id != null) found.set(String(id), { ...item, _kind: kind, category_name: item.category_name || row.category_name });
+            if (id != null) found.set(String(id), { ...item, _yosChannelNumber: kind === "live" ? channelNumber(item, itemIndex) : item._yosChannelNumber, _kind: kind, category_name: item.category_name || row.category_name });
           }
-        }
+        });
       } catch (error) {
         if (/HTTP 404\b/.test(error.message || "")) unsupportedAction = true;
       }
@@ -1062,7 +1084,8 @@ async function searchCatalog(query) {
   state.filtered = state.items;
   state.limit = PAGE_SIZE;
   renderItems();
-  setStatus("catalog-status", m3uFallbackError ? "La API respondió HTTP 404 y la lista M3U no se pudo cargar: " + m3uFallbackError : state.filtered.length ? "Resultados en todo el catálogo." : "No encontramos coincidencias en este tipo de contenido.", m3uFallbackError ? "error" : state.filtered.length ? "ok" : "");
+  const noMatch = /^\d+$/.test(q) ? "No encontramos el canal #" + q + " en las categorías de TV cargadas." : "No encontramos coincidencias en este tipo de contenido.";
+  setStatus("catalog-status", m3uFallbackError ? "La API respondió HTTP 404 y la lista M3U no se pudo cargar: " + m3uFallbackError : state.filtered.length ? "Resultados en todo el catálogo." : noMatch, m3uFallbackError ? "error" : state.filtered.length ? "ok" : "");
   if (document.body.classList.contains("tv-remote")) requestAnimationFrame(() => document.querySelector(".content-card")?.focus());
 }
 
@@ -1110,7 +1133,10 @@ function renderItems(append = false) {
     title.textContent = item.name || "Sin título";
     const meta = document.createElement("div");
     meta.className = "card-meta";
-    meta.textContent = item.category_name || (kind === "live" ? "TV en vivo" : kind === "movie" ? "Película" : "Serie");
+    const categoryLabel = item.category_name || (kind === "live" ? "TV en vivo" : kind === "movie" ? "Película" : "Serie");
+    const liveNumber = state.showFavorites && item._yosChannelNumber == null && item.num == null && item.channel_number == null && item.channelNumber == null && item.number == null && item.lcn == null
+      ? "—" : channelNumber(item, state.items.indexOf(item));
+    meta.textContent = kind === "live" ? "CANAL " + liveNumber + " · " + categoryLabel : categoryLabel;
     body.append(title, meta);
     button.append(poster, body);
     button.addEventListener("click", () => selectItem(item));

@@ -5,19 +5,27 @@ Estas son las tres ediciones principales que vamos a mantener y actualizar por s
 | Edición | Dispositivo | Instalador en GitHub Actions | Proyecto |
 |---|---|---|---|
 | **1.1** | Celular Android | `YOS-1.1-CELULAR-APK` | YOS Streaming, listas M3U |
-| **2.14** | Celular Android y Android TV Box | `YOS-2.14-XTREAM-ANDROID-APK` | YOS Xtream Android |
-| **3.7** | Televisor LG webOS | `YOS-3.7-LG-webOS-IPK` | YOS Xtream para webOS |
+| **2.15** | Celular Android y Android TV Box | `YOS-2.15-XTREAM-ANDROID-APK` | YOS Xtream Android |
+| **3.13** | Televisor LG webOS | `YOS-3.13-LG-webOS-IPK` | YOS Xtream para webOS |
 
 ## Regla de numeración
 
-Cada edición avanza por separado: celular **1.1 → 1.2 → 1.3**, Xtream Android **2.1 → 2.2 → 2.3 → 2.4 → 2.5 → 2.6 → 2.7 → 2.8 → 2.9 → 2.10 → 2.11 → 2.12 → 2.13 → 2.14** y LG webOS **3.1 → 3.2 → 3.3 → 3.4 → 3.5 → 3.6 → 3.7**. Cuando un cambio afecte varias ediciones, incrementaremos la serie de cada una de ellas. Así cada instalador y sus notas de cambios indicarán qué versión recibió la mejora.
+Cada edición avanza por separado: celular **1.1 → 1.2 → 1.3**, Xtream Android **2.1 → 2.2 → 2.3 → 2.4 → 2.5 → 2.6 → 2.7 → 2.8 → 2.9 → 2.10 → 2.11 → 2.12 → 2.13 → 2.14 → 2.15** y LG webOS **3.1 → 3.2 → 3.3 → 3.4 → 3.5 → 3.6 → 3.7 → 3.8 → 3.9 → 3.10 → 3.11 → 3.12 → 3.13**. Cuando un cambio afecte varias ediciones, incrementaremos la serie de cada una de ellas. Así cada instalador y sus notas de cambios indicarán qué versión recibió la mejora.
 
-## YOS Xtream Android 2.14 y LG 3.7 — salida y reapertura del reproductor
+## YOS Xtream Android 2.15 y LG 3.13 — icono, búsqueda y canales a mano
+
+- El paquete webOS lleva iconos YOS regenerados desde el logo de alta resolución para que se distingan mejor en el menú del televisor.
+- La búsqueda usa una lupa SVG nítida y una etiqueta más clara; Favoritos tiene un botón destacado junto al buscador, además de conservar su pestaña y las estrellas por contenido.
+- Al volver a TV en vivo, películas o series, la app restaura la última categoría usada. Si ya está en caché, muestra sus primeros 36 resultados sin volver a descargarla.
+- La búsqueda de todo el catálogo va mostrando coincidencias mientras revisa categorías; las llamadas siguen limitadas a dos simultáneas para cuidar la compatibilidad con proveedores.
+- Android `versionCode 20`, `versionName 2.15`. Artefacto: `YOS-2.15-XTREAM-ANDROID-APK`. LG `version 3.13.0`. Artefactos: `YOS-3.13-LG-webOS-IPK` y `YOS-3.13-LG-Instalador-Windows`.
+
+## YOS Xtream Android 2.14 y LG 3.12 — salida y reapertura del reproductor
 
 - La app ya no envía toda una categoría al reproductor. Mantiene una cola de hasta 51 elementos alrededor del canal seleccionado para evitar pasar miles de filas y URLs en un Intent.
 - Android evita abrir reproductores duplicados mientras se inicia uno y restablece la navegación/foco al regresar incluso si el reproductor se cierra sin datos de progreso.
 - Se conserva el cambio de canal dentro de la ventana de la cola; la cola completa vuelve a generarse al abrir otro canal.
-- Android `versionCode 19`, `versionName 2.14`. Artefacto: `YOS-2.14-XTREAM-ANDROID-APK`. LG `version 3.7.0`. Artefacto: `YOS-3.7-LG-webOS-IPK`.
+- Android `versionCode 19`, `versionName 2.14`. Artefacto: `YOS-2.14-XTREAM-ANDROID-APK`. LG `version 3.12.0`. Artefacto: `YOS-3.12-LG-webOS-IPK`.
 
 ## YOS Xtream Android 2.13 y LG 3.6 — categorías más rápidas
 

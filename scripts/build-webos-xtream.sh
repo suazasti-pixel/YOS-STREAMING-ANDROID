@@ -34,9 +34,12 @@ Path(sys.argv[2]).write_text(
 PY
 fi
 
-curl --fail --location --retry 3 "https://webostv.developer.lge.com/assets/library/webOSTVjs-$WEBOS_JS_VERSION.zip" -o "$WEBOS_JS_ZIP"
-unzip -oq "$WEBOS_JS_ZIP" -d "$ROOT_DIR/build/webostvjs"
-WEBOS_JS="$(find "$ROOT_DIR/build/webostvjs" -type f -name 'webOSTV.js' -print -quit)"
+WEBOS_JS="$(find "$ROOT_DIR/build/webostvjs" -type f -name 'webOSTV.js' -print -quit || true)"
+if [[ -z "$WEBOS_JS" ]]; then
+  curl --fail --location --retry 3 "https://webostv.developer.lge.com/assets/library/webOSTVjs-$WEBOS_JS_VERSION.zip" -o "$WEBOS_JS_ZIP"
+  unzip -oq "$WEBOS_JS_ZIP" -d "$ROOT_DIR/build/webostvjs"
+  WEBOS_JS="$(find "$ROOT_DIR/build/webostvjs" -type f -name 'webOSTV.js' -print -quit)"
+fi
 test -n "$WEBOS_JS"
 cp "$WEBOS_JS" "$APP_DIR/webOSTV.js"
 

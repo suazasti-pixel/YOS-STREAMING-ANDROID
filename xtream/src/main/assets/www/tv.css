@@ -113,6 +113,13 @@ body.tv-remote .search-box {
   width: min(480px, 36vw);
 }
 
+body.tv-remote .catalog-actions { gap: 16px; }
+body.tv-remote .search-box { flex: 0 1 min(560px, 38vw); min-width: 300px; }
+body.tv-remote .search-icon { flex-basis: 34px; }
+body.tv-remote .search-icon svg { width: 32px; height: 32px; }
+body.tv-remote .favorites-shortcut { min-width: 205px; min-height: 72px; padding-inline: 22px; font-size: 18px; }
+body.tv-remote .favorites-shortcut span { font-size: 30px; }
+
 body.tv-remote .search-box span {
   font-size: 30px;
 }

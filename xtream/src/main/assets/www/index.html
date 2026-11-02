@@ -61,7 +61,10 @@
     <section id="catalog-view" hidden>
       <div class="catalog-head">
         <div><span class="eyebrow">TU BIBLIOTECA</span><h1 id="catalog-title">Canales en vivo</h1><p id="account-summary" class="muted"></p></div>
-        <div class="search-box"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Buscar en todo el catálogo" autocomplete="off"><button id="voice-search" class="voice-search" type="button" aria-label="Buscar por voz" title="Buscar por voz">🎙</button></div>
+        <div class="catalog-actions">
+          <div class="search-box" role="search"><span class="search-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 5 5"></path></svg></span><input id="search" type="search" aria-label="Buscar canales, películas y series" placeholder="Buscar canales, películas y series" autocomplete="off"><button id="voice-search" class="voice-search" type="button" aria-label="Buscar por voz" title="Buscar por voz">🎙</button></div>
+          <button id="favorites-shortcut" class="favorites-shortcut" type="button"><span aria-hidden="true">★</span> FAVORITOS</button>
+        </div>
       </div>
       <section id="home-hero" class="home-hero" aria-label="Inicio YOS">
         <div><span class="eyebrow">YOS XTREAM</span><h2>Tu entretenimiento.<br><em>A tu manera.</em></h2><p id="home-message">Elige una sección o continúa donde lo dejaste.</p></div>
@@ -84,7 +87,7 @@
         <button class="tab" data-kind="sports">⚽ DEPORTES</button>
         <button class="tab" data-kind="movie">PELÍCULAS</button>
         <button class="tab" data-kind="series">SERIES</button>
-        <button id="favorites-tab" class="tab" type="button">☆ FAVORITOS</button>
+        <button id="favorites-tab" class="tab" type="button"><span aria-hidden="true">★</span> FAVORITOS</button>
       </nav>
       <div class="filters">
         <label class="sr-only" for="category">Categoría</label>

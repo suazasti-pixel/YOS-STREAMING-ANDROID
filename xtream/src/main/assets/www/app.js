@@ -805,7 +805,7 @@ async function loadCategories(kind) {
   if (cachedRows) {
     showCategories(kind, cachedRows);
     if (state.sportsMode) loadSportsItems();
-    else setStatus("catalog-status", cachedRows.length ? categoriesStatus(cachedRows) : "El proveedor no devolvió categorías para esta sección.");
+    else if (!loadRememberedCategory(kind, cachedRows)) setStatus("catalog-status", cachedRows.length ? categoriesStatus(cachedRows) : "El proveedor no devolvió categorías para esta sección.");
     return;
   }
   $("category").innerHTML = '<option value="">Cargando categorías…</option>';
@@ -817,7 +817,7 @@ async function loadCategories(kind) {
     categoryCache.set(kind, rows);
     showCategories(kind, rows);
     if (state.sportsMode) loadSportsItems();
-    else setStatus("catalog-status", rows.length ? categoriesStatus(rows) : "El proveedor no devolvió categorías para esta sección.");
+    else if (!loadRememberedCategory(kind, rows)) setStatus("catalog-status", rows.length ? categoriesStatus(rows) : "El proveedor no devolvió categorías para esta sección.");
   } catch (error) {
     if (requestId !== categoryRequestSequence) return;
     if (/HTTP 404\b/.test(error.message || "")) {
@@ -855,6 +855,20 @@ async function loadCategories(kind) {
     $("category").innerHTML = '<option value="">Sin categorías</option>';
     setStatus("catalog-status", error.message, "error");
   }
+}
+
+function loadRememberedCategory(kind, rows) {
+  if (!state.credentials || state.credentials.m3uMode || !Array.isArray(rows)) return false;
+  try {
+    const key = lastCategoryStoreKey();
+    const saved = key ? JSON.parse(localStorage.getItem(key) || "null") : null;
+    if (!saved || saved.kind !== kind || Date.now() - Number(saved.savedAt) > LAST_CATEGORY_MAX_AGE) return false;
+    const category = rows.find(row => String(row.category_id) === String(saved.categoryId) && visibleCategory(row.category_name));
+    if (!category) return false;
+    $("category").value = String(category.category_id);
+    loadItems(category.category_id);
+    return true;
+  } catch { return false; }
 }
 
 function showCategories(kind, rows) {
@@ -988,6 +1002,7 @@ async function searchCatalog(query) {
   let checked = 0;
   let unsupportedAction = false;
   let m3uFallbackError = "";
+  let lastPaintAt = 0;
   const found = new Map();
   setStatus("catalog-status", "Buscando en " + categories.length + " categorías…");
   const worker = async () => {
@@ -1012,6 +1027,13 @@ async function searchCatalog(query) {
         if (/HTTP 404\b/.test(error.message || "")) unsupportedAction = true;
       }
       checked++;
+      if (found.size && (checked === 1 || checked % 3 === 0 || performance.now() - lastPaintAt > 300)) {
+        state.items = [...found.values()];
+        state.filtered = state.items;
+        state.limit = PAGE_SIZE;
+        renderItems();
+        lastPaintAt = performance.now();
+      }
       if (requestId === searchSequence) setStatus("catalog-status", "Revisando " + checked + " de " + categories.length + " categorías… " + found.size + " resultados.");
     }
   };
@@ -1389,6 +1411,7 @@ $("home-brand").addEventListener("click", event => {
   showHome();
 });
 $("favorites-tab").addEventListener("click", showFavoritesView);
+$("favorites-shortcut").addEventListener("click", showFavoritesView);
 $("category").addEventListener("change", () => { $("search").value = ""; state.globalSearch = false; state.items = state.localItems; if (state.sportsMode) loadSportsItems($("category").value); else loadItems($("category").value); });
 $("search").addEventListener("input", () => {
   clearTimeout(searchTimer);

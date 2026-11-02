@@ -18,6 +18,7 @@ Este archivo resume el estado para retomar el trabajo en otra cuenta de ChatGPT/
 | YOS Play Android | 1.0.0 | `yosplay/` | GitHub Actions del flujo de Android |
 | YOS Streaming LG webOS | 1.1.0 | `web/`, `webos/` | Acción `Crear app YOS para LG webOS`; artefacto `YOS-1.1-LG-Instalador-Windows` |
 | YOS Xtream LG webOS | 3.12.0 | `xtream/`, `webos-xtream/` | Acción `Crear app YOS para LG webOS`; artefactos `YOS-3.12-LG-webOS-IPK` y `YOS-3.12-LG-Instalador-Windows` |
+| YOS Home LG webOS | 1.0.0 | `webos-home/` | Acción `Crear app YOS para LG webOS`; artefactos `YOS-Home-1.0-LG-webOS-IPK` y `YOS-Home-1.0-LG-Instalador-Windows` |
 
 Para instalar YOS Streaming LG, extrae el ZIP del artefacto y ejecuta `INSTALAR-YOS-STREAMING-LG.bat`. Para YOS Xtream LG, ejecuta `INSTALAR-YOS-XTREAM-LG.bat`. Ambos requieren Developer Mode/Key Server activo, webOS TV CLI de LG y el TV registrado en el computador.
 
@@ -26,6 +27,8 @@ Para instalar YOS Streaming LG, extrae el ZIP del artefacto y ejecuta `INSTALAR-
 YOS Streaming LG 1.1 usa un diseño para TV con navegación lateral, accesos amplios a TV en vivo/películas/series y estilos adaptados al control Magic. La instalación se hace con un ZIP guiado y un `.bat`. El flujo de compilación está en `.github/workflows/webos.yml`; el empaquetado común está en `scripts/build-webos.sh`.
 
 YOS Xtream LG 3.12 muestra el emblema YOS y el nombre corto en el menú del TV. El flujo produce la versión pública sin cuentas privadas.
+
+YOS Home LG 1.0 es un panel de inicio independiente con accesos a YOS Streaming/YOS Xtream y accesos webOS configurables por ID. No reemplaza el launcher del sistema ni reasigna el botón Home de LG. Su build está en `scripts/build-webos-home.sh` y su instalador para Windows en `webos-home/installer/`.
 
 ## Cuentas y archivos personales
 

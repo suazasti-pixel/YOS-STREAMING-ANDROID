@@ -34,6 +34,14 @@ Cada edición avanza por separado: celular **1.1 → 1.2 → 1.3**, Xtream Andro
 - El logo superior regresa a Inicio; al tocar la búsqueda desde Inicio se abre la última sección consultada para que los resultados aparezcan en su contexto.
 - Android `versionCode 17`, `versionName 2.12`. Artefacto: `YOS-2.12-XTREAM-ANDROID-APK`. LG `version 3.5.0`. Artefacto: `YOS-3.5-LG-webOS-IPK`.
 
+## YOS Home LG 1.0 — panel de accesos para webOS
+
+- Pantalla independiente con atajos a YOS Streaming y YOS Xtream.
+- Permite añadir y quitar accesos por ID de aplicaciones webOS; se guardan localmente en el TV.
+- Tarjetas grandes y foco visible para el control Magic.
+- Es un panel dentro de una app: webOS no permite reemplazar el launcher del sistema ni cambiar la acción del botón Home.
+- Artefactos de Actions: `YOS-Home-1.0-LG-webOS-IPK` y `YOS-Home-1.0-LG-Instalador-Windows`.
+
 ## YOS Xtream 2.11 y YOS Xtream LG 3.4 — M3U también en webOS
 
 - La edición LG ahora puede descargar listas M3U autorizadas mediante un servicio nativo webOS; el texto se entrega en fragmentos temporales para evitar respuestas Luna demasiado grandes.

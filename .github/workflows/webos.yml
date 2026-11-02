@@ -8,8 +8,10 @@ on:
       - "web/**"
       - "webos/**"
       - "webos-xtream/**"
+      - "webos-home/**"
       - "scripts/build-webos.sh"
       - "scripts/build-webos-xtream.sh"
+      - "scripts/build-webos-home.sh"
       - "xtream/src/main/assets/www/**"
       - ".github/workflows/webos.yml"
 
@@ -88,5 +90,35 @@ jobs:
         with:
           name: YOS-3.12-LG-Instalador-Windows
           path: build/YOS-3.12-LG-Instalador-Windows.zip
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Crear paquete YOS Home para LG webOS
+        run: bash scripts/build-webos-home.sh
+
+      - name: Guardar paquete YOS Home webOS
+        uses: actions/upload-artifact@v4
+        with:
+          name: YOS-Home-1.0-LG-webOS-IPK
+          path: build/webos-home-package/*.ipk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Preparar instalador YOS Home para Windows
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/yos-home-lg-installer
+          cp webos-home/installer/INSTALAR-YOS-HOME-LG.bat build/yos-home-lg-installer/
+          cp webos-home/installer/instalar-yos-home-tv.ps1 build/yos-home-lg-installer/
+          cp webos-home/installer/LEEME.txt build/yos-home-lg-installer/
+          cp build/webos-home-package/*.ipk build/yos-home-lg-installer/
+          (cd build/yos-home-lg-installer && zip -q ../YOS-Home-1.0-LG-Instalador-Windows.zip ./*)
+
+      - name: Guardar instalador YOS Home para TV LG
+        uses: actions/upload-artifact@v4
+        with:
+          name: YOS-Home-1.0-LG-Instalador-Windows
+          path: build/YOS-Home-1.0-LG-Instalador-Windows.zip
           if-no-files-found: error
           retention-days: 30

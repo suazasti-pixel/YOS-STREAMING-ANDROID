@@ -1,0 +1,16 @@
+YOS HOME 1.0 — INSTALADOR PARA TV LG webOS
+
+CONTENIDO
+- INSTALAR-YOS-HOME-LG.bat: instalador guiado para Windows.
+- instalar-yos-home-tv.ps1: usa la webOS TV CLI oficial de LG.
+- com.yos.launcher.home_*.ipk: paquete de YOS Home.
+
+REQUISITOS
+1. Instala webOS TV CLI oficial de LG en Windows.
+2. Activa Developer Mode y Key Server en el TV.
+3. Registra el televisor con ares-setup-device y confirma que PC/TV estén en la misma red.
+4. Extrae todo este ZIP y ejecuta INSTALAR-YOS-HOME-LG.bat.
+
+YOS Home es un panel de accesos independiente. webOS no permite reemplazar el launcher ni reasignar el botón Home del control. Abre YOS Home desde la barra de aplicaciones de LG. Los accesos agregados se guardan en el TV. Los destinos deben estar instalados y se agregan mediante su ID de aplicación webOS.
+
+Guía oficial: https://webostv.developer.lge.com/develop/tools/cli-dev-guide

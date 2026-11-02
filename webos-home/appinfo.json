@@ -1,0 +1,13 @@
+{
+  "id": "com.yos.launcher.home",
+  "version": "1.0.0",
+  "vendor": "YOS STREAMING",
+  "type": "web",
+  "main": "index.html",
+  "title": "YOS Home",
+  "icon": "icon.png",
+  "largeIcon": "largeIcon.png",
+  "iconColor": "#05080d",
+  "requiredACG": ["application.launcher"],
+  "appDescription": "Panel de inicio YOS para abrir tus aplicaciones webOS favoritas"
+}

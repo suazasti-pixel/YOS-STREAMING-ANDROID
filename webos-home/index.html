@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#05080d">
+  <title>YOS Home</title>
+  <link rel="stylesheet" href="home.css">
+  <script src="webOSTV.js"></script>
+  <script defer src="home.js"></script>
+</head>
+<body>
+  <main class="shell">
+    <aside class="rail">
+      <div class="brand"><img src="icon.png" alt="YOS"><div><b>YOS</b><small>HOME</small></div></div>
+      <div class="rail-bottom"><span class="live-dot"></span><span>Tu TV, a tu manera</span></div>
+    </aside>
+    <section class="content">
+      <header class="topline"><div><p class="eyebrow">PANTALLA DE INICIO</p><h1>Hola, ¿qué quieres ver?</h1></div><time id="clock"></time></header>
+      <section class="hero">
+        <div><p class="eyebrow">YOS HOME <span>1.0</span></p><h2>Tus aplicaciones,<br>al alcance del control.</h2><p>Selecciona una app con el control Magic para abrirla.</p></div>
+        <img class="hero-logo" src="largeIcon.png" alt="YOS Streaming">
+      </section>
+      <section class="apps-section" aria-labelledby="apps-title">
+        <div class="section-head"><div><p class="eyebrow">ACCESOS RÁPIDOS</p><h2 id="apps-title">Mis aplicaciones</h2></div><span class="hint">Usa ← → y OK</span></div>
+        <div id="app-grid" class="app-grid"></div>
+        <p id="status" class="status" aria-live="polite">Elige una aplicación para iniciarla.</p>
+      </section>
+      <details class="add-panel">
+        <summary>＋ Agregar acceso por ID de aplicación</summary>
+        <form id="shortcut-form">
+          <label>Nombre visible<input id="shortcut-name" maxlength="30" placeholder="Mi aplicación" required></label>
+          <label>ID de webOS<input id="shortcut-id" maxlength="100" placeholder="com.ejemplo.app" required></label>
+          <button class="add-button" type="submit">Guardar acceso</button>
+        </form>
+        <p>El ID debe ser el identificador de una app instalada en este TV. YOS Home no cambia el launcher ni la tecla Home de LG.</p>
+      </details>
+      <footer>YOS HOME <span>•</span> Panel independiente para webOS</footer>
+    </section>
+  </main>
+</body>
+</html>

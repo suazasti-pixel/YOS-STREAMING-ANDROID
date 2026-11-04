@@ -13,12 +13,21 @@ cp "$ROOT_DIR/webos/icon.png" "$APP_DIR/icon.png"
 cp "$ROOT_DIR/webos/largeIcon.png" "$APP_DIR/largeIcon.png"
 cp "$ROOT_DIR/webos/yos-tv-home.css" "$APP_DIR/yos-tv-home.css"
 
-python3 - "$APP_DIR/index.html" <<'PY'
+python3 - "$APP_DIR/index.html" "$ROOT_DIR/web/listas_m3u/iptv-org-index.m3u" <<'PY'
 from pathlib import Path
-import sys
+import sys, json
+import shutil
 path = Path(sys.argv[1])
+app_dir = path.parent
+iptv_org_m3u = Path(sys.argv[2]).read_text(encoding="utf-8")
+(app_dir / "iptv-org-world.js").write_text("window.YOSIPTVOrgM3U = " + json.dumps(iptv_org_m3u, ensure_ascii=False) + ";\n", encoding="utf-8")
+shutil.rmtree(app_dir / "listas_m3u", ignore_errors=True)
+worker = app_dir / "service-worker.js"
+worker.write_text("\n".join(line for line in worker.read_text(encoding="utf-8").splitlines() if "./listas_m3u/" not in line) + "\n", encoding="utf-8")
 html = path.read_text(encoding="utf-8")
-html = html.replace('<link rel="stylesheet" href="tv.css?v=1">', '<link rel="stylesheet" href="tv.css?v=1">\n<link rel="stylesheet" href="yos-tv-home.css?v=1">')
+html = html.replace('</head>', '<link rel="stylesheet" href="yos-tv-home.css?v=6">\n</head>')
+html = html.replace('<script src="app.js', '<script src="iptv-org-world.js"></script>\n<script src="app.js')
+html = html.replace('<body>', '<body class="tv-remote">')
 panel = '''<section class="tv-featured" aria-label="Explora YOS Streaming">
   <div class="tv-featured-copy"><span class="tv-featured-kicker">YOS STREAMING</span><h1>Tu entretenimiento.<br><em>A tu manera.</em></h1><p>Explora tus listas en una interfaz diseñada para el televisor.</p></div>
   <div class="tv-featured-actions" aria-label="Secciones">
@@ -28,7 +37,7 @@ panel = '''<section class="tv-featured" aria-label="Explora YOS Streaming">
   </div>
 </section>\n'''
 html = html.replace('<main id="inicio">', '<main id="inicio">\n' + panel)
-if 'class="tv-featured"' not in html or 'yos-tv-home.css' not in html:
+if 'class="tv-featured"' not in html or 'yos-tv-home.css?v=6' not in html or '<body class="tv-remote">' not in html or 'iptv-org-world.js' not in html:
     raise SystemExit("No se pudo integrar el panel de TV en index.html")
 path.write_text(html, encoding="utf-8")
 PY

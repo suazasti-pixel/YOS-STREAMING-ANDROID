@@ -1,4 +1,4 @@
-YOS STREAMING 1.1 PARA LG webOS - INSTALADOR WINDOWS
+YOS STREAMING 1.8.0 PARA LG webOS - INSTALADOR WINDOWS
 
 CONTENIDO
 - INSTALAR-YOS-STREAMING-LG.bat: inicia la instalacion guiada.
@@ -14,8 +14,10 @@ ANTES DE EMPEZAR
 INSTALAR O ACTUALIZAR
 1. Extrae todos los archivos del ZIP.
 2. Haz doble clic en INSTALAR-YOS-STREAMING-LG.bat.
-3. Escribe el nombre exacto del TV registrado (por ejemplo, myTV).
+3. Escribe el nombre exacto del TV registrado (por ejemplo, myTV). El BAT fija el IPK de YOS 1.8.0 para evitar escoger otro paquete de Descargas.
 4. El instalador instala o actualiza YOS Streaming y la abre.
+
+La app incluye una copia de IPTV-org Mundial al momento de crear este paquete (3 de noviembre de 2026), sin listas adicionales predefinidas. La copia integrada funciona sin volver a descargar el archivo M3U; la reproducción de cada señal sí necesita Internet y depende de que el emisor siga disponible.
 
 El instalador usa la CLI oficial de webOS; no almacena la clave del TV.
 Developer Mode es para pruebas y LG puede quitar la app al vencer la sesión.

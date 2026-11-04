@@ -138,3 +138,59 @@ Abre la ejecución más reciente que terminó correctamente en [GitHub Actions](
 - Búsqueda por texto/voz, categorías, favoritos locales y reproducción usan los enlaces directos de la lista. La ficha, EPG, temporadas y vencimiento dependen de API Xtream y no están disponibles en modo M3U.
 - El enlace M3U recordado se conserva dentro del almacenamiento cifrado Android. No se guardan los enlaces directos de reproducción en favoritos o historial.
 - Android `versionCode 15`, `versionName 2.10`. Artifact de Actions: `YOS-2.10-XTREAM-ANDROID-APK`.
+
+## YOS Streaming LG 1.2 — IPTV-org Mundial y catálogo ágil
+
+- Se preinstala en las fuentes guardadas el enlace IPTV-org Mundial (`index.m3u`) para abrirlo desde **Listas**; la lista ligera local de 100 canales sigue siendo el inicio rápido.
+- El análisis M3U se procesa en bloques y actualiza el estado mientras trabaja, manteniendo responsiva la interfaz del televisor. La caché usa la política HTTP del servidor y conserva hasta dos listas recientes durante cinco minutos.
+- El instalador Windows fija el IPK de YOS 1.2.0 para no escoger por error otro paquete `.ipk` de la carpeta Descargas.
+- Artifact: `YOS-1.2-LG-Instalador-Windows` o `YOS-1.2-LG-webOS-IPK`.
+
+## YOS Streaming LG 1.3 — interfaz ampliada y lista inicial garantizada
+
+- Amplía textos, controles, tarjetas y paneles para verlos desde el sofá en LG webOS.
+- Una migración única añade las fuentes predefinidas y abre la selección ligera de 100 canales, preservando las demás listas y favoritos.
+- El paquete webOS incluye la M3U ligera como recurso local embebido, evitando fallos de carga por origen `file://`.
+- Artifact: `YOS-1.3-LG-Instalador-Windows` o `YOS-1.3-LG-webOS-IPK`.
+
+
+## YOS Streaming LG 1.4 — IPTV-org Mundial integrada
+
+- Incluye dentro del paquete una instantánea local del M3U completo de IPTV-org (11.399 entradas, descargado el 3 de noviembre de 2026).
+- La lista mundial queda preinstalada en **Listas** y se puede abrir sin volver a descargar el M3U. La reproducción de cada emisión sigue requiriendo Internet y depende del estado del canal.
+- Conserva como inicio rápido la selección ligera YOS de 100 canales; así la app no necesita analizar el catálogo mundial para mostrar canales al abrir.
+- Actualiza el identificador de caché y usa una migración de fuentes de 1.4 para preservar listas existentes, agregar las predefinidas y abrir la lista ligera una vez.
+- Artifact: `YOS-1.4-LG-Instalador-Windows` o `YOS-1.4-LG-webOS-IPK`.
+
+
+## YOS Streaming LG 1.5 — interfaz legible a distancia
+
+- Aumenta nuevamente tamaño de navegación, filtros, controles, opciones de listas, tarjetas y canales para uso desde el sofá.
+- Fuerza el perfil de TV en el paquete webOS y carga su hoja de estilos al final para que el tamaño no dependa del User-Agent ni del orden de estilos base.
+- Mantiene la instantánea IPTV-org integrada y la lista ligera de 100 canales como inicio rápido.
+- Artifact: `YOS-1.5-LG-Instalador-Windows` o `YOS-1.5-LG-webOS-IPK`.
+
+
+## YOS Streaming LG 1.6 — optimizada para LG 65″ 2020
+
+- Amplía otro nivel la escala del logo, las secciones, filtros, botones, tarjetas de canales y controles de listas para lectura a distancia en televisor grande.
+- Mantiene el modo TV aplicado directamente al paquete webOS, la lista completa IPTV-org integrada y el inicio rápido con la selección ligera de 100 canales.
+- Artifact: `YOS-1.6-LG-Instalador-Windows` o `YOS-1.6-LG-webOS-IPK`.
+
+
+## YOS Streaming LG 1.7 — lista mundial visible y control Magic
+
+- La lista IPTV-org Mundial se muestra primero en **Listas** y queda como lista activa al actualizar; se conserva YOS 100 como alternativa ligera.
+- La lista mundial se sirve desde el M3U integrado en el IPK y no necesita una descarga inicial desde Internet.
+- Corrige el foco del control remoto dentro de diálogos: las flechas recorren controles visibles del diálogo, con indicador de foco persistente; las flechas arriba/abajo recorren canales.
+- El paquete webOS activa el perfil TV y enfoca **TV en vivo** al iniciar.
+- Artifact: `YOS-1.7-LG-Instalador-Windows` o `YOS-1.7-LG-webOS-IPK`.
+
+
+## YOS Streaming LG 1.8 — IPTV-org como única lista inicial
+
+- Integra la instantánea de `https://iptv-org.github.io/iptv/index.m3u` en el paquete webOS y la abre al iniciar; no requiere descargar el M3U por red.
+- Elimina YOS 100 como lista predeterminada. Las listas personales guardadas se conservan.
+- Sustituye la barra lateral fija por una barra superior horizontal; el contenido reserva su espacio y evita superposiciones.
+- Mantiene la navegación del Magic Remote con foco visible y las flechas entre controles.
+- Artifact: `YOS-1.8-LG-Instalador-Windows` o `YOS-1.8-LG-webOS-IPK`.

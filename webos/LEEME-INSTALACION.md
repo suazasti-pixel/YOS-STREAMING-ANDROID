@@ -4,7 +4,11 @@
 
 1. En GitHub abre **Actions** y entra en **Crear app YOS para LG webOS**.
 2. Abre la ejecución más reciente que terminó correctamente.
-3. Descarga el artefacto **YOS-1.1-LG-Instalador-Windows** para instalarla con doble clic. Si prefieres, el artefacto **YOS-1.1-LG-webOS-IPK** contiene solo el paquete `.ipk`.
+3. Descarga el artefacto **YOS-1.8-LG-Instalador-Windows** para instalarla con doble clic. Si prefieres, el artefacto **YOS-1.8-LG-webOS-IPK** contiene solo el paquete `.ipk`.
+
+## IPTV-org y carga inicial
+
+La versión 1.8 usa IPTV-org Mundial como única lista preinstalada y la abre al iniciar; quita la lista de 100 canales predefinida y mantiene las listas personales que ya tengas guardadas. **IPTV-org Mundial** (`https://iptv-org.github.io/iptv/index.m3u`) es la lista inicial visible en **TV en vivo**. El catálogo mundial está empaquetado dentro del IPK como instantánea de IPTV-org descargada el 3 de noviembre de 2026; ábrelo desde **Listas** cuando quieras. La playlist integrada se procesa localmente en bloques para mantener la interfaz ágil. La caché conserva hasta dos listas recientes durante cinco minutos. La lista incluida no se actualiza sola con el sitio: usa **ACTUALIZAR** cuando quieras intentar descargar una versión nueva. La reproducción depende de Internet, la disponibilidad de cada señal y los formatos aceptados por el TV.
 
 ## Instalar con el paquete guiado
 

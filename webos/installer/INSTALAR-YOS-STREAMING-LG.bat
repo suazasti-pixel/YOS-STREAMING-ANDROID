@@ -23,7 +23,7 @@ if errorlevel 1 (
     exit /b 1
 )
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%PS1%" %*
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%PS1%" -Ipk "%~dp0com.yos.streaming.tv_1.8.0_all.ipk" %*
 set "RC=%ERRORLEVEL%"
 echo.
 if not "%RC%"=="0" (

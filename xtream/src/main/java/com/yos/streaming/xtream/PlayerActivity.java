@@ -212,6 +212,11 @@ public final class PlayerActivity extends Activity {
 
     private void showTrackSelection(int trackType) {
         if (player == null) return;
+        // Audio and video selection should also clear any subtitle overlay. Re-enable text
+        // tracks when the user explicitly opens the subtitles picker.
+        player.setTrackSelectionParameters(player.getTrackSelectionParameters().buildUpon()
+            .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, trackType != C.TRACK_TYPE_TEXT)
+            .build());
         boolean found = false;
         for (Tracks.Group group : player.getCurrentTracks().getGroups()) {
             if (group.getType() == trackType && group.isSupported()) { found = true; break; }

@@ -5,17 +5,18 @@ Estas son las tres ediciones principales que vamos a mantener y actualizar por s
 | Edición | Dispositivo | Instalador en GitHub Actions | Proyecto |
 |---|---|---|---|
 | **1.1** | Celular Android | `YOS-1.1-CELULAR-APK` | YOS Streaming, listas M3U |
-| **2.18** | Celular Android y Android TV Box | `YOS-2.18-XTREAM-ANDROID-APK` | YOS Xtream Android |
+| **2.19** | Celular Android y Android TV Box | `YOS-2.19-XTREAM-ANDROID-APK` | YOS Xtream Android |
 | **3.15** | Televisor LG webOS | `YOS-3.15-LG-webOS-IPK` | YOS Xtream para webOS |
 
 ## Regla de numeración
 
-Cada edición avanza por separado: celular **1.1 → 1.2 → 1.3**, Xtream Android **2.1 → 2.2 → 2.3 → 2.4 → 2.5 → 2.6 → 2.7 → 2.8 → 2.9 → 2.10 → 2.11 → 2.12 → 2.13 → 2.14 → 2.15 → 2.16 → 2.17 → 2.18** y LG webOS **3.1 → 3.2 → 3.3 → 3.4 → 3.5 → 3.6 → 3.7 → 3.8 → 3.9 → 3.10 → 3.11 → 3.12 → 3.13 → 3.14 → 3.15**. Cuando un cambio afecte varias ediciones, incrementaremos la serie de cada una de ellas. Así cada instalador y sus notas de cambios indicarán qué versión recibió la mejora.
+Cada edición avanza por separado: celular **1.1 → 1.2 → 1.3**, Xtream Android **2.1 → 2.2 → 2.3 → 2.4 → 2.5 → 2.6 → 2.7 → 2.8 → 2.9 → 2.10 → 2.11 → 2.12 → 2.13 → 2.14 → 2.15 → 2.16 → 2.17 → 2.18 → 2.19** y LG webOS **3.1 → 3.2 → 3.3 → 3.4 → 3.5 → 3.6 → 3.7 → 3.8 → 3.9 → 3.10 → 3.11 → 3.12 → 3.13 → 3.14 → 3.15**. Cuando un cambio afecte varias ediciones, incrementaremos la serie de cada una de ellas. Así cada instalador y sus notas de cambios indicarán qué versión recibió la mejora.
 
-## YOS Xtream Android 2.18 — ocultar subtítulos al cambiar pista
+## YOS Xtream Android 2.19 — compatibilidad de enlaces de episodios
 
-- Al escoger Audio o Calidad de video se apaga la pista de subtítulos activa; al abrir Subtítulos se pueden elegir de nuevo, incluido Ninguno.
-- Android `versionCode 23`, `versionName 2.18`. Artefacto: `YOS-2.18-XTREAM-ANDROID-APK`.
+- Usa el enlace directo del proveedor cuando está disponible; de lo contrario, arma la ruta Xtream con campos alternativos de ID y extensión.
+- El reproductor muestra el diagnóstico de formato, red o enlace al fallar, sin revelar la URL.
+- Android `versionCode 24`, `versionName 2.19`. Artefacto: `YOS-2.19-XTREAM-ANDROID-APK`.
 
 ## YOS Xtream Android 2.17 y LG 3.15 — búsqueda por número de canal
 

@@ -1253,12 +1253,26 @@ function formatProgramEndTime(program) {
   return Number.isNaN(date.getTime()) ? "" : new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit" }).format(date);
 }
 
+function directStreamUrl(item) {
+  const value = [item.direct_source, item.directSource, item.stream_url, item.streamUrl].find(value => typeof value === "string" && /^https?:\/\//i.test(value.trim()));
+  return value ? value.trim() : "";
+}
+
+function streamId(kind, item) {
+  if (kind !== "series") return item.stream_id;
+  return item.id ?? item.stream_id ?? item.episode_id ?? item.episodeId ?? item.vod_id ?? item.vodId;
+}
+
 function streamUrl(kind, item) {
   if (item._m3u && /^https?:\/\//i.test(item.url || "")) return item.url;
+  if (kind === "series") {
+    const direct = directStreamUrl(item);
+    if (direct) return direct;
+  }
   const c = state.credentials;
   const route = kind === "live" ? "live" : kind === "movie" ? "movie" : "series";
-  const id = kind === "live" ? item.stream_id : kind === "movie" ? item.stream_id : item.id;
-  let extension = String(item.container_extension || (kind === "live" ? "m3u8" : "mp4")).replace(/^\./, "");
+  const id = streamId(kind, item);
+  let extension = String(item.container_extension || item.containerExtension || item.extension || (kind === "live" ? "m3u8" : "mp4")).replace(/^\./, "");
   if (!/^[a-z0-9]{1,8}$/i.test(extension)) extension = kind === "live" ? "m3u8" : "mp4";
   return c.server + "/" + route + "/" + encodeURIComponent(c.username) + "/" + encodeURIComponent(c.password) + "/" + encodeURIComponent(String(id)) + "." + extension;
 }
@@ -1267,18 +1281,27 @@ function playItems(items, kind, index = 0, resumePosition = 0) {
   if (!Array.isArray(items) || !items.length) return;
   const selectedIndex = Math.max(0, Math.min(Number(index) || 0, items.length - 1));
   const queueStart = Math.max(0, Math.min(selectedIndex - Math.floor(PLAYBACK_QUEUE_LIMIT / 2), items.length - PLAYBACK_QUEUE_LIMIT));
-  const queueItems = items.slice(queueStart, queueStart + PLAYBACK_QUEUE_LIMIT);
+  const selectedItem = items[selectedIndex];
+  const candidates = items.slice(queueStart, queueStart + PLAYBACK_QUEUE_LIMIT);
+  if (kind === "series" && (streamId(kind, selectedItem) == null || String(streamId(kind, selectedItem)).trim() === "") && !directStreamUrl(selectedItem)) {
+    setStatus("catalog-status", "El proveedor no devolvió un ID ni un enlace de reproducción para este episodio.", "error");
+    return;
+  }
+  const queueItems = kind === "series"
+    ? candidates.filter(item => (streamId(kind, item) != null && String(streamId(kind, item)).trim() !== "") || directStreamUrl(item))
+    : candidates;
+  const queueIndex = queueItems.indexOf(selectedItem);
+  if (queueIndex < 0) return;
   const queue = queueItems.map(item => {
-    const id = kind === "series" ? (item.id || item.stream_id || item.series_id) : item.stream_id;
+    const id = streamId(kind, item);
     return {
       url: streamUrl(kind, item), name: item.title || item.name || "YOS Xtream", kind,
       id: String(id == null ? "" : id), category: item.category_name || "",
-      extension: item.container_extension || (kind === "live" ? "m3u8" : "mp4"),
+      extension: item.container_extension || item.containerExtension || item.extension || (kind === "live" ? "m3u8" : "mp4"),
       cover: item.stream_icon || item.cover || ""
     };
   });
   if (!queue.length) return;
-  const queueIndex = selectedIndex - queueStart;
   const selected = queue[queueIndex];
   lastPlaybackFocus = document.activeElement?.closest?.(".content-card, .recent-card") || null;
   const recent = readRecent().find(row => row.kind === kind && row.id === selected.id);

@@ -145,7 +145,7 @@ public final class PlayerActivity extends Activity {
 
             @Override public void onPlayerError(PlaybackException error) {
                 errorPanel.setVisibility(View.VISIBLE);
-                errorText.setText("No se pudo reproducir este canal. Revisa el enlace o vuelve a intentarlo.");
+                errorText.setText(playbackErrorMessage(error));
                 retryButton.requestFocus();
             }
         });
@@ -199,6 +199,24 @@ public final class PlayerActivity extends Activity {
         if (player == null) return;
         player.prepare();
         player.play();
+    }
+
+    private String playbackErrorMessage(PlaybackException error) {
+        String code = error == null ? "UNKNOWN" : error.getErrorCodeName();
+        Throwable cause = error;
+        while (cause != null && cause.getCause() != null) cause = cause.getCause();
+        String detail = cause == null ? "" : cause.getMessage();
+        if (detail == null || detail.trim().isEmpty()) detail = "";
+        else {
+            detail = detail.replaceAll("https?://\\S+", "[enlace oculto]").replaceAll("[\\r\\n\\t]+", " ").trim();
+            if (detail.length() > 100) detail = detail.substring(0, 97) + "…";
+        }
+        String hint;
+        if (code.contains("DECODING")) hint = "El formato de video o audio no es compatible con el dispositivo.";
+        else if (code.contains("NETWORK") || code.contains("TIMEOUT") || code.contains("IO")) hint = "El proveedor no entregó el episodio; revisa el enlace, la cuenta o la conexión.";
+        else if (code.contains("PARSING") || code.contains("MANIFEST")) hint = "El enlace no tiene un formato de video reconocido.";
+        else hint = "Revisa el enlace del contenido en el proveedor.";
+        return "No se pudo reproducir. " + hint + "\nDiagnóstico: " + code + (detail.isEmpty() ? "" : " · " + detail);
     }
 
     private void showTrackMenu() {

@@ -714,17 +714,19 @@ function readConnectionFields() {
   let playlistUrl = savedPlaylistUrl;
   try {
     const parsed = new URL(server);
-    if (/\/get\.php\/?$/i.test(parsed.pathname)) {
+    const isM3uEndpoint = /\/get\.php\/?$/i.test(parsed.pathname);
+    const isApiEndpoint = /\/player_api\.php\/?$/i.test(parsed.pathname);
+    if (isM3uEndpoint || isApiEndpoint) {
       const linkUsername = parsed.searchParams.get("username");
       const linkPassword = parsed.searchParams.get("password");
-      if (!linkUsername || !linkPassword) {
+      if (isM3uEndpoint && (!linkUsername || !linkPassword)) {
         throw new Error("El enlace get.php debe incluir username y password.");
       }
-      const basePath = parsed.pathname.replace(/\/get\.php\/?$/i, "").replace(/\/+$/, "");
-      playlistUrl = parsed.toString();
+      const basePath = parsed.pathname.replace(/\/(?:get|player_api)\.php\/?$/i, "").replace(/\/+$/, "");
+      if (isM3uEndpoint) playlistUrl = parsed.toString();
       server = parsed.origin + basePath;
-      username = linkUsername;
-      password = linkPassword;
+      if (linkUsername) username = linkUsername;
+      if (linkPassword) password = linkPassword;
       $("server").value = server;
       $("username").value = username;
       $("password").value = password;
@@ -750,7 +752,10 @@ $("login-form").addEventListener("submit", async event => {
     setStatus("login-status", "Escribe el servidor con http:// o https:// y su puerto si aplica.", "error");
     return;
   }
-  if (!username || !password) return;
+  if (!username || !password) {
+    setStatus("login-status", "Completa el usuario y la contraseña o pega un enlace player_api.php / get.php que los incluya.", "error");
+    return;
+  }
   const button = $("login-button");
   button.disabled = true;
   setStatus("login-status", "Conectando con el proveedor…");
@@ -762,7 +767,10 @@ $("login-form").addEventListener("submit", async event => {
       if (!/HTTP 404\b/.test(apiError.message || "")) throw apiError;
       setStatus("login-status", "La API Xtream no está disponible. Probando el enlace M3U…");
       try { await switchToM3uMode(); }
-      catch (m3uError) { throw new Error("La API respondió HTTP 404 y la lista M3U no se pudo cargar: " + (m3uError.message || "revisa el enlace")); }
+      catch (m3uError) {
+        if (/HTTP 404\b/.test(m3uError.message || "")) throw new Error("El servidor no encontró las rutas player_api.php ni get.php. Revisa que pegaste la dirección base y el puerto correctos o usa la URL get.php completa que te dio tu proveedor.");
+        throw new Error("La API Xtream respondió HTTP 404 y no se pudo abrir la lista M3U: " + (m3uError.message || "revisa el enlace"));
+      }
       auth = null;
     }
     const info = auth && auth.user_info;

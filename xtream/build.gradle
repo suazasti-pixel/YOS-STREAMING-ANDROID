@@ -18,8 +18,8 @@ android {
         applicationId 'com.yos.streaming.xtream'
         minSdk 23
         targetSdk 35
-        versionCode 25
-        versionName '2.20'
+        versionCode 26
+        versionName '2.21'
     }
 
     compileOptions {

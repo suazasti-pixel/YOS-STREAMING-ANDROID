@@ -5,12 +5,18 @@ Estas son las tres ediciones principales que vamos a mantener y actualizar por s
 | Edición | Dispositivo | Instalador en GitHub Actions | Proyecto |
 |---|---|---|---|
 | **1.1** | Celular Android | `YOS-1.1-CELULAR-APK` | YOS Streaming, listas M3U |
-| **2.19** | Celular Android y Android TV Box | `YOS-2.19-XTREAM-ANDROID-APK` | YOS Xtream Android |
+| **2.20** | Celular Android y Android TV Box | `YOS-2.20-XTREAM-ANDROID-APK` | YOS Xtream Android |
 | **3.15** | Televisor LG webOS | `YOS-3.15-LG-webOS-IPK` | YOS Xtream para webOS |
 
 ## Regla de numeración
 
-Cada edición avanza por separado: celular **1.1 → 1.2 → 1.3**, Xtream Android **2.1 → 2.2 → 2.3 → 2.4 → 2.5 → 2.6 → 2.7 → 2.8 → 2.9 → 2.10 → 2.11 → 2.12 → 2.13 → 2.14 → 2.15 → 2.16 → 2.17 → 2.18 → 2.19** y LG webOS **3.1 → 3.2 → 3.3 → 3.4 → 3.5 → 3.6 → 3.7 → 3.8 → 3.9 → 3.10 → 3.11 → 3.12 → 3.13 → 3.14 → 3.15**. Cuando un cambio afecte varias ediciones, incrementaremos la serie de cada una de ellas. Así cada instalador y sus notas de cambios indicarán qué versión recibió la mejora.
+Cada edición avanza por separado: celular **1.1 → 1.2 → 1.3**, Xtream Android **2.1 → 2.2 → 2.3 → 2.4 → 2.5 → 2.6 → 2.7 → 2.8 → 2.9 → 2.10 → 2.11 → 2.12 → 2.13 → 2.14 → 2.15 → 2.16 → 2.17 → 2.18 → 2.19 → 2.20** y LG webOS **3.1 → 3.2 → 3.3 → 3.4 → 3.5 → 3.6 → 3.7 → 3.8 → 3.9 → 3.10 → 3.11 → 3.12 → 3.13 → 3.14 → 3.15**. Cuando un cambio afecte varias ediciones, incrementaremos la serie de cada una de ellas. Así cada instalador y sus notas de cambios indicarán qué versión recibió la mejora.
+
+## YOS Xtream Android 2.20 — diagnóstico M3U y búsqueda simplificada
+
+- El diagnóstico comprueba la API Xtream y, si el proveedor responde HTTP 404, prueba también la lista M3U y distingue el resultado de ambos servicios.
+- La búsqueda muestra un único campo para evitar duplicar el botón de acceso y la caja de búsqueda.
+- Android `versionCode 25`, `versionName 2.20`. Artefacto: `YOS-2.20-XTREAM-ANDROID-APK`.
 
 ## YOS Xtream Android 2.19 — compatibilidad de enlaces de episodios
 

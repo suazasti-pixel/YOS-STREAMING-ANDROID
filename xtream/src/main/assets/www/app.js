@@ -528,21 +528,43 @@ async function runDiagnostics() {
   const result = $("diagnostics-result");
   const button = $("diagnostics-run");
   if (!state.credentials) { result.textContent = "Conecta primero tu cuenta Xtream para revisar el proveedor."; return; }
-  if (state.credentials.m3uMode) { result.textContent = "Cuenta cargada como lista M3U. Esta fuente no ofrece diagnóstico de API Xtream."; return; }
   button.disabled = true;
-  result.textContent = "Probando autenticación y catálogo…";
+  result.textContent = state.credentials.m3uMode ? "Probando acceso a la lista M3U…" : "Probando autenticación y catálogo…";
   const started = performance.now();
   try {
+    if (state.credentials.m3uMode) {
+      const items = await loadM3uUrl(makeM3uUrl(state.credentials.server, state.credentials.username, state.credentials.password, state.credentials.playlistUrl || ""));
+      result.textContent = "Lista M3U disponible · " + items.length + " elementos · " + Math.round(performance.now() - started) + " ms";
+      return;
+    }
     const auth = await callApi();
     const authMs = Math.round(performance.now() - started);
     if (!auth?.user_info || String(auth.user_info.auth) !== "1") throw new Error("El proveedor no confirmó una cuenta activa.");
     const categoriesStarted = performance.now();
-    const categories = await callApi("get_live_categories");
-    const categoriesMs = Math.round(performance.now() - categoriesStarted);
-    if (!Array.isArray(categories)) throw new Error("El proveedor devolvió una respuesta de categorías no reconocida.");
-    result.textContent = "Conexión correcta · Autenticación " + authMs + " ms · " + categories.length + " categorías en " + categoriesMs + " ms · " + (/^https:/i.test(state.credentials.server) ? "HTTPS" : "HTTP sin cifrado");
+    try {
+      const action = kinds[state.kind]?.categories || "get_live_categories";
+      const categories = await callApi(action);
+      const categoriesMs = Math.round(performance.now() - categoriesStarted);
+      if (!Array.isArray(categories)) throw new Error("El proveedor devolvió una respuesta de categorías no reconocida.");
+      result.textContent = "Conexión correcta · Autenticación " + authMs + " ms · " + categories.length + " categorías en " + categoriesMs + " ms · " + (/^https:/i.test(state.credentials.server) ? "HTTPS" : "HTTP sin cifrado");
+    } catch (catalogError) {
+      if (!/HTTP 404\b/.test(catalogError.message || "")) throw catalogError;
+      try {
+        const items = await loadM3uUrl(makeM3uUrl(state.credentials.server, state.credentials.username, state.credentials.password, state.credentials.playlistUrl || ""));
+        result.textContent = "Cuenta Xtream válida · su API devolvió HTTP 404 para las categorías · la lista M3U sí funciona (" + items.length + " elementos) · " + authMs + " ms";
+      } catch (m3uError) {
+        result.textContent = "Cuenta Xtream válida, pero la API de categorías respondió HTTP 404. La lista M3U tampoco se pudo abrir: " + (m3uError.message || "revisa el enlace del proveedor.");
+      }
+    }
   } catch (error) {
-    result.textContent = "No completó la prueba: " + (error.message || "revisa internet, servidor o cuenta.");
+    if (/HTTP 404\b/.test(error.message || "")) {
+      try {
+        const items = await loadM3uUrl(makeM3uUrl(state.credentials.server, state.credentials.username, state.credentials.password, state.credentials.playlistUrl || ""));
+        result.textContent = "La API Xtream devolvió HTTP 404, pero la lista M3U sí funciona (" + items.length + " elementos).";
+      } catch (m3uError) {
+        result.textContent = "La API Xtream respondió HTTP 404 y la lista M3U tampoco se pudo abrir: " + (m3uError.message || "revisa el servidor.");
+      }
+    } else result.textContent = "No completó la prueba: " + (error.message || "revisa internet, servidor o cuenta.");
   } finally { button.disabled = false; }
 }
 
@@ -879,10 +901,7 @@ async function loadCategories(kind) {
 }
 
 function updateSearchControls() {
-  const label = state.showFavorites ? "FAVORITOS" : state.sportsMode ? "DEPORTES" : state.kind === "live" ? "CANALES" : state.kind === "movie" ? "PELÍCULAS" : "SERIES";
   const inputLabel = state.showFavorites ? "favoritos" : state.sportsMode ? "canales deportivos" : state.kind === "live" ? "canales" : state.kind === "movie" ? "películas" : "series";
-  $("search-shortcut-label").textContent = "BUSCAR " + label;
-  $("search-shortcut").setAttribute("aria-label", "Buscar " + inputLabel);
   $("search").placeholder = state.kind === "live" && !state.showFavorites
     ? "Buscar " + inputLabel + " por nombre o número (ej. 222)"
     : "Buscar " + inputLabel;
@@ -1472,10 +1491,6 @@ $("home-brand").addEventListener("click", event => {
 });
 $("favorites-tab").addEventListener("click", showFavoritesView);
 $("favorites-shortcut").addEventListener("click", showFavoritesView);
-$("search-shortcut").addEventListener("click", () => {
-  $("search").focus();
-  $("search").scrollIntoView({ block: "center", behavior: "smooth" });
-});
 $("category").addEventListener("change", () => { $("search").value = ""; state.globalSearch = false; state.items = state.localItems; if (state.sportsMode) loadSportsItems($("category").value); else loadItems($("category").value); });
 $("search").addEventListener("input", () => {
   clearTimeout(searchTimer);

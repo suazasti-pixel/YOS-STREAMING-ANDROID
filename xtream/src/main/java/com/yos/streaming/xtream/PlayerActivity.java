@@ -149,8 +149,6 @@ public final class PlayerActivity extends Activity {
             .setPrioritizeTimeOverSizeThresholds(true)
             .build();
         player = new ExoPlayer.Builder(this).setLoadControl(loadControl).build();
-        player.setSeekBackIncrementMs(10_000);
-        player.setSeekForwardIncrementMs(10_000);
         playerView.setPlayer(player);
         player.addListener(new Player.Listener() {
             @Override public void onIsPlayingChanged(boolean isPlaying) { updatePauseButton(isPlaying); }

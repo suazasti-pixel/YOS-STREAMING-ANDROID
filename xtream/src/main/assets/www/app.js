@@ -1026,8 +1026,21 @@ async function searchCatalog(query) {
   if (!state.categories.length) { setStatus("catalog-status", "Espera a que carguen las categorías para buscar."); return; }
   cancelPendingApiRequests();
   state.globalSearch = true;
-  state.items = [];
-  state.filtered = [];
+  // Show matches from recently opened categories immediately, while the remaining
+  // categories continue loading in the background.
+  const found = new Map();
+  for (const [cacheKey, cachedItems] of itemCache) {
+    if (!cacheKey.startsWith(kind + ":")) continue;
+    const categoryId = cacheKey.slice(kind.length + 1);
+    const category = state.categories.find(row => String(row.category_id) === categoryId);
+    cachedItems.forEach((item, itemIndex) => {
+      if (!matchesCatalogSearch(item, q, itemIndex, kind)) return;
+      const id = kind === "series" ? (item.series_id || item.id) : item.stream_id;
+      if (id != null) found.set(String(id), { ...item, _yosChannelNumber: kind === "live" ? channelNumber(item, itemIndex) : item._yosChannelNumber, _kind: kind, category_name: item.category_name || category?.category_name || "" });
+    });
+  }
+  state.items = [...found.values()];
+  state.filtered = state.items;
   state.limit = PAGE_SIZE;
   renderItems();
   const categories = state.categories.filter(row => row && row.category_id != null && visibleCategory(row) && (!state.sportsMode || isSportsCategory(row.category_name)));
@@ -1036,8 +1049,9 @@ async function searchCatalog(query) {
   let unsupportedAction = false;
   let m3uFallbackError = "";
   let lastPaintAt = 0;
-  const found = new Map();
-  setStatus("catalog-status", "Buscando en " + categories.length + " categorías…");
+  setStatus("catalog-status", found.size
+    ? found.size + " resultados rápidos. Buscando en " + categories.length + " categorías…"
+    : "Buscando en " + categories.length + " categorías…");
   const worker = async () => {
     while (next < categories.length && requestId === searchSequence) {
       const row = categories[next++];

@@ -52,6 +52,7 @@ public final class PlayerActivity extends Activity {
     private View errorPanel;
     private TextView errorText;
     private Button retryButton;
+    private Button pauseButton;
     private JSONArray queue;
     private int startIndex;
     private String selectedUrl;
@@ -73,6 +74,7 @@ public final class PlayerActivity extends Activity {
         playerView = new PlayerView(this);
         playerView.setUseController(true);
         playerView.setControllerAutoShow(true);
+        playerView.setControllerShowTimeoutMs(6500);
         playerView.setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING);
         root.addView(playerView, new FrameLayout.LayoutParams(-1, -1));
 
@@ -93,9 +95,24 @@ public final class PlayerActivity extends Activity {
         titleParams.leftMargin = dp(14);
         top.addView(back);
         top.addView(title, titleParams);
+        Button rewindButton = new Button(this);
+        rewindButton.setText("⏪ 10 s");
+        rewindButton.setContentDescription("Retroceder 10 segundos");
+        rewindButton.setOnClickListener(view -> seekBy(-10_000));
+        top.addView(rewindButton);
+        pauseButton = new Button(this);
+        pauseButton.setText("PAUSAR");
+        pauseButton.setContentDescription("Pausar o reanudar reproducción");
+        pauseButton.setOnClickListener(view -> togglePlayback());
+        top.addView(pauseButton);
+        Button forwardButton = new Button(this);
+        forwardButton.setText("10 s ⏩");
+        forwardButton.setContentDescription("Avanzar 10 segundos");
+        forwardButton.setOnClickListener(view -> seekBy(10_000));
+        top.addView(forwardButton);
         Button trackButton = new Button(this);
-        trackButton.setText("PISTAS");
-        trackButton.setContentDescription("Elegir pista de audio o subtítulos");
+        trackButton.setText("AUDIO / CC");
+        trackButton.setContentDescription("Elegir audio, calidad de video o subtítulos");
         trackButton.setOnClickListener(view -> showTrackMenu());
         top.addView(trackButton);
         FrameLayout.LayoutParams topParams = new FrameLayout.LayoutParams(-1, -2, Gravity.TOP);
@@ -132,8 +149,12 @@ public final class PlayerActivity extends Activity {
             .setPrioritizeTimeOverSizeThresholds(true)
             .build();
         player = new ExoPlayer.Builder(this).setLoadControl(loadControl).build();
+        player.setSeekBackIncrementMs(10_000);
+        player.setSeekForwardIncrementMs(10_000);
         playerView.setPlayer(player);
         player.addListener(new Player.Listener() {
+            @Override public void onIsPlayingChanged(boolean isPlaying) { updatePauseButton(isPlaying); }
+
             @Override public void onPlaybackStateChanged(int playbackState) {
                 if (playbackState == Player.STATE_READY) errorPanel.setVisibility(View.GONE);
             }
@@ -202,6 +223,35 @@ public final class PlayerActivity extends Activity {
         if (errorPanel != null) errorPanel.setVisibility(View.GONE);
         player.prepare();
         player.play();
+    }
+
+    private void togglePlayback() {
+        if (player == null) return;
+        if (player.isPlaying()) player.pause(); else player.play();
+        updatePauseButton(player.isPlaying());
+    }
+
+    private void updatePauseButton(boolean isPlaying) {
+        if (pauseButton == null) return;
+        pauseButton.setText(isPlaying ? "PAUSAR" : "REANUDAR");
+        pauseButton.setContentDescription(isPlaying ? "Pausar reproducción" : "Reanudar reproducción");
+    }
+
+    private void seekBy(long offsetMs) {
+        if (player == null || !canSeekCurrentItem()) {
+            Toast.makeText(this, "El avance y retroceso no están disponibles en canales en vivo.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        long duration = player.getDuration();
+        long target = Math.max(0L, player.getCurrentPosition() + offsetMs);
+        if (duration != C.TIME_UNSET) target = Math.min(target, duration);
+        player.seekTo(target);
+    }
+
+    private boolean canSeekCurrentItem() {
+        if (player == null || player.isCurrentMediaItemLive()) return false;
+        JSONObject item = queue == null ? null : queue.optJSONObject(player.getCurrentMediaItemIndex());
+        return item != null && !"live".equalsIgnoreCase(item.optString("kind", "live"));
     }
 
     private String playbackErrorMessage(PlaybackException error) {

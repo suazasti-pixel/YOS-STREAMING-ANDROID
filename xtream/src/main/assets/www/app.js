@@ -879,10 +879,7 @@ async function loadCategories(kind) {
 }
 
 function updateSearchControls() {
-  const label = state.showFavorites ? "FAVORITOS" : state.sportsMode ? "DEPORTES" : state.kind === "live" ? "CANALES" : state.kind === "movie" ? "PELÍCULAS" : "SERIES";
   const inputLabel = state.showFavorites ? "favoritos" : state.sportsMode ? "canales deportivos" : state.kind === "live" ? "canales" : state.kind === "movie" ? "películas" : "series";
-  $("search-shortcut-label").textContent = "BUSCAR " + label;
-  $("search-shortcut").setAttribute("aria-label", "Buscar " + inputLabel);
   $("search").placeholder = state.kind === "live" && !state.showFavorites
     ? "Buscar " + inputLabel + " por nombre o número (ej. 222)"
     : "Buscar " + inputLabel;
@@ -1463,10 +1460,6 @@ $("home-brand").addEventListener("click", event => {
 });
 $("favorites-tab").addEventListener("click", showFavoritesView);
 $("favorites-shortcut").addEventListener("click", showFavoritesView);
-$("search-shortcut").addEventListener("click", () => {
-  $("search").focus();
-  $("search").scrollIntoView({ block: "center", behavior: "smooth" });
-});
 $("category").addEventListener("change", () => { $("search").value = ""; state.globalSearch = false; state.items = state.localItems; if (state.sportsMode) loadSportsItems($("category").value); else loadItems($("category").value); });
 $("search").addEventListener("input", () => {
   clearTimeout(searchTimer);

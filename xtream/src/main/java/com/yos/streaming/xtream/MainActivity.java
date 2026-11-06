@@ -185,8 +185,10 @@ public class MainActivity extends Activity {
 
     private final class NativeBridge {
         @JavascriptInterface public boolean isTelevision() {
-            return getPackageManager().hasSystemFeature("android.software.leanback") ||
-                (getResources().getConfiguration().uiMode & Configuration.UI_MODE_TYPE_MASK) == Configuration.UI_MODE_TYPE_TELEVISION;
+            boolean leanback = getPackageManager().hasSystemFeature("android.software.leanback");
+            boolean televisionMode = (getResources().getConfiguration().uiMode & Configuration.UI_MODE_TYPE_MASK) == Configuration.UI_MODE_TYPE_TELEVISION;
+            boolean noTouchscreen = !getPackageManager().hasSystemFeature("android.hardware.touchscreen");
+            return leanback || televisionMode || noTouchscreen;
         }
 
         @JavascriptInterface public void startVoiceSearch() {

@@ -49,6 +49,7 @@ public final class PlayerActivity extends Activity {
 
     private ExoPlayer player;
     private PlayerView playerView;
+    private View errorPanel;
     private TextView errorText;
     private Button retryButton;
     private JSONArray queue;
@@ -101,6 +102,7 @@ public final class PlayerActivity extends Activity {
         root.addView(top, topParams);
 
         LinearLayout errorPanel = new LinearLayout(this);
+        this.errorPanel = errorPanel;
         errorPanel.setOrientation(LinearLayout.VERTICAL);
         errorPanel.setGravity(Gravity.CENTER);
         errorPanel.setPadding(dp(20), dp(16), dp(20), dp(16));
@@ -145,7 +147,7 @@ public final class PlayerActivity extends Activity {
 
             @Override public void onPlayerError(PlaybackException error) {
                 errorPanel.setVisibility(View.VISIBLE);
-                errorText.setText("No se pudo reproducir este canal. Revisa el enlace o vuelve a intentarlo.");
+                errorText.setText(playbackErrorMessage(error));
                 retryButton.requestFocus();
             }
         });
@@ -197,8 +199,33 @@ public final class PlayerActivity extends Activity {
 
     private void retry() {
         if (player == null) return;
+        if (errorPanel != null) errorPanel.setVisibility(View.GONE);
         player.prepare();
         player.play();
+    }
+
+    private String playbackErrorMessage(PlaybackException error) {
+        String code = error == null ? "UNKNOWN" : error.getErrorCodeName();
+        Throwable cause = error == null ? null : error.getCause();
+        String detail = cause == null ? "" : cause.getMessage();
+        if (detail == null || detail.trim().isEmpty()) detail = "";
+        else {
+            // Avoid showing account URLs or long server responses in the TV UI.
+            detail = detail.replaceAll("https?://\\S+", "[enlace]").replaceAll("[\\r\\n\\t]+", " ").trim();
+            if (detail.length() > 110) detail = detail.substring(0, 107) + "…";
+        }
+        String hint;
+        if (code.startsWith("ERROR_CODE_DECODING") || code.contains("DECODING")) {
+            hint = "El formato o códec de este episodio no es compatible con el dispositivo.";
+        } else if (code.contains("NETWORK") || code.contains("TIMEOUT") || code.contains("IO")) {
+            hint = "El servidor no entregó el episodio. Revisa la conexión, la cuenta o el enlace.";
+        } else if (code.contains("PARSING") || code.contains("MANIFEST")) {
+            hint = "El enlace no parece tener un formato de video reconocido.";
+        } else {
+            hint = "Revisa la cuenta y el enlace del episodio.";
+        }
+        return "No se pudo reproducir este episodio. " + hint + "\nDiagnóstico: " + code +
+            (detail.isEmpty() ? "" : " · " + detail);
     }
 
     private void showTrackMenu() {
@@ -212,6 +239,11 @@ public final class PlayerActivity extends Activity {
 
     private void showTrackSelection(int trackType) {
         if (player == null) return;
+        // Audio and video selection should also clear any subtitle overlay. Re-enable text
+        // tracks when the user explicitly opens the subtitles picker.
+        player.setTrackSelectionParameters(player.getTrackSelectionParameters().buildUpon()
+            .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, trackType != C.TRACK_TYPE_TEXT)
+            .build());
         boolean found = false;
         for (Tracks.Group group : player.getCurrentTracks().getGroups()) {
             if (group.getType() == trackType && group.isSupported()) { found = true; break; }

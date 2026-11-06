@@ -1602,8 +1602,10 @@ try {
 try {
   const nativeBridge = bridge();
   const hasPresetAccounts = Array.isArray(window.YOSXtreamPresetAccounts) && window.YOSXtreamPresetAccounts.length > 0;
-  if (nativeBridge?.isTelevision() || hasPresetAccounts) {
+  if (nativeBridge?.isTelevision()) {
     document.body.classList.add("tv-remote");
+  }
+  if (nativeBridge || hasPresetAccounts) {
     try { renderAccountProfiles(); } catch { /* Los perfiles son opcionales si el almacenamiento está bloqueado. */ }
   }
   if (nativeBridge) {
@@ -1614,7 +1616,6 @@ try {
       }[event.key];
       const active = document.activeElement;
       const editing = active && (/^(INPUT|TEXTAREA|SELECT)$/.test(active.tagName) || active.isContentEditable);
-      if (direction && !editing && !document.body.classList.contains("tv-remote")) document.body.classList.add("tv-remote");
       if (!document.body.classList.contains("tv-remote")) return;
       if (direction && !editing) {
         const [dx, dy] = direction;

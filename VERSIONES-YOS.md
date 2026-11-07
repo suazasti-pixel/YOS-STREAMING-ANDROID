@@ -6,11 +6,18 @@ Estas son las tres ediciones principales que vamos a mantener y actualizar por s
 |---|---|---|---|
 | **1.1** | Celular Android | `YOS-1.1-CELULAR-APK` | YOS Streaming, listas M3U |
 | **2.19** | Celular Android y Android TV Box | `YOS-2.19-XTREAM-ANDROID-APK` | YOS Xtream Android |
+| **3.16** | Televisor LG webOS | `YOS-3.16-LG-webOS-IPK` | YOS Xtream para webOS, controles grandes para Magic Remote en TV de 65 pulgadas |
 | **3.15** | Televisor LG webOS | `YOS-3.15-LG-webOS-IPK` | YOS Xtream para webOS |
 
 ## Regla de numeración
 
-Cada edición avanza por separado: celular **1.1 → 1.2 → 1.3**, Xtream Android **2.1 → 2.2 → 2.3 → 2.4 → 2.5 → 2.6 → 2.7 → 2.8 → 2.9 → 2.10 → 2.11 → 2.12 → 2.13 → 2.14 → 2.15 → 2.16 → 2.17 → 2.18 → 2.19** y LG webOS **3.1 → 3.2 → 3.3 → 3.4 → 3.5 → 3.6 → 3.7 → 3.8 → 3.9 → 3.10 → 3.11 → 3.12 → 3.13 → 3.14 → 3.15**. Cuando un cambio afecte varias ediciones, incrementaremos la serie de cada una de ellas. Así cada instalador y sus notas de cambios indicarán qué versión recibió la mejora.
+Cada edición avanza por separado: celular **1.1 → 1.2 → 1.3**, Xtream Android **2.1 → 2.2 → 2.3 → 2.4 → 2.5 → 2.6 → 2.7 → 2.8 → 2.9 → 2.10 → 2.11 → 2.12 → 2.13 → 2.14 → 2.15 → 2.16 → 2.17 → 2.18 → 2.19 → 2.20 → 2.21** y LG webOS **3.1 → 3.2 → 3.3 → 3.4 → 3.5 → 3.6 → 3.7 → 3.8 → 3.9 → 3.10 → 3.11 → 3.12 → 3.13 → 3.14 → 3.15 → 3.16**. Cuando un cambio afecte varias ediciones, incrementaremos la serie de cada una de ellas. Así cada instalador y sus notas de cambios indicarán qué versión recibió la mejora.
+
+## YOS Xtream LG 3.16 — controles grandes para Magic Remote
+
+- Se ampliaron controles, filtros, búsqueda y foco para televisión LG de pantalla grande y navegación desde el sofá.
+- Se conservan el paquete webOS `.ipk` y el instalador guiado para Windows.
+- Artefactos: `YOS-3.16-LG-webOS-IPK` y `YOS-3.16-LG-Instalador-Windows`.
 
 ## YOS Xtream Android 2.19 — celular y TV Box
 

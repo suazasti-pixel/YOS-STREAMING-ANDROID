@@ -76,12 +76,12 @@ jobs:
           cp webos-xtream/installer/instalar-yos-xtream-tv.ps1 build/yos-xtream-lg-installer/
           cp webos-xtream/installer/LEEME.txt build/yos-xtream-lg-installer/
           cp build/webos-xtream-package/*.ipk build/yos-xtream-lg-installer/
-          (cd build/yos-xtream-lg-installer && zip -q ../YOS-3.15-LG-Instalador-Windows.zip ./*)
+          (cd build/yos-xtream-lg-installer && zip -q ../YOS-3.16-LG-Instalador-Windows.zip ./*)
 
       - name: Guardar instalador YOS Xtream para TV LG
         uses: actions/upload-artifact@v4
         with:
-          name: YOS-3.15-LG-webOS-IPK
+          name: YOS-3.16-LG-webOS-IPK
           path: build/webos-xtream-package/*.ipk
           if-no-files-found: error
           retention-days: 30
@@ -89,8 +89,8 @@ jobs:
       - name: Guardar paquete completo para instalar desde Windows
         uses: actions/upload-artifact@v4
         with:
-          name: YOS-3.15-LG-Instalador-Windows
-          path: build/YOS-3.15-LG-Instalador-Windows.zip
+          name: YOS-3.16-LG-Instalador-Windows
+          path: build/YOS-3.16-LG-Instalador-Windows.zip
           if-no-files-found: error
           retention-days: 30
 

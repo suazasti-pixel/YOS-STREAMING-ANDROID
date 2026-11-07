@@ -139,3 +139,97 @@ body.tv-remote .tab:focus-visible { transform: scale(1.025); }
   body.tv-remote .tab { min-height: 66px; padding-inline: 12px; font-size: 18px; }
   body.tv-remote .content-grid { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 18px; }
 }
+
+/* YOS Xtream LG 3.16: legibilidad y selección desde el sofá en pantallas de 65". */
+body.tv-remote {
+  font-size: clamp(22px, 1.2vw, 28px);
+  line-height: 1.45;
+  --tv-safe-edge: clamp(30px, 3vw, 64px);
+}
+body.tv-remote .topbar {
+  min-height: 126px;
+  padding: 16px var(--tv-safe-edge);
+  gap: clamp(18px, 1.6vw, 32px);
+}
+body.tv-remote .brand { min-width: clamp(240px, 17vw, 320px); }
+body.tv-remote .brand-logo-window { width: 88px; height: 88px; flex-basis: 88px; }
+body.tv-remote .brand-mark { width: 84px; height: 84px; }
+body.tv-remote .brand-wordmark { font-size: 38px; }
+body.tv-remote .brand-wordmark small { font-size: 17px; }
+body.tv-remote .topbar nav a,
+body.tv-remote .topbar .button,
+body.tv-remote .catalog-actions > button,
+body.tv-remote .filters select,
+body.tv-remote .filters .button,
+body.tv-remote .tab,
+body.tv-remote .load-more,
+body.tv-remote .dialog-head .button,
+body.tv-remote .episode-button,
+body.tv-remote #movie-play,
+body.tv-remote #series-dialog button {
+  min-height: 82px;
+  font-size: clamp(21px, 1.2vw, 27px);
+}
+body.tv-remote main { width: 100%; max-width: none; margin: 24px 0; padding-inline: var(--tv-safe-edge); }
+body.tv-remote #catalog-view { padding-left: clamp(350px, 19vw, 430px); }
+body.tv-remote .catalog-head { align-items: center; gap: 24px; }
+body.tv-remote .catalog-head h1 { font-size: clamp(44px, 2.5vw, 60px); }
+body.tv-remote .catalog-head p,
+body.tv-remote .account-summary { font-size: clamp(22px, 1.2vw, 27px); }
+body.tv-remote .catalog-actions { gap: 18px; }
+body.tv-remote .search-box {
+  width: min(42vw, 780px);
+  min-width: 410px;
+  min-height: 82px;
+  border-radius: 24px;
+  padding-inline: 22px;
+}
+body.tv-remote .search-box input { min-height: 76px; font-size: 26px; }
+body.tv-remote .search-icon { flex-basis: 42px; }
+body.tv-remote .search-icon svg { width: 38px; height: 38px; }
+body.tv-remote .voice-search { width: 64px; height: 64px; font-size: 28px; }
+body.tv-remote .favorites-shortcut { min-width: 220px; min-height: 82px; padding-inline: 24px; font-size: 24px; }
+body.tv-remote .favorites-shortcut span { font-size: 34px; }
+body.tv-remote .tabs {
+  top: 154px;
+  bottom: 30px;
+  left: var(--tv-safe-edge);
+  width: clamp(270px, 16vw, 350px);
+  max-height: calc(100vh - 184px);
+  gap: 14px;
+  padding: 18px;
+  border-radius: 22px;
+}
+body.tv-remote .tab { min-height: 82px; padding: 16px 20px; font-size: 24px; border-radius: 14px; }
+body.tv-remote .filters { gap: 16px; margin-block: 8px 22px; }
+body.tv-remote .filters select { min-width: min(430px, 34vw); padding-inline: 22px; }
+body.tv-remote .content-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 22px; }
+body.tv-remote .content-card { min-height: 340px; border-radius: 20px; }
+body.tv-remote .card-title { min-height: 66px; font-size: 24px; }
+body.tv-remote .card-meta { font-size: 20px; }
+body.tv-remote .browse-shortcuts .shortcut,
+body.tv-remote .recent-card { min-height: 112px; padding: 22px; }
+body.tv-remote .shortcut b,
+body.tv-remote .recent-card strong { font-size: 24px; }
+body.tv-remote .shortcut small,
+body.tv-remote .recent-card small { font-size: 19px; }
+body.tv-remote button:focus-visible,
+body.tv-remote a:focus-visible,
+body.tv-remote input:focus-visible,
+body.tv-remote select:focus-visible,
+body.tv-remote .remote-focus {
+  outline: 6px solid #ff5276 !important;
+  outline-offset: 5px !important;
+  box-shadow: 0 0 0 9px #ff174d45, 0 0 34px #ff174d99 !important;
+}
+body.tv-remote .yos-lg-player { grid-template-rows: 100px 1fr 104px; gap: 16px; padding: 28px 48px; }
+body.tv-remote .yos-lg-player header strong { font-size: 36px; }
+body.tv-remote .yos-lg-player button { min-width: 230px; min-height: 82px; font-size: 25px; }
+body.tv-remote .yos-lg-player footer span { font-size: 24px; }
+@media (max-width: 1500px) {
+  body.tv-remote #catalog-view { padding-left: 300px; }
+  body.tv-remote .tabs { left: 20px; width: 250px; }
+  body.tv-remote .tab { min-height: 72px; padding-inline: 14px; font-size: 20px; }
+  body.tv-remote .search-box { min-width: 300px; }
+  body.tv-remote .content-grid { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+}

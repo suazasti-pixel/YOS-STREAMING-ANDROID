@@ -6,6 +6,22 @@
   var resumeAt = 0;
   var progressLastAt = 0;
   var progressLastPosition = -1;
+  var playerControlsTimer = 0;
+  var PLAYER_CONTROLS_TIMEOUT_MS = 4000;
+
+  function hidePlayerControls(overlay) {
+    if (!overlay || overlay.hidden) return;
+    overlay.classList.add("yos-controls-hidden");
+  }
+
+  function showPlayerControls(overlay) {
+    if (!overlay || overlay.hidden) return;
+    overlay.classList.remove("yos-controls-hidden");
+    window.clearTimeout(playerControlsTimer);
+    playerControlsTimer = window.setTimeout(function () {
+      hidePlayerControls(overlay);
+    }, PLAYER_CONTROLS_TIMEOUT_MS);
+  }
 
   function apiRequest(requestId, server, username, password, action, categoryId, itemId) {
     if (!window.webOS || !window.webOS.service) {
@@ -90,11 +106,21 @@
     overlay.setAttribute("aria-label", "Reproductor");
     overlay.innerHTML = '<header><strong id="yos-lg-title"></strong><button id="yos-lg-close" type="button">CERRAR <span>✕</span></button></header><video id="yos-lg-video" controls autoplay playsinline></video><footer><button id="yos-lg-prev" type="button">◀ ANTERIOR</button><span id="yos-lg-state">Conectando…</span><button id="yos-lg-retry" type="button" hidden>REINTENTAR</button><button id="yos-lg-next" type="button">SIGUIENTE ▶</button></footer>';
     document.body.appendChild(overlay);
+    ["mousemove", "mousedown", "touchstart", "click", "keydown"].forEach(function (eventName) {
+      overlay.addEventListener(eventName, function () { showPlayerControls(overlay); }, true);
+    });
     overlay.querySelector("#yos-lg-close").addEventListener("click", closePlayer);
     overlay.querySelector("#yos-lg-prev").addEventListener("click", function () { step(-1); });
     overlay.querySelector("#yos-lg-next").addEventListener("click", function () { step(1); });
     overlay.querySelector("#yos-lg-retry").addEventListener("click", function () { playCurrent(video.currentTime || resumeAt); });
     var video = overlay.querySelector("video");
+    video.setAttribute("tabindex", "0");
+    if (video.audioTracks && typeof video.audioTracks.addEventListener === "function") {
+      video.audioTracks.addEventListener("change", function () { hidePlayerControls(overlay); });
+    }
+    if (video.textTracks && typeof video.textTracks.addEventListener === "function") {
+      video.textTracks.addEventListener("change", function () { hidePlayerControls(overlay); });
+    }
     video.addEventListener("loadedmetadata", function () {
       if (resumeAt > 0 && (!video.duration || resumeAt < video.duration - 15)) {
         try { video.currentTime = resumeAt; } catch (_) {}
@@ -106,7 +132,9 @@
       overlay.querySelector("#yos-lg-state").textContent = "Reproduciendo";
       overlay.querySelector("#yos-lg-retry").hidden = true;
       reportPlayback(true);
+      showPlayerControls(overlay);
     });
+    video.addEventListener("pause", function () { showPlayerControls(overlay); });
     video.addEventListener("timeupdate", function () { reportPlayback(false); });
     video.addEventListener("ended", function () {
       reportPlayback(true, true);
@@ -151,6 +179,7 @@
     var overlay = document.getElementById("yos-lg-player");
     if (!overlay) return;
     var video = overlay.querySelector("video");
+    window.clearTimeout(playerControlsTimer);
     reportPlayback(true);
     video.pause();
     video.removeAttribute("src");
@@ -176,6 +205,7 @@
     progressLastAt = 0;
     progressLastPosition = -1;
     overlay.hidden = false;
+    overlay.classList.remove("yos-controls-hidden");
     document.body.classList.add("player-open");
     overlay.querySelector("#yos-lg-title").textContent = item.name || "YOS Xtream";
     overlay.querySelector("#yos-lg-state").textContent = "Conectando…";
@@ -188,6 +218,7 @@
     var promise = video.play();
     if (promise && promise.catch) promise.catch(function () { overlay.querySelector("#yos-lg-state").textContent = "Pulsa OK para iniciar la reproducción."; });
     overlay.querySelector("#yos-lg-close").focus();
+    showPlayerControls(overlay);
   }
 
   window.YOSXtream = {
@@ -235,6 +266,8 @@
       setTimeout(function () { clearInterval(timer); }, 20000);
     });
     document.addEventListener("keydown", function (event) {
+      var activePlayer = document.getElementById("yos-lg-player");
+      if (activePlayer && !activePlayer.hidden) showPlayerControls(activePlayer);
       if (event.key === "Escape" || event.key === "Backspace" || event.keyCode === 461 || event.keyCode === 10009) {
         var player = document.getElementById("yos-lg-player");
         if (player && !player.hidden) { event.preventDefault(); closePlayer(); }

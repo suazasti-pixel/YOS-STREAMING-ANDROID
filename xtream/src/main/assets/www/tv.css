@@ -59,6 +59,17 @@ body.tv-remote .login-card {
   border-radius: 22px;
 }
 
+/* En TV, las acciones del perfil van en una columna para evitar lecturas cruzadas. */
+body.tv-remote .profile-actions {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+
+body.tv-remote .profile-actions .button {
+  min-height: 68px;
+  font-size: 18px;
+}
+
 body.tv-remote .login-card h1,
 body.tv-remote .catalog-head h1 {
   font-size: 38px;

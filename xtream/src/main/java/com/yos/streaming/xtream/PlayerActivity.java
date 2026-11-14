@@ -2,6 +2,7 @@ package com.yos.streaming.xtream;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
@@ -119,7 +120,9 @@ public final class PlayerActivity extends Activity {
         root.addView(top, topParams);
         // Keep the custom playback bar in step with Media3's controls so the
         // AUDIO / CC action does not stay pinned over the video.
-        playerView.setControllerVisibilityListener(visibility -> top.setVisibility(visibility));
+        playerView.setControllerVisibilityListener(new PlayerView.ControllerVisibilityListener() {
+            @Override public void onVisibilityChanged(int visibility) { top.setVisibility(visibility); }
+        });
 
         LinearLayout errorPanel = new LinearLayout(this);
         this.errorPanel = errorPanel;
@@ -306,7 +309,7 @@ public final class PlayerActivity extends Activity {
             Toast.makeText(this, message, Toast.LENGTH_LONG).show();
             return;
         }
-        AlertDialog dialog = new TrackSelectionDialogBuilder(this,
+        Dialog dialog = new TrackSelectionDialogBuilder(this,
             trackType == C.TRACK_TYPE_AUDIO ? "Pista de audio" : trackType == C.TRACK_TYPE_VIDEO ? "Calidad de video" : "Subtítulos", player, trackType)
             .setShowDisableOption(trackType == C.TRACK_TYPE_TEXT)
             .setAllowAdaptiveSelections(trackType == C.TRACK_TYPE_VIDEO)

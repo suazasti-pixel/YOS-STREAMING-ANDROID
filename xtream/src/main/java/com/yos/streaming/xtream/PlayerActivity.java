@@ -74,7 +74,7 @@ public final class PlayerActivity extends Activity {
         playerView = new PlayerView(this);
         playerView.setUseController(true);
         playerView.setControllerAutoShow(true);
-        playerView.setControllerShowTimeoutMs(6500);
+        playerView.setControllerShowTimeoutMs(4000);
         playerView.setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING);
         root.addView(playerView, new FrameLayout.LayoutParams(-1, -1));
 
@@ -117,6 +117,9 @@ public final class PlayerActivity extends Activity {
         top.addView(trackButton);
         FrameLayout.LayoutParams topParams = new FrameLayout.LayoutParams(-1, -2, Gravity.TOP);
         root.addView(top, topParams);
+        // Keep the custom playback bar in step with Media3's controls so the
+        // AUDIO / CC action does not stay pinned over the video.
+        playerView.setControllerVisibilityListener(visibility -> top.setVisibility(visibility));
 
         LinearLayout errorPanel = new LinearLayout(this);
         this.errorPanel = errorPanel;
@@ -303,12 +306,15 @@ public final class PlayerActivity extends Activity {
             Toast.makeText(this, message, Toast.LENGTH_LONG).show();
             return;
         }
-        new TrackSelectionDialogBuilder(this,
+        AlertDialog dialog = new TrackSelectionDialogBuilder(this,
             trackType == C.TRACK_TYPE_AUDIO ? "Pista de audio" : trackType == C.TRACK_TYPE_VIDEO ? "Calidad de video" : "Subtítulos", player, trackType)
             .setShowDisableOption(trackType == C.TRACK_TYPE_TEXT)
             .setAllowAdaptiveSelections(trackType == C.TRACK_TYPE_VIDEO)
-            .build()
-            .show();
+            .build();
+        dialog.setOnDismissListener(ignored -> {
+            if (playerView != null) playerView.hideController();
+        });
+        dialog.show();
     }
 
     private int dp(int value) { return Math.round(value * getResources().getDisplayMetrics().density); }

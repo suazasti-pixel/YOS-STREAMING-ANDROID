@@ -29,6 +29,7 @@ const guideCache = new Map();
 const guidePending = new Map();
 let lastPlaybackFocus = null;
 let savedPlaylistUrl = "";
+let loginMode = "xtream";
 
 function cacheItems(key, rows) {
   if (rows.length > ITEM_CACHE_ROW_LIMIT) return;
@@ -121,6 +122,81 @@ function loadM3uUrl(url) {
     if (!String(result.text || "").includes("#EXTINF:")) throw new Error("El servidor no devolvió una lista M3U válida.");
     return parseM3uPlaylist(result.text);
   });
+}
+
+function stablePlaylistId(url) {
+  let hash = 2166136261;
+  for (let index = 0; index < url.length; index++) hash = Math.imul(hash ^ url.charCodeAt(index), 16777619);
+  return "m3u:" + (hash >>> 0).toString(16);
+}
+
+function setLoginMode(mode) {
+  loginMode = mode === "m3u" ? "m3u" : "xtream";
+  const useM3u = loginMode === "m3u";
+  $("xtream-fields").hidden = useM3u;
+  $("m3u-fields").hidden = !useM3u;
+  $("server").disabled = useM3u;
+  $("username").disabled = useM3u;
+  $("password").disabled = useM3u;
+  $("server").required = !useM3u;
+  $("username").required = !useM3u;
+  $("password").required = !useM3u;
+  $("m3u-url").disabled = !useM3u;
+  $("m3u-url").required = useM3u;
+  $("source-xtream").classList.toggle("active", !useM3u);
+  $("source-m3u").classList.toggle("active", useM3u);
+  $("source-xtream").setAttribute("aria-pressed", String(!useM3u));
+  $("source-m3u").setAttribute("aria-pressed", String(useM3u));
+  $("account-profiles").hidden = useM3u;
+  $("login-button").textContent = useM3u ? "CARGAR LISTA M3U" : "INICIAR SESIÓN";
+  if (useM3u) setTimeout(() => $("m3u-url").focus(), 0);
+}
+
+function openConnectedCatalog(info, credentials) {
+  const remember = !document.body.classList.contains("tv-remote") && $("remember").checked;
+  const stored = bridge().saveCredentials(credentials.server, credentials.username, credentials.password, credentials.playlistUrl || "", remember);
+  const storageResult = readAccount(stored);
+  if (!storageResult.ok) throw new Error(storageResult.error || "No se pudieron guardar los datos de forma segura.");
+  categoryCache.clear();
+  itemCache.clear();
+  fallbackCatalogCache.clear();
+  seriesCache.clear();
+  guideCache.clear();
+  guidePending.clear();
+  state.parentalHash = localStorage.getItem(parentalStoreKey()) || "";
+  state.parentalUnlocked = false;
+  state.parentalFailures = 0;
+  state.sportsMode = false;
+  $("parental-control").hidden = false;
+  updateParentalButton();
+  $("login-view").hidden = true;
+  $("catalog-view").hidden = false;
+  $("logout").hidden = false;
+  const exp = info?.exp_date && /^\d+$/.test(String(info.exp_date)) ? new Date(Number(info.exp_date) * 1000).toLocaleDateString() : "";
+  $("account-summary").textContent = state.credentials.m3uMode ? "Lista M3U · " + state.credentials.m3uItems.length + " elementos" : "Cuenta conectada" + (exp ? " · Vence " + exp : "");
+  renderRecent();
+  setStatus("login-status", "");
+  showHome();
+}
+
+async function connectDirectM3u() {
+  const rawUrl = $("m3u-url").value.trim();
+  let parsed;
+  try { parsed = new URL(rawUrl); } catch { throw new Error("Pega un enlace M3U válido que empiece por http:// o https://."); }
+  if (!["http:", "https:"].includes(parsed.protocol) || !parsed.hostname) throw new Error("El enlace debe usar http:// o https://.");
+  const button = $("login-button");
+  button.disabled = true;
+  setStatus("login-status", "Descargando y organizando la lista M3U…");
+  try {
+    const items = await loadM3uUrl(parsed.toString());
+    if (!items.length) throw new Error("La lista no contiene canales o elementos reproducibles.");
+    const credentials = { server: stablePlaylistId(parsed.toString()), username: "", password: "", playlistUrl: parsed.toString() };
+    state.credentials = { ...credentials, m3uMode: true, m3uItems: items };
+    openConnectedCatalog(null, credentials);
+  } catch (error) {
+    state.credentials = null;
+    throw error;
+  } finally { button.disabled = false; }
 }
 
 async function switchToM3uMode() {
@@ -587,6 +663,7 @@ function selectedProfile() {
 function renderAccountProfiles(selectedId = "") {
   const panel = $("account-profiles");
   if (!panel) return;
+  if (loginMode === "m3u") { panel.hidden = true; return; }
   panel.hidden = false;
   const picker = $("profile-picker");
   const profiles = allAccountProfiles();
@@ -681,7 +758,7 @@ $("profile-delete").addEventListener("click", () => {
 });
 
 function setHttpWarning() {
-  const value = $("server").value.trim();
+  const value = (loginMode === "m3u" ? $("m3u-url").value : $("server").value).trim();
   $("http-warning").hidden = !/^http:\/\//i.test(value);
 }
 
@@ -717,9 +794,17 @@ function readConnectionFields() {
 $("server").addEventListener("input", () => { savedPlaylistUrl = ""; setHttpWarning(); });
 $("username").addEventListener("input", () => { savedPlaylistUrl = ""; });
 $("password").addEventListener("input", () => { savedPlaylistUrl = ""; });
+$("m3u-url").addEventListener("input", () => { savedPlaylistUrl = ""; setHttpWarning(); });
+$("source-xtream").addEventListener("click", () => setLoginMode("xtream"));
+$("source-m3u").addEventListener("click", () => setLoginMode("m3u"));
 
 $("login-form").addEventListener("submit", async event => {
   event.preventDefault();
+  if (loginMode === "m3u") {
+    try { await connectDirectM3u(); }
+    catch (error) { setStatus("login-status", error.message || "No se pudo cargar la lista M3U.", "error"); }
+    return;
+  }
   let connection;
   try { connection = readConnectionFields(); }
   catch (error) { setStatus("login-status", error.message, "error"); return; }
@@ -1562,6 +1647,7 @@ $("clear-saved").addEventListener("click", () => {
   if (bridge()) bridge().clearSavedCredentials();
   savedPlaylistUrl = "";
   $("server").value = ""; $("username").value = ""; $("password").value = "";
+  $("m3u-url").value = "";
   $("remember").checked = false; $("clear-saved").hidden = true; setHttpWarning();
   setStatus("login-status", "Cuenta guardada eliminada.");
 });
@@ -1596,13 +1682,18 @@ try {
   const saved = readAccount(bridge()?.getSavedCredentials());
   if (saved.saved) {
     savedPlaylistUrl = saved.playlistUrl || "";
-    $("server").value = saved.server || "";
-    $("username").value = saved.username || "";
-    $("password").value = saved.password || "";
+    if (savedPlaylistUrl && !saved.username && String(saved.server || "").startsWith("m3u:")) {
+      $("m3u-url").value = savedPlaylistUrl;
+      setLoginMode("m3u");
+    } else {
+      $("server").value = saved.server || "";
+      $("username").value = saved.username || "";
+      $("password").value = saved.password || "";
+    }
     $("remember").checked = true;
     $("clear-saved").hidden = false;
     setHttpWarning();
-    setStatus("login-status", "Cuenta recordada en este dispositivo.");
+    setStatus("login-status", loginMode === "m3u" ? "Lista M3U recordada en este dispositivo." : "Cuenta recordada en este dispositivo.");
   }
 } catch { /* La versión web sin puente nativo no restaura credenciales. */ }
 

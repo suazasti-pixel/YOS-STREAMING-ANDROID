@@ -140,7 +140,7 @@ body.tv-remote .tab:focus-visible { transform: scale(1.025); }
   body.tv-remote .content-grid { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 18px; }
 }
 
-/* YOS Xtream LG 3.16: legibilidad y selección desde el sofá en pantallas de 65". */
+/* YOS Xtream LG 3.17: modo M3U/Xtream y controles Magic Remote. */
 body.tv-remote {
   font-size: clamp(22px, 1.2vw, 28px);
   line-height: 1.45;

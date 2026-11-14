@@ -331,3 +331,5 @@ body.tv-remote .status {
 body.tv-remote .brand-logo-window{flex-basis:68px;width:68px;height:64px}
 body.tv-remote .brand-wordmark{font-size:28px}
 body.tv-remote .brand-wordmark small{font-size:12px}
+body.tv-remote .source-switch{gap:12px;margin:22px 0}
+body.tv-remote .source-option{min-height:60px;font-size:17px;border-radius:12px}

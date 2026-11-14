@@ -6,24 +6,31 @@
 - Las contraseñas YOS se guardan como hash scrypt. Confirmar una renovación suma días solo después de la validación administrativa.
 - Es una versión independiente del APK/IPK: los clientes aún no consultan esta API. Requiere configurar PostgreSQL y un dominio HTTPS antes de desplegarla; no se publica una vigencia local ficticia.
 
-## YOS Membership UI 0.1.0 — vista adaptable de cuenta
+## YOS Membership UI 0.2.0 — acceso a Xtream o M3U
 
-- Se añadió una vista de demostración para ingreso YOS, estado del plan, fecha/días de vigencia, renovación pendiente y paso separado hacia Xtream.
+- Se añadió una vista de demostración para ingreso YOS, estado del plan, fecha/días de vigencia, renovación pendiente y paso separado hacia Xtream/M3U.
 - Se adapta a celular y escritorio/TV; el botón de ejemplo usa información ficticia. No conecta todavía los APK/IPK ni envía datos reales.
 - Artefacto de vista: `membership-api/client/index.html`.
+
+## YOS Xtream Android 2.22 y LG 3.17 — agregar lista M3U directa
+
+- La pantalla de conexión ofrece dos modos: Xtream o Lista M3U. En modo M3U se pega el enlace completo; la app lo descarga por sus puentes nativos de Android/webOS y organiza el contenido por secciones.
+- Android puede recordar el enlace usando almacenamiento cifrado. webOS mantiene su política de no guardar credenciales ni enlaces sensibles en el televisor.
+- Los controles de selección tienen foco amplio para Magic Remote. No se precarga una lista de terceros; el usuario ingresa una fuente autorizada.
+- Android `versionCode 27`, `versionName 2.22`: `YOS-2.22-XTREAM-ANDROID-APK`. LG `version 3.17.0`: `YOS-3.17-LG-webOS-IPK` y `YOS-3.17-LG-Instalador-Windows`.
 
 Estas son las tres ediciones principales que vamos a mantener y actualizar por separado:
 
 | Edición | Dispositivo | Instalador en GitHub Actions | Proyecto |
 |---|---|---|---|
 | **1.1** | Celular Android | `YOS-1.1-CELULAR-APK` | YOS Streaming, listas M3U |
-| **2.19** | Celular Android y Android TV Box | `YOS-2.19-XTREAM-ANDROID-APK` | YOS Xtream Android |
-| **3.16** | Televisor LG webOS | `YOS-3.16-LG-webOS-IPK` | YOS Xtream para webOS, controles grandes para Magic Remote en TV de 65 pulgadas |
+| **2.22** | Celular Android y Android TV Box | `YOS-2.22-XTREAM-ANDROID-APK` | YOS Xtream Android |
+| **3.17** | Televisor LG webOS | `YOS-3.17-LG-webOS-IPK` | YOS Xtream para webOS, M3U directa y controles Magic Remote |
 | **3.15** | Televisor LG webOS | `YOS-3.15-LG-webOS-IPK` | YOS Xtream para webOS |
 
 ## Regla de numeración
 
-Cada edición avanza por separado: celular **1.1 → 1.2 → 1.3**, Xtream Android **2.1 → 2.2 → 2.3 → 2.4 → 2.5 → 2.6 → 2.7 → 2.8 → 2.9 → 2.10 → 2.11 → 2.12 → 2.13 → 2.14 → 2.15 → 2.16 → 2.17 → 2.18 → 2.19 → 2.20 → 2.21** y LG webOS **3.1 → 3.2 → 3.3 → 3.4 → 3.5 → 3.6 → 3.7 → 3.8 → 3.9 → 3.10 → 3.11 → 3.12 → 3.13 → 3.14 → 3.15 → 3.16**. Cuando un cambio afecte varias ediciones, incrementaremos la serie de cada una de ellas. Así cada instalador y sus notas de cambios indicarán qué versión recibió la mejora.
+Cada edición avanza por separado: celular **1.1 → 1.2 → 1.3**, Xtream Android **2.1 → 2.2 → 2.3 → 2.4 → 2.5 → 2.6 → 2.7 → 2.8 → 2.9 → 2.10 → 2.11 → 2.12 → 2.13 → 2.14 → 2.15 → 2.16 → 2.17 → 2.18 → 2.19 → 2.20 → 2.21 → 2.22** y LG webOS **3.1 → 3.2 → 3.3 → 3.4 → 3.5 → 3.6 → 3.7 → 3.8 → 3.9 → 3.10 → 3.11 → 3.12 → 3.13 → 3.14 → 3.15 → 3.16 → 3.17**. Cuando un cambio afecte varias ediciones, incrementaremos la serie de cada una de ellas. Así cada instalador y sus notas de cambios indicarán qué versión recibió la mejora.
 
 ## YOS Xtream LG 3.16 — controles grandes para Magic Remote
 

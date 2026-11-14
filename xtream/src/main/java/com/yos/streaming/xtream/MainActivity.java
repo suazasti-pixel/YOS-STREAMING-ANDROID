@@ -21,12 +21,15 @@ import android.widget.FrameLayout;
 
 import androidx.webkit.WebViewAssetLoader;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -35,12 +38,16 @@ import java.security.KeyStore;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.FutureTask;
 import java.util.zip.GZIPInputStream;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
@@ -52,6 +59,12 @@ import android.security.keystore.KeyProperties;
 public class MainActivity extends Activity {
     private static final String KEY_ALIAS = "yos_xtream_credentials_v1";
     private static final String PREFS = "yos_xtream_secure_store";
+    private static final long MAX_M3U_BYTES = 50L * 1024 * 1024;
+    private static final int MAX_M3U_ITEMS = 20000;
+    private static final Pattern M3U_ATTRIBUTE_PATTERN = Pattern.compile("([\\w-]+)=\"([^\"]*)\"");
+    private static final Pattern M3U_EPISODE_PATTERN = Pattern.compile("s\\d{1,2}\\s*e\\d{1,2}", Pattern.CASE_INSENSITIVE);
+    private static final Pattern M3U_MOVIE_URL_PATTERN = Pattern.compile("\\.(mp4|mkv|avi|mov)(?:$|[?#])", Pattern.CASE_INSENSITIVE);
+    private static final Pattern M3U_EXTENSION_PATTERN = Pattern.compile("[a-z0-9]{1,8}", Pattern.CASE_INSENSITIVE);
     private static final Set<String> ACTIONS = new HashSet<>(Arrays.asList(
         "", "get_live_categories", "get_live_streams", "get_vod_categories",
         "get_vod_streams", "get_vod_info", "get_series_categories", "get_series", "get_series_info", "get_short_epg"
@@ -259,7 +272,7 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface public String downloadM3u(String rawUrl) {
             JSONObject result = new JSONObject();
-            try { result.put("ok", true).put("text", downloadM3uText(rawUrl)); }
+            try { result.put("ok", true).put("items", downloadM3uItems(rawUrl)); }
             catch (Exception error) {
                 try { result.put("ok", false).put("error", error.getMessage() == null ? "No se pudo descargar la lista." : error.getMessage()); }
                 catch (Exception ignored) { return "{\"ok\":false,\"error\":\"Error de red.\"}"; }
@@ -329,7 +342,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    private String downloadM3uText(String rawUrl) throws Exception {
+    private JSONArray downloadM3uItems(String rawUrl) throws Exception {
         if (rawUrl == null || rawUrl.length() > 8192) throw new IOException("La URL de la lista no es válida.");
         URL url = new URL(rawUrl);
         String originalHost = url.getHost();
@@ -352,19 +365,72 @@ public class MainActivity extends Activity {
                     continue;
                 }
                 if (status < 200 || status >= 300) throw new IOException("El servidor respondió HTTP " + status + " al descargar la lista M3U.");
-                try (InputStream input = new BufferedInputStream(connection.getInputStream()); ByteArrayOutputStream output = new ByteArrayOutputStream()) {
-                    byte[] buffer = new byte[8192]; int read;
-                    while ((read = input.read(buffer)) != -1) {
-                        if (output.size() + read > 20 * 1024 * 1024) throw new IOException("La lista supera el límite de 20 MB.");
-                        output.write(buffer, 0, read);
+                String contentLength = connection.getHeaderField("Content-Length");
+                if (contentLength != null) {
+                    try { if (Long.parseLong(contentLength) > MAX_M3U_BYTES) throw new IOException("La lista supera el límite de 50 MB."); }
+                    catch (NumberFormatException ignored) { }
+                }
+                try (InputStream input = new BufferedInputStream(connection.getInputStream());
+                     BufferedReader reader = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8), 32768)) {
+                    JSONArray items = new JSONArray();
+                    JSONObject current = null;
+                    long bytesRead = 0;
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        bytesRead += line.getBytes(StandardCharsets.UTF_8).length + 1L;
+                        if (bytesRead > MAX_M3U_BYTES) throw new IOException("La lista supera el límite de 50 MB.");
+                        line = line.trim();
+                        if (bytesRead <= 2 && line.startsWith("\uFEFF")) line = line.substring(1);
+                        if (line.startsWith("#EXTINF:")) {
+                            int comma = line.indexOf(',');
+                            String attributesText = comma >= 0 ? line.substring(0, comma) : line;
+                            Map<String, String> attributes = new HashMap<>();
+                            Matcher matcher = M3U_ATTRIBUTE_PATTERN.matcher(attributesText);
+                            while (matcher.find()) attributes.put(matcher.group(1).toLowerCase(Locale.ROOT), matcher.group(2));
+                            String tvgName = attributes.get("tvg-name");
+                            String name = comma >= 0 ? line.substring(comma + 1).trim() : (tvgName == null ? "Sin título" : tvgName);
+                            String category = attributes.get("group-title");
+                            if (category == null) category = attributes.get("category");
+                            if (category == null) category = "General";
+                            if (name.isEmpty()) name = tvgName == null ? "Sin título" : tvgName;
+                            current = new JSONObject().put("name", name).put("category_name", category)
+                                .put("stream_icon", attributes.containsKey("tvg-logo") ? attributes.get("tvg-logo") : "")
+                                .put("_kind", classifyM3uItem(name, category, "")).put("_m3u", true);
+                        } else if (current != null && (line.startsWith("http://") || line.startsWith("https://"))) {
+                            String name = current.optString("name", "Sin título");
+                            String category = current.optString("category_name", "General");
+                            String kind = classifyM3uItem(name, category, line);
+                            String id = String.valueOf(items.length() + 1);
+                            String extension = "";
+                            try {
+                                String path = new URL(line).getPath();
+                                int dot = path.lastIndexOf('.');
+                                if (dot >= 0 && dot < path.length() - 1) extension = path.substring(dot + 1).toLowerCase(Locale.ROOT);
+                            } catch (Exception ignored) { }
+                            if (!M3U_EXTENSION_PATTERN.matcher(extension).matches()) extension = "live".equals(kind) ? "m3u8" : "mp4";
+                            current.put("_kind", kind).put("stream_id", id).put("id", id)
+                                .put("category_id", category).put("container_extension", extension).put("url", line);
+                            if ("series".equals(kind)) current.put("series_id", id);
+                            items.put(current);
+                            current = null;
+                            if (items.length() > MAX_M3U_ITEMS) throw new IOException("La lista contiene más de 20.000 elementos; usa una lista filtrada o la conexión Xtream.");
+                        }
                     }
-                    String text = new String(output.toByteArray(), StandardCharsets.UTF_8);
-                    if (!text.contains("#EXTINF:")) throw new IOException("La respuesta no contiene una lista M3U válida.");
-                    return text;
+                    if (items.length() == 0) throw new IOException("La respuesta no contiene una lista M3U válida.");
+                    return items;
                 }
             } finally { connection.disconnect(); }
         }
         throw new IOException("No se pudo seguir la redirección de la lista.");
+    }
+
+    private static String classifyM3uItem(String name, String category, String streamUrl) {
+        String text = ((name == null ? "" : name) + " " + (category == null ? "" : category) + " " + (streamUrl == null ? "" : streamUrl)).toLowerCase(Locale.ROOT);
+        if (text.contains("series") || text.contains("serie") || text.contains("temporada") || text.contains("episodio") ||
+            text.contains("episode") || text.contains("season") || text.contains("tv show") || M3U_EPISODE_PATTERN.matcher(text).find()) return "series";
+        if (text.contains("movie") || text.contains("película") || text.contains("pelicula") || text.contains("cine") ||
+            text.contains("film") || text.contains("vod") || text.contains("pelis") || M3U_MOVIE_URL_PATTERN.matcher(text).find()) return "movie";
+        return "live";
     }
 
     private void validatePublicHttpUrl(URL url) throws Exception {

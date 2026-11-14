@@ -1,0 +1,10 @@
+{
+  "name": "yos-membership-api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "API de cuentas, vigencia y renovaciones para los proyectos YOS Streaming.",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": { "start": "node src/server.js" },
+  "dependencies": { "dotenv": "^16.4.7", "pg": "^8.13.1" }
+}

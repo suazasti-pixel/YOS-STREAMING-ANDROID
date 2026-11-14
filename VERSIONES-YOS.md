@@ -1,5 +1,11 @@
 # Versiones principales de YOS
 
+## YOS Membership API 0.1.0 — base de cuentas y vigencia
+
+- Se incorpora un servicio backend separado para cuentas YOS, sesiones revocables, consulta de vencimiento y solicitudes de renovación pendientes.
+- Las contraseñas YOS se guardan como hash scrypt. Confirmar una renovación suma días solo después de la validación administrativa.
+- Es una versión independiente del APK/IPK: los clientes aún no consultan esta API. Requiere configurar PostgreSQL y un dominio HTTPS antes de desplegarla; no se publica una vigencia local ficticia.
+
 Estas son las tres ediciones principales que vamos a mantener y actualizar por separado:
 
 | Edición | Dispositivo | Instalador en GitHub Actions | Proyecto |

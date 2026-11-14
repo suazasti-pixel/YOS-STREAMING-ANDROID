@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#080b10">
+  <title>Mi cuenta YOS</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="demo-ribbon" id="demo-ribbon"><span class="demo-dot"></span> VISTA DE DEMOSTRACIÓN · No usa ni guarda credenciales reales</div>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="YOS Streaming inicio"><span class="brand-mark">Y</span><span class="brand-word">YOS <small>STREAMING</small></span></a>
+    <div class="topbar-right"><span class="secure-label"><span class="secure-dot"></span> Acceso seguro</span><button id="logout" class="quiet-button" hidden>Cerrar sesión</button></div>
+  </header>
+
+  <main>
+    <section id="login-view" class="login-layout">
+      <div class="login-intro">
+        <span class="eyebrow">TU ENTRETENIMIENTO, EN TU CUENTA</span>
+        <h1>Todo YOS,<br><span>en un solo lugar.</span></h1>
+        <p>Consulta tu plan y vigencia, solicita una renovación y luego conecta los datos Xtream de tu proveedor.</p>
+        <div class="login-points"><span>✓ Tu vigencia se valida en línea</span><span>✓ Renovación con confirmación</span><span>✓ Tus datos Xtream van por separado</span></div>
+      </div>
+      <form id="login-form" class="panel login-card">
+        <span class="eyebrow">BIENVENIDO A YOS</span>
+        <h2>Inicia sesión</h2>
+        <p class="muted">Usa el correo y la contraseña de tu cuenta YOS.</p>
+        <label for="email">Correo electrónico</label>
+        <input id="email" name="email" type="email" placeholder="tu@correo.com" autocomplete="username" required>
+        <label for="password">Contraseña</label>
+        <input id="password" name="password" type="password" placeholder="Tu contraseña YOS" autocomplete="current-password" required>
+        <button class="primary-button" type="submit">INICIAR SESIÓN <span aria-hidden="true">→</span></button>
+        <button id="demo-login" class="demo-button" type="button">VER VISTA DE EJEMPLO</button>
+        <p id="login-message" class="message" role="status" aria-live="polite"></p>
+        <p class="microcopy">La cuenta YOS administra tu acceso. No es el usuario ni la contraseña de tu proveedor Xtream.</p>
+      </form>
+    </section>
+
+    <section id="account-view" class="account-layout" hidden>
+      <div class="page-heading"><div><span class="eyebrow">ÁREA DE CLIENTE</span><h1>Hola, <span id="account-name">usuario</span></h1><p class="muted">Aquí puedes revisar tu plan YOS y administrar tu acceso.</p></div><span id="plan-chip" class="plan-chip">YOS STREAMING</span></div>
+      <div class="dashboard-grid">
+        <div class="main-column">
+          <article id="expiry-card" class="panel expiry-card">
+            <div class="expiry-copy"><span id="state-label" class="state-label"><i></i> MEMBRESÍA ACTIVA</span><h2 id="expiry-title">Tu acceso está activo</h2><p id="expiry-description">Tu cuenta está lista para continuar.</p><div class="expiry-date"><span class="calendar-icon">▦</span><span>Vigente hasta <strong id="expiry-date">—</strong></span></div></div>
+            <div class="days-circle"><strong id="days-left">—</strong><span>días<br>restantes</span></div>
+          </article>
+
+          <section class="section-heading"><div><span class="eyebrow">SIGUIENTE PASO</span><h2>Tu contenido</h2></div></section>
+          <article class="panel provider-card">
+            <span class="provider-icon">▶</span><div class="provider-copy"><h3>Conecta tu proveedor Xtream</h3><p>El servidor, usuario y contraseña Xtream se ingresan aparte. YOS no los confunde con tu cuenta de membresía.</p></div><button id="continue-xtream" class="secondary-button">CONTINUAR <span aria-hidden="true">→</span></button>
+          </article>
+          <div id="xtream-info" class="xtream-info" hidden><span class="eyebrow">ACCESO XTREAM</span><p>En la app, este paso abre el formulario Xtream que ya tienes. Este prototipo solo muestra el recorrido; aún no envía credenciales al proveedor.</p><button id="back-account" class="text-button">Volver a mi cuenta</button></div>
+        </div>
+
+        <aside class="side-column">
+          <article class="panel renewal-card"><span class="eyebrow">RENOVACIÓN</span><div class="renewal-symbol">↻</div><h2>¿Quieres continuar?</h2><p id="renewal-description">Solicita renovar tu plan por 30 días. El acceso se actualiza cuando el pago esté confirmado.</p><button id="renew" class="primary-button">SOLICITAR RENOVACIÓN</button><p id="renewal-message" class="message" role="status" aria-live="polite"></p><div class="renewal-foot"><span>●</span> Confirmación antes de activar</div></article>
+          <article class="panel account-card"><span class="eyebrow">TU CUENTA</span><div class="account-avatar" id="avatar">Y</div><strong id="account-email">usuario@ejemplo.com</strong><span id="account-status" class="muted small">Plan activo</span><div class="account-divider"></div><div class="support-row"><span>¿Necesitas ayuda?</span><a href="https://wa.me/573124610877" target="_blank" rel="noreferrer">Contactar soporte ↗</a></div></article>
+        </aside>
+      </div>
+      <footer class="footer-note">La membresía YOS y la vigencia del proveedor IPTV son servicios distintos.</footer>
+    </section>
+  </main>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

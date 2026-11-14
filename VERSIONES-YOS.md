@@ -6,6 +6,12 @@
 - Las contraseñas YOS se guardan como hash scrypt. Confirmar una renovación suma días solo después de la validación administrativa.
 - Es una versión independiente del APK/IPK: los clientes aún no consultan esta API. Requiere configurar PostgreSQL y un dominio HTTPS antes de desplegarla; no se publica una vigencia local ficticia.
 
+## YOS Membership UI 0.1.0 — vista adaptable de cuenta
+
+- Se añadió una vista de demostración para ingreso YOS, estado del plan, fecha/días de vigencia, renovación pendiente y paso separado hacia Xtream.
+- Se adapta a celular y escritorio/TV; el botón de ejemplo usa información ficticia. No conecta todavía los APK/IPK ni envía datos reales.
+- Artefacto de vista: `membership-api/client/index.html`.
+
 Estas son las tres ediciones principales que vamos a mantener y actualizar por separado:
 
 | Edición | Dispositivo | Instalador en GitHub Actions | Proyecto |

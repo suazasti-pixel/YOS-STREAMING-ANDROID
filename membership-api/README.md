@@ -10,6 +10,10 @@ Base técnica de cuentas YOS separada de los datos Xtream del proveedor. La API 
 - Ejecutar `npm install` y `npm start` dentro de esta carpeta.
 - Antes de publicar, poner la API detrás de HTTPS, proteger PostgreSQL y limitar el acceso administrativo a un entorno controlado.
 
+## Vista cliente
+
+`client/index.html` contiene un prototipo adaptable a celular y TV, conectado al contrato de esta API cuando `client/config.js` recibe la URL HTTPS. Sin esa URL, **VER VISTA DE EJEMPLO** enseña la pantalla con información ficticia; no autentica ni guarda credenciales. Ábrelo en Chrome para revisar la propuesta visual. Al integrar en Android y webOS se reutilizará el diseño respetando la navegación y formularios Xtream existentes.
+
 ## Rutas
 
 - `POST /v1/auth/login` — `{ "email", "password" }`; devuelve un token, `account.accessAllowed`, `account.expiresAt` y aviso calculado por el servidor (`expiryNotice`: `upcoming` hasta 7 días, `soon` hasta 3, `urgent` hasta 1). Un usuario vencido aún puede consultar su estado y pedir renovación.

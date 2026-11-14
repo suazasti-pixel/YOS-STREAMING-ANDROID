@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#07090d">
   <title>YOS Xtream</title>
-  <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="tv.css">
+  <link rel="stylesheet" href="styles.css?v=28">
+  <link rel="stylesheet" href="tv.css?v=28">
 </head>
 <body>
   <header class="topbar">
@@ -44,28 +44,13 @@
             <input id="m3u-url" name="m3u-url" type="url" inputmode="url" placeholder="https://servidor.com/lista.m3u" autocomplete="url" disabled>
             <small class="fine-print">Pega el enlace completo autorizado de tu lista. La app la descargará y organizará por categorías.</small>
           </div>
-          <label class="remember"><input id="remember" type="checkbox"><span>Recordar esta cuenta en este dispositivo</span></label>
+          <label class="remember"><input id="remember" type="checkbox" checked><span>Mantener sesión en este dispositivo</span></label>
           <p id="http-warning" class="warning" hidden>Este enlace usa HTTP sin cifrado. Si tu proveedor ofrece HTTPS, úsalo.</p>
           <button id="login-button" class="button primary" type="submit">INICIAR SESIÓN</button>
         </form>
-        <section id="account-profiles" class="account-profiles" hidden aria-label="Cuentas guardadas">
-          <span class="eyebrow">ACCESO RÁPIDO</span>
-          <label for="profile-picker">Cuentas Xtream guardadas</label>
-          <select id="profile-picker"><option value="">Selecciona una cuenta</option></select>
-          <label for="profile-name">Nombre del perfil</label>
-          <input id="profile-name" type="text" maxlength="48" placeholder="Ej.: Deportes">
-          <div class="profile-actions">
-            <button id="profile-use" class="button primary" type="button" disabled>CONECTAR</button>
-            <button id="profile-save" class="button" type="button">GUARDAR COMO PERFIL</button>
-            <button id="profile-update" class="button" type="button" disabled>ACTUALIZAR PERFIL</button>
-            <button id="profile-delete" class="button" type="button" disabled>ELIMINAR PERFIL</button>
-          </div>
-          <p id="profile-status" class="status" role="status" aria-live="polite"></p>
-          <p class="fine-print">Los perfiles se guardan en el almacenamiento local de esta app en este TV. No compartas el paquete personal que trae una cuenta preconfigurada.</p>
-        </section>
         <button id="clear-saved" class="text-button" type="button" hidden>Quitar cuenta guardada</button>
         <p id="login-status" class="status" role="status" aria-live="polite"></p>
-        <p class="fine-print">Las credenciales recordadas se cifran en este dispositivo. Se envían al servidor que escribas al iniciar sesión.</p>
+        <p class="fine-print">En Android, la cuenta se cifra en el dispositivo y se reconecta automáticamente. En webOS no se guardan las credenciales.</p>
       </div>
     </section>
 
@@ -148,6 +133,6 @@
     <div id="diagnostics-result" class="diagnostics-result" role="status" aria-live="polite">Pulsa para revisar la conexión.</div>
     <button id="diagnostics-run" class="button primary" type="button">REVISAR CONEXIÓN</button>
   </dialog>
-  <script src="app.js"></script>
+  <script src="app.js?v=28"></script>
 </body>
 </html>

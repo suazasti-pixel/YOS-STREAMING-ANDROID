@@ -1,5 +1,8 @@
 import "dotenv/config";
 import http from "node:http";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { createHash, randomBytes, scrypt as scryptCallback, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import pg from "pg";
@@ -10,8 +13,21 @@ const port = Number(process.env.PORT || 8787);
 const sessionHours = Math.min(168, Math.max(1, Number(process.env.SESSION_HOURS || 24)));
 const attemptsLimit = Math.max(3, Number(process.env.LOGIN_ATTEMPTS_PER_15_MIN || 10));
 const allowedOrigins = new Set(String(process.env.ALLOWED_ORIGINS || "").split(",").map(value => value.trim()).filter(Boolean));
-const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: process.env.PGSSLMODE === "require" ? { rejectUnauthorized: true } : undefined });
+const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: process.env.PGSSLMODE === "require" ? { rejectUnauthorized: false } : undefined });
 const loginAttempts = new Map();
+const apiDir = path.dirname(fileURLToPath(import.meta.url));
+const staticFiles = new Map([
+  ["/", ["../client/index.html", "text/html; charset=utf-8"]],
+  ["/client", ["../client/index.html", "text/html; charset=utf-8"]],
+  ["/client/", ["../client/index.html", "text/html; charset=utf-8"]],
+  ["/client/app.js", ["../client/app.js", "text/javascript; charset=utf-8"]],
+  ["/client/styles.css", ["../client/styles.css", "text/css; charset=utf-8"]],
+  ["/client/config.js", ["../client/config.js", "text/javascript; charset=utf-8"]],
+  ["/admin", ["../admin/index.html", "text/html; charset=utf-8"]],
+  ["/admin/", ["../admin/index.html", "text/html; charset=utf-8"]],
+  ["/admin/app.js", ["../admin/app.js", "text/javascript; charset=utf-8"]],
+  ["/admin/styles.css", ["../admin/styles.css", "text/css; charset=utf-8"]]
+]);
 
 function json(res, status, body) {
   res.writeHead(status, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", "x-content-type-options": "nosniff", "referrer-policy": "no-referrer" });
@@ -25,7 +41,7 @@ function applyCors(req, res) {
   res.setHeader("access-control-allow-origin", origin);
   res.setHeader("vary", "Origin");
   res.setHeader("access-control-allow-headers", "Authorization, Content-Type, X-YOS-Admin-Key");
-  res.setHeader("access-control-allow-methods", "GET, POST, OPTIONS");
+  res.setHeader("access-control-allow-methods", "GET, POST, PATCH, OPTIONS");
   return true;
 }
 
@@ -41,8 +57,16 @@ async function readBody(req) {
 
 const sha256 = value => createHash("sha256").update(value).digest("hex");
 const normalizeEmail = value => String(value || "").trim().toLowerCase();
+const normalizeIdentifier = value => String(value || "").trim().toLowerCase();
 const authToken = req => /^Bearer\s+(.+)$/i.exec(req.headers.authorization || "")?.[1] || "";
 const isAdmin = req => Boolean(process.env.YOS_ADMIN_KEY) && timingSafeEqual(Buffer.from(sha256(req.headers["x-yos-admin-key"] || "")), Buffer.from(sha256(process.env.YOS_ADMIN_KEY)));
+
+async function audit(req, { userId = null, identifier = "", event, details = {} }) {
+  await pool.query(`INSERT INTO yos_access_events(user_id, identifier, event, device_id, ip_address, user_agent, details)
+    VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb)`, [userId, String(identifier).slice(0, 180) || "unknown", event,
+    String(req.headers["x-yos-device-id"] || "").slice(0, 160) || null,
+    req.socket.remoteAddress || null, String(req.headers["user-agent"] || "").slice(0, 300) || null, JSON.stringify(details)]);
+}
 
 async function hashPassword(password) {
   const salt = randomBytes(16);
@@ -72,7 +96,7 @@ function enforceLoginRateLimit(req) {
 async function currentUser(req) {
   const token = authToken(req);
   if (!token || token.length > 256) return null;
-  const result = await pool.query(`SELECT u.id, u.email, u.status AS user_status,
+  const result = await pool.query(`SELECT u.id, u.email, u.username, u.status AS user_status,
       s.plan_name, s.starts_at, s.expires_at,
       (u.status = 'active' AND s.expires_at > now()) AS access_allowed,
       CASE WHEN s.expires_at IS NULL THEN NULL ELSE GREATEST(0, CEIL(EXTRACT(EPOCH FROM (s.expires_at - now())) / 86400))::integer END AS days_remaining
@@ -87,6 +111,7 @@ const toAccount = row => {
   const daysRemaining = row.days_remaining == null ? null : Number(row.days_remaining);
   return {
     email: row.email,
+    username: row.username || row.email || null,
     status: row.user_status,
     plan: row.plan_name || null,
     startsAt: row.starts_at || null,
@@ -101,6 +126,18 @@ async function route(req, res) {
   if (!applyCors(req, res)) return json(res, 403, { error: "Origen no permitido." });
   if (req.method === "OPTIONS") { res.writeHead(204); return res.end(); }
   const url = new URL(req.url, "http://localhost");
+  if (req.method === "GET" && staticFiles.has(url.pathname)) {
+    const [relativeFile, contentType] = staticFiles.get(url.pathname);
+    const body = await readFile(path.resolve(apiDir, relativeFile));
+    res.writeHead(200, {
+      "content-type": contentType,
+      "cache-control": "no-store",
+      "x-content-type-options": "nosniff",
+      "referrer-policy": "no-referrer",
+      "content-security-policy": "default-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; connect-src 'self'"
+    });
+    return res.end(body);
+  }
   if (req.method === "GET" && url.pathname === "/health") {
     await pool.query("SELECT 1");
     return json(res, 200, { ok: true });
@@ -109,19 +146,42 @@ async function route(req, res) {
   if (req.method === "POST" && url.pathname === "/v1/auth/login") {
     enforceLoginRateLimit(req);
     const body = await readBody(req);
-    const email = normalizeEmail(body.email);
+    const identifier = normalizeIdentifier(body.username || body.email || body.identifier);
     const password = String(body.password || "");
-    if (!email || password.length < 1 || password.length > 1024) return json(res, 400, { error: "Ingresa correo y contraseña." });
+    if (!identifier || password.length < 1 || password.length > 1024) return json(res, 400, { error: "Ingresa usuario y contraseña." });
     const result = await pool.query(`SELECT u.id, u.email, u.password_hash, u.status AS user_status,
-        s.plan_name, s.starts_at, s.expires_at,
+        u.username, s.plan_name, s.starts_at, s.expires_at, s.activated_at, s.duration_days,
         (u.status = 'active' AND s.expires_at > now()) AS access_allowed,
         CASE WHEN s.expires_at IS NULL THEN NULL ELSE GREATEST(0, CEIL(EXTRACT(EPOCH FROM (s.expires_at - now())) / 86400))::integer END AS days_remaining
-      FROM yos_users u LEFT JOIN yos_subscriptions s ON s.user_id = u.id WHERE u.email = $1`, [email]);
+      FROM yos_users u LEFT JOIN yos_subscriptions s ON s.user_id = u.id WHERE lower(u.email) = $1 OR lower(u.username) = $1 LIMIT 1`, [identifier]);
     const row = result.rows[0];
-    if (!row || !(await checkPassword(password, row.password_hash))) return json(res, 401, { error: "Correo o contraseña incorrectos." });
-    if (row.user_status !== "active") return json(res, 403, { error: "Cuenta suspendida. Contacta al administrador." });
+    if (!row || !(await checkPassword(password, row.password_hash))) {
+      await audit(req, { userId: row?.id || null, identifier, event: "login_failed" });
+      return json(res, 401, { error: "Usuario o contraseña incorrectos." });
+    }
+    if (row.user_status !== "active") {
+      await audit(req, { userId: row.id, identifier, event: "login_suspended" });
+      return json(res, 403, { error: "Cuenta suspendida. Contacta al administrador." });
+    }
+    if (!row.activated_at) {
+      const activated = await pool.query(`UPDATE yos_subscriptions SET activated_at = now(), starts_at = now(),
+          expires_at = now() + (duration_days * interval '1 day'), updated_at = now()
+        WHERE user_id = $1 AND activated_at IS NULL RETURNING starts_at, expires_at, duration_days`, [row.id]);
+      if (activated.rowCount) Object.assign(row, { starts_at: activated.rows[0].starts_at, expires_at: activated.rows[0].expires_at, duration_days: activated.rows[0].duration_days, activated_at: activated.rows[0].starts_at });
+      else {
+        const fresh = await pool.query("SELECT starts_at, expires_at, duration_days, activated_at FROM yos_subscriptions WHERE user_id = $1", [row.id]);
+        Object.assign(row, fresh.rows[0] || {});
+      }
+    }
+    if (!row.expires_at || new Date(row.expires_at).getTime() <= Date.now()) {
+      await audit(req, { userId: row.id, identifier, event: "login_expired" });
+      return json(res, 403, { error: "La suscripción venció. Contacta al administrador para renovarla.", account: toAccount(row) });
+    }
+    row.access_allowed = true;
+    if (row.days_remaining == null) row.days_remaining = Math.max(0, Math.ceil((new Date(row.expires_at).getTime() - Date.now()) / 86400000));
     const token = randomBytes(32).toString("base64url");
     await pool.query("INSERT INTO yos_sessions(token_hash, user_id, expires_at) VALUES ($1, $2, now() + ($3 * interval '1 hour'))", [sha256(token), row.id, sessionHours]);
+    await audit(req, { userId: row.id, identifier, event: "login_success" });
     return json(res, 200, { token, account: toAccount(row), sessionExpiresIn: sessionHours * 3600 });
   }
 
@@ -148,7 +208,10 @@ async function route(req, res) {
 
   if (req.method === "POST" && url.pathname === "/v1/auth/logout") {
     const token = authToken(req);
-    if (token) await pool.query("UPDATE yos_sessions SET revoked_at = now() WHERE token_hash = $1 AND revoked_at IS NULL", [sha256(token)]);
+    if (token) {
+      const session = await pool.query("UPDATE yos_sessions SET revoked_at = now() WHERE token_hash = $1 AND revoked_at IS NULL RETURNING user_id", [sha256(token)]);
+      if (session.rowCount) await audit(req, { userId: session.rows[0].user_id, identifier: session.rows[0].user_id, event: "logout" });
+    }
     return json(res, 200, { ok: true });
   }
 
@@ -156,23 +219,86 @@ async function route(req, res) {
     if (!isAdmin(req)) return json(res, 401, { error: "No autorizado." });
     const body = await readBody(req);
     const email = normalizeEmail(body.email);
+    const username = normalizeIdentifier(body.username || (body.email ? String(body.email).split("@")[0] : ""));
     const password = String(body.password || "");
     const days = Number(body.days || 30);
     const plan = String(body.plan || "YOS Streaming").slice(0, 80);
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || password.length < 12 || password.length > 1024 || !Number.isInteger(days) || days < 1 || days > 366) {
-      return json(res, 400, { error: "Correo válido, contraseña de al menos 12 caracteres y duración de 1 a 366 días requeridos." });
+    if (!/^[a-z0-9._-]{3,40}$/.test(username) || (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) || password.length < 12 || password.length > 1024 || !Number.isInteger(days) || days < 1 || days > 366) {
+      return json(res, 400, { error: "Usuario de 3 a 40 caracteres (letras, números, punto, guion o _), correo opcional válido, contraseña de al menos 12 caracteres y duración de 1 a 366 días requeridos." });
     }
     const passwordHash = await hashPassword(password);
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
-      const user = await client.query("INSERT INTO yos_users(email, password_hash) VALUES ($1, $2) RETURNING id, email", [email, passwordHash]);
-      const subscription = await client.query("INSERT INTO yos_subscriptions(user_id, plan_name, expires_at) VALUES ($1, $2, now() + ($3 * interval '1 day')) RETURNING expires_at", [user.rows[0].id, plan, days]);
+      const user = await client.query("INSERT INTO yos_users(email, username, password_hash) VALUES ($1, $2, $3) RETURNING id, email, username, status", [email || null, username, passwordHash]);
+      const subscription = await client.query("INSERT INTO yos_subscriptions(user_id, plan_name, duration_days) VALUES ($1, $2, $3) RETURNING duration_days", [user.rows[0].id, plan, days]);
+      await client.query("INSERT INTO yos_access_events(user_id, identifier, event, details) VALUES ($1, $2, 'admin_update', $3::jsonb)", [user.rows[0].id, username, JSON.stringify({ action: "created", durationDays: days })]);
       await client.query("COMMIT");
-      return json(res, 201, { user: user.rows[0], plan, expiresAt: subscription.rows[0].expires_at });
+      return json(res, 201, { user: user.rows[0], plan, activationRequired: true, durationDays: subscription.rows[0].duration_days, message: "Los 30 días comienzan en el primer inicio de sesión correcto." });
     } catch (error) {
       await client.query("ROLLBACK");
-      if (error.code === "23505") return json(res, 409, { error: "Ya existe una cuenta con ese correo." });
+      if (error.code === "23505") return json(res, 409, { error: "Ya existe ese usuario o correo." });
+      throw error;
+    } finally { client.release(); }
+  }
+
+  if (req.method === "GET" && url.pathname === "/v1/admin/users") {
+    if (!isAdmin(req)) return json(res, 401, { error: "No autorizado." });
+    const result = await pool.query(`SELECT u.id, u.username, u.email, u.status, u.created_at,
+        s.plan_name, s.activated_at, s.starts_at, s.expires_at, s.duration_days,
+        (s.activated_at IS NULL) AS activation_pending,
+        (SELECT max(e.created_at) FROM yos_access_events e WHERE e.user_id = u.id AND e.event = 'login_success') AS last_login,
+        (SELECT count(*)::integer FROM yos_sessions x WHERE x.user_id = u.id AND x.revoked_at IS NULL AND x.expires_at > now()) AS active_sessions
+      FROM yos_users u LEFT JOIN yos_subscriptions s ON s.user_id = u.id ORDER BY u.created_at DESC LIMIT 500`);
+    return json(res, 200, { users: result.rows });
+  }
+
+  if (req.method === "GET" && url.pathname === "/v1/admin/events") {
+    if (!isAdmin(req)) return json(res, 401, { error: "No autorizado." });
+    const limit = Math.min(200, Math.max(1, Number(url.searchParams.get("limit") || 100)));
+    const result = await pool.query(`SELECT e.id, e.user_id, e.identifier, e.event, e.device_id, e.ip_address, e.user_agent, e.details, e.created_at
+      FROM yos_access_events e ORDER BY e.created_at DESC LIMIT $1`, [limit]);
+    return json(res, 200, { events: result.rows });
+  }
+
+  const userAdminMatch = /^\/v1\/admin\/users\/([0-9a-f-]+)$/i.exec(url.pathname);
+  if (req.method === "PATCH" && userAdminMatch) {
+    if (!isAdmin(req)) return json(res, 401, { error: "No autorizado." });
+    const body = await readBody(req);
+    const userId = userAdminMatch[1];
+    const current = await pool.query("SELECT id, username, email, status FROM yos_users WHERE id = $1", [userId]);
+    if (!current.rowCount) return json(res, 404, { error: "Usuario no encontrado." });
+    const username = body.username === undefined ? current.rows[0].username : normalizeIdentifier(body.username);
+    const email = body.email === undefined ? current.rows[0].email : normalizeEmail(body.email) || null;
+    const status = body.status === undefined ? current.rows[0].status : String(body.status);
+    const days = body.days === undefined ? null : Number(body.days);
+    const expiresAt = body.expiresAt === undefined ? undefined : new Date(body.expiresAt);
+    const password = body.password === undefined ? "" : String(body.password);
+    if (!/^[a-z0-9._-]{3,40}$/.test(username) || (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) || !["active", "suspended"].includes(status) || (days !== null && (!Number.isInteger(days) || days < 1 || days > 366)) || (expiresAt !== undefined && Number.isNaN(expiresAt.getTime())) || (password && (password.length < 12 || password.length > 1024))) {
+      return json(res, 400, { error: "Revisa usuario, correo, estado, vencimiento y contraseña (mínimo 12 caracteres)." });
+    }
+    const passwordHash = password ? await hashPassword(password) : null;
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      await client.query(`UPDATE yos_users SET username = $2, email = $3, status = $4,
+        password_hash = COALESCE($5, password_hash) WHERE id = $1`, [userId, username, email, status, passwordHash]);
+      if (days !== null) await client.query(`UPDATE yos_subscriptions SET duration_days = $2,
+          activated_at = COALESCE(activated_at, now()), starts_at = COALESCE(starts_at, now()),
+          expires_at = GREATEST(COALESCE(expires_at, now()), now()) + ($2 * interval '1 day'), updated_at = now()
+        WHERE user_id = $1`, [userId, days]);
+      if (expiresAt !== undefined) await client.query("UPDATE yos_subscriptions SET activated_at = COALESCE(activated_at, now()), starts_at = COALESCE(starts_at, now()), expires_at = $2, updated_at = now() WHERE user_id = $1", [userId, expiresAt.toISOString()]);
+      if (password || username !== current.rows[0].username || status !== "active") {
+        await client.query("UPDATE yos_sessions SET revoked_at = now() WHERE user_id = $1 AND revoked_at IS NULL", [userId]);
+      }
+      await client.query("INSERT INTO yos_access_events(user_id, identifier, event, details) VALUES ($1, $2, $3, $4::jsonb)", [userId, username, status === "suspended" ? "admin_suspend" : "admin_update", JSON.stringify({ usernameChanged: username !== current.rows[0].username, passwordChanged: Boolean(password), status })]);
+      await client.query("COMMIT");
+      const saved = await pool.query(`SELECT u.id, u.username, u.email, u.status, s.plan_name, s.activated_at, s.expires_at, s.duration_days
+        FROM yos_users u LEFT JOIN yos_subscriptions s ON s.user_id = u.id WHERE u.id = $1`, [userId]);
+      return json(res, 200, { user: saved.rows[0] });
+    } catch (error) {
+      await client.query("ROLLBACK");
+      if (error.code === "23505") return json(res, 409, { error: "Ya existe ese usuario o correo." });
       throw error;
     } finally { client.release(); }
   }

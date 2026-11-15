@@ -33,9 +33,9 @@ function renderAccount(data) {
   const expiryCard = $("expiry-card");
   expiryCard.classList.toggle("warning", active && days !== null && days <= 7);
   expiryCard.classList.toggle("expired", !active);
-  $("account-name").textContent = (data.email || "usuario").split("@")[0];
-  $("account-email").textContent = data.email || "Cuenta YOS";
-  $("avatar").textContent = (data.email || "Y").trim().charAt(0).toUpperCase();
+  $("account-name").textContent = data.username || (data.email || "usuario").split("@")[0];
+  $("account-email").textContent = data.username || data.email || "Cuenta YOS";
+  $("avatar").textContent = (data.username || data.email || "Y").trim().charAt(0).toUpperCase();
   $("plan-chip").textContent = data.plan || "YOS STREAMING";
   $("expiry-date").textContent = dateLabel(data.expiresAt);
   $("days-left").textContent = days === null ? "—" : String(days);
@@ -72,7 +72,7 @@ $("login-form").addEventListener("submit", async event => {
   button.disabled = true;
   setMessage("login-message", "Validando tu cuenta…");
   try {
-    const result = await api("/v1/auth/login", { method: "POST", body: JSON.stringify({ email: $("email").value, password: $("password").value }) });
+    const result = await api("/v1/auth/login", { method: "POST", body: JSON.stringify({ username: $("email").value, password: $("password").value }) });
     token = result.token;
     sessionStorage.setItem("yos-membership-token", token);
     demoMode = false;

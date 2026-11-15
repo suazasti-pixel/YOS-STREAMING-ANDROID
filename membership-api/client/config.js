@@ -1,2 +1,2 @@
-// Configura aquí la URL HTTPS del backend al integrar esta vista en producción.
-window.YOS_MEMBERSHIP_API_BASE = "";
+// La vista servida junto al backend usa automáticamente el mismo origen HTTPS.
+window.YOS_MEMBERSHIP_API_BASE = location.origin;

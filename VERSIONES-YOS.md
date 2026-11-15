@@ -1,5 +1,18 @@
 # Versiones principales de YOS
 
+## YOS-Xuper Android 1.6 — menor espera al inicio
+
+- La pantalla de carga de marca deja de bloquear la vista por hasta 25 segundos y se retira como máximo a los 7 segundos si el catálogo de inicio tarda en aparecer.
+- Se conserva el logo YOS y la firma de la serie 1.x para actualizar la instalación 1.5 sin borrar sus datos.
+- Android `versionCode 43518`, `versionName 4.34.15`; artefacto `YOS-Xuper-1.6-Android.apk` para celular y TV Box.
+- El backend YOS Membership se amplió con activación de 30 días en el primer inicio, auditoría, cambios de usuario/clave, expiración y suspensión. El APK Xuper aún requiere conectar la API publicada por HTTPS para aplicar el acceso en el reproductor.
+
+## YOS Membership API 0.2.0 — activación y control administrativo
+
+- La duración de un plan inicia en el primer ingreso válido; el API deja de crear planes con el reloj de 30 días corriendo desde el momento en que el administrador genera la cuenta.
+- El panel permite crear cuentas, cambiar usuario y contraseña, editar vencimiento, suspender, ver sesiones activas y revisar accesos correctos/fallidos.
+- Implementación en `membership-api`; necesita PostgreSQL y dominio HTTPS antes de conectar las aplicaciones.
+
 ## YOS Membership API 0.1.0 — base de cuentas y vigencia
 
 - Se incorpora un servicio backend separado para cuentas YOS, sesiones revocables, consulta de vencimiento y solicitudes de renovación pendientes.

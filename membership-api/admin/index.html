@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Administración · YOS Membership</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header><span class="eyebrow">YOS STREAMING</span><h1>Administración de suscripciones</h1><p>Usuarios, vigencias y registro de accesos.</p></header>
+    <section class="panel" id="auth-panel">
+      <h2>Conectar con la API</h2>
+      <label>URL HTTPS de la API<input id="api-url" type="url" placeholder="https://api.tudominio.com" autocomplete="url"></label>
+      <label>Clave administrativa<input id="admin-key" type="password" autocomplete="current-password"></label>
+      <button id="connect">CONECTAR</button><p id="status" role="status"></p>
+    </section>
+    <div id="dashboard" hidden>
+      <section class="panel">
+        <h2>Crear cuenta</h2><p class="muted">La vigencia comienza en el primer inicio de sesión correcto.</p>
+        <form id="create-form" class="form-grid">
+          <label>Usuario<input name="username" required minlength="3" maxlength="40" autocomplete="off"></label>
+          <label>Correo (opcional)<input name="email" type="email" autocomplete="off"></label>
+          <label>Contraseña inicial<input name="password" type="password" required minlength="12" autocomplete="new-password"></label>
+          <label>Días de suscripción<input name="days" type="number" min="1" max="366" value="30" required></label>
+          <label>Plan<input name="plan" value="YOS Streaming" maxlength="80"></label>
+          <button>CREAR CUENTA</button>
+        </form>
+      </section>
+      <section class="panel">
+        <div class="section-title"><h2>Cuentas</h2><button class="secondary" id="reload">ACTUALIZAR</button></div>
+        <div class="table-wrap"><table><thead><tr><th>Usuario</th><th>Estado</th><th>Vence</th><th>Último acceso</th><th>Sesiones</th><th></th></tr></thead><tbody id="users"></tbody></table></div>
+      </section>
+      <section class="panel" id="edit-panel" hidden>
+        <h2>Editar cuenta</h2>
+        <form id="edit-form" class="form-grid">
+          <input name="id" type="hidden">
+          <label>Usuario<input name="username" required minlength="3" maxlength="40"></label>
+          <label>Correo<input name="email" type="email"></label>
+          <label>Nueva contraseña (opcional)<input name="password" type="password" minlength="12" autocomplete="new-password"></label>
+          <label>Estado<select name="status"><option value="active">Activa</option><option value="suspended">Suspendida</option></select></label>
+          <label>Extender días (opcional)<input name="days" type="number" min="1" max="366" placeholder="No cambiar"></label>
+          <label>Fijar vencimiento (opcional)<input name="expiresAt" type="datetime-local"></label>
+          <button>GUARDAR CAMBIOS</button><button class="secondary" type="button" id="cancel-edit">CANCELAR</button>
+        </form><p class="muted">Cambiar usuario, clave o suspender la cuenta revoca sus sesiones abiertas.</p>
+      </section>
+      <section class="panel">
+        <div class="section-title"><h2>Actividad reciente</h2><button class="secondary" id="reload-events">ACTUALIZAR</button></div>
+        <div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Usuario</th><th>Evento</th><th>Dispositivo</th><th>IP</th></tr></thead><tbody id="events"></tbody></table></div>
+      </section>
+      <button class="secondary" id="disconnect">DESCONECTAR</button>
+    </div>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

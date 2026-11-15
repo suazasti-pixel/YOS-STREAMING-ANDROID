@@ -236,3 +236,46 @@ body.tv-remote .yos-lg-player footer span { font-size: 24px; }
   body.tv-remote .search-box { min-width: 300px; }
   body.tv-remote .content-grid { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
 }
+
+/* 3.21: formulario y selector M3U legibles desde el sofá en una LG 4K. */
+body.tv-remote .login-card {
+  width: min(1120px, 84vw);
+  padding: clamp(48px, 4vw, 76px);
+}
+body.tv-remote .login-card h1 { font-size: clamp(54px, 3vw, 72px); }
+body.tv-remote .intro,
+body.tv-remote .login-card form > label:not(.remember),
+body.tv-remote .remember { font-size: clamp(26px, 1.45vw, 32px); }
+body.tv-remote .login-card input:not([type="checkbox"]),
+body.tv-remote .login-card .button { min-height: 94px; font-size: clamp(25px, 1.4vw, 31px); }
+body.tv-remote .source-switch { gap: 16px; margin: 28px 0; padding: 8px; }
+body.tv-remote .source-option {
+  min-height: 88px;
+  padding: 12px 24px;
+  border: 2px solid transparent;
+  border-radius: 14px;
+  color: #d6e0e8;
+  font-size: clamp(24px, 1.35vw, 30px);
+  font-weight: 900;
+}
+body.tv-remote .source-option.active {
+  color: #fff;
+  background: linear-gradient(110deg, #64152d, #32101d);
+  border-color: #ff5276;
+  box-shadow: inset 0 0 0 2px #ff174d35, 0 0 22px #ff174d35;
+}
+body.tv-remote .source-option:focus-visible {
+  outline: 6px solid #ff5276 !important;
+  outline-offset: 5px !important;
+}
+body.tv-remote #m3u-fields > .fine-print,
+body.tv-remote #xtream-fields > .fine-print,
+body.tv-remote .login-card > .fine-print { font-size: 20px; line-height: 1.5; }
+body.tv-remote .tabs { width: clamp(300px, 18vw, 380px); }
+body.tv-remote .tab { min-height: 86px; padding: 18px 22px; font-size: 25px; }
+body.tv-remote #catalog-view { padding-left: clamp(380px, 22vw, 480px); }
+@media (max-width: 1500px) {
+  body.tv-remote .tabs { left: 22px; width: 290px; }
+  body.tv-remote .tab { min-height: 80px; padding-inline: 18px; font-size: 23px; }
+  body.tv-remote #catalog-view { padding-left: 350px; }
+}

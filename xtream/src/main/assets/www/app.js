@@ -132,6 +132,7 @@ function stablePlaylistId(url) {
 function setLoginMode(mode) {
   loginMode = mode === "m3u" ? "m3u" : "xtream";
   const useM3u = loginMode === "m3u";
+  $("login-view").classList.toggle("m3u-mode", useM3u);
   $("xtream-fields").hidden = useM3u;
   $("m3u-fields").hidden = !useM3u;
   $("server").disabled = useM3u;
@@ -147,6 +148,7 @@ function setLoginMode(mode) {
   $("source-xtream").setAttribute("aria-pressed", String(!useM3u));
   $("source-m3u").setAttribute("aria-pressed", String(useM3u));
   $("login-button").textContent = useM3u ? "CARGAR LISTA M3U" : "INICIAR SESIÓN";
+  setStatus("login-status", useM3u ? "Lista M3U seleccionada. Pega el enlace completo." : "Modo Xtream seleccionado.");
   if (useM3u) setTimeout(() => $("m3u-url").focus(), 0);
 }
 
@@ -665,6 +667,11 @@ $("password").addEventListener("input", () => { savedPlaylistUrl = ""; });
 $("m3u-url").addEventListener("input", () => { savedPlaylistUrl = ""; setHttpWarning(); });
 $("source-xtream").addEventListener("click", () => setLoginMode("xtream"));
 $("source-m3u").addEventListener("click", () => setLoginMode("m3u"));
+document.querySelectorAll(".source-option").forEach(button => button.addEventListener("keydown", event => {
+  if (event.key !== "Enter" && event.key !== " " && event.keyCode !== 23) return;
+  event.preventDefault();
+  setLoginMode(button.id === "source-m3u" ? "m3u" : "xtream");
+}));
 
 $("login-form").addEventListener("submit", async event => {
   event.preventDefault();

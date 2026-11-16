@@ -49,9 +49,9 @@ import sys
 import re
 path = Path(sys.argv[1])
 html = path.read_text(encoding="utf-8")
-html = re.sub(r'<link rel="stylesheet" href="tv\.css(?:\?[^\"]*)?">', '<link rel="stylesheet" href="tv.css?v=322">\n  <link rel="stylesheet" href="tv-lg.css?v=322">', html, count=1)
-html = re.sub(r'(styles\.css|tv\.css)\?v=\d+', r'\1?v=322', html)
-html = re.sub(r'app\.js\?v=\d+', 'app.js?v=322', html)
+html = re.sub(r'<link rel="stylesheet" href="tv\.css(?:\?[^\"]*)?">', '<link rel="stylesheet" href="tv.css?v=323">\n  <link rel="stylesheet" href="tv-lg.css?v=323">', html, count=1)
+html = re.sub(r'(styles\.css|tv\.css)\?v=\d+', r'\1?v=323', html)
+html = re.sub(r'app\.js\?v=\d+', 'app.js?v=323', html)
 html = html.replace('<p class="fine-print">Las credenciales recordadas se cifran en este dispositivo. Se envían al servidor que escribas al iniciar sesión.</p>', '<p class="fine-print">Los perfiles se guardan en el almacenamiento local de esta app en este TV. No compartas el paquete personal que trae una cuenta preconfigurada.</p>')
 private_script = '  <script src="accounts.private.js"></script>\n' if path.with_name('accounts.private.js').exists() else ''
 html = html.replace('  <script src="app.js"></script>', '  <script src="webOSTV.js"></script>\n  <script src="webos-bridge.js"></script>\n' + private_script + '  <script src="app.js"></script>')

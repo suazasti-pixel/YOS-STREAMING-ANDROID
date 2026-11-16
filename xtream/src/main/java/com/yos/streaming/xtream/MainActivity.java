@@ -134,6 +134,13 @@ public class MainActivity extends Activity {
         else webView.loadUrl("https://appassets.androidplatform.net/assets/www/index.html");
     }
 
+    @Override protected void onResume() {
+        super.onResume();
+        if (webView != null) webView.postDelayed(() -> {
+            if (webView != null) webView.evaluateJavascript("window.yosResumeSession&&window.yosResumeSession()", null);
+        }, 450);
+    }
+
     @Override public boolean dispatchKeyEvent(KeyEvent event) {
         if (event.getAction() == KeyEvent.ACTION_DOWN && webView != null &&
             (event.getKeyCode() == KeyEvent.KEYCODE_CHANNEL_UP || event.getKeyCode() == KeyEvent.KEYCODE_CHANNEL_DOWN)) {
@@ -202,6 +209,8 @@ public class MainActivity extends Activity {
     }
 
     private final class NativeBridge {
+        @JavascriptInterface public boolean supportsPersistentSession() { return true; }
+
         @JavascriptInterface public boolean isTelevision() {
             boolean leanback = getPackageManager().hasSystemFeature("android.software.leanback");
             boolean televisionMode = (getResources().getConfiguration().uiMode & Configuration.UI_MODE_TYPE_MASK) == Configuration.UI_MODE_TYPE_TELEVISION;
@@ -248,10 +257,7 @@ public class MainActivity extends Activity {
         @JavascriptInterface public String saveCredentials(String server, String username, String password, String playlistUrl, boolean remember) {
             JSONObject result = new JSONObject();
             try {
-                if (!remember) {
-                    getSharedPreferences(PREFS, MODE_PRIVATE).edit().remove("credentials").apply();
-                    return result.put("ok", true).toString();
-                }
+                // On Android, credentials remain encrypted until the user explicitly logs out.
                 JSONObject data = new JSONObject().put("server", server).put("username", username)
                     .put("password", password).put("playlistUrl", playlistUrl == null ? "" : playlistUrl);
                 Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");

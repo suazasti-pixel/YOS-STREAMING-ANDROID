@@ -224,6 +224,7 @@
   window.YOSXtream = {
     requestApi: apiRequest,
     isTelevision: function () { return true; },
+    supportsPersistentSession: function () { return false; },
     saveCredentials: function (_server, _username, _password, _playlistUrl, remember) {
       return JSON.stringify(remember ? { ok: false, error: "Esta edición no guarda credenciales en el televisor. Deja desmarcada la opción de recordar cuenta." } : { ok: true });
     },

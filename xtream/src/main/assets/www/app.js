@@ -32,6 +32,7 @@ const guidePending = new Map();
 let lastPlaybackFocus = null;
 let savedPlaylistUrl = "";
 let loginMode = "xtream";
+let sessionRestoreInProgress = false;
 
 function cacheItems(key, rows) {
   if (rows.length > ITEM_CACHE_ROW_LIMIT) return;
@@ -195,7 +196,7 @@ function setLoginMode(mode) {
 }
 
 function openConnectedCatalog(info, credentials) {
-  const remember = $("remember").checked;
+  const remember = shouldPersistSession();
   const stored = bridge().saveCredentials(credentials.server, credentials.username, credentials.password, credentials.playlistUrl || "", remember);
   const storageResult = readAccount(stored);
   if (!storageResult.ok) throw new Error(storageResult.error || "No se pudieron guardar los datos de forma segura.");
@@ -251,7 +252,7 @@ async function switchToM3uMode() {
   account.m3uItems = items;
   account.playlistUrl = m3uUrl;
   categoryCache.clear(); itemCache.clear(); fallbackCatalogCache.clear(); seriesCache.clear(); guideCache.clear();
-  try { bridge()?.saveCredentials(account.server, account.username, account.password, m3uUrl, $("remember").checked); }
+  try { bridge()?.saveCredentials(account.server, account.username, account.password, m3uUrl, shouldPersistSession()); }
   catch { /* El catálogo sigue disponible aunque no se pueda recordar la cuenta. */ }
   $("account-summary").textContent = "Lista M3U · " + items.length + " elementos";
   return true;
@@ -689,6 +690,12 @@ function readAccount(raw) {
   catch { return {}; }
 }
 
+function shouldPersistSession() {
+  const native = bridge();
+  if (typeof native?.supportsPersistentSession === "function") return native.supportsPersistentSession();
+  return $("remember").checked;
+}
+
 function setHttpWarning() {
   const value = (loginMode === "m3u" ? $("m3u-url").value : $("server").value).trim();
   $("http-warning").hidden = !/^http:\/\//i.test(value);
@@ -739,7 +746,12 @@ $("login-form").addEventListener("submit", async event => {
   event.preventDefault();
   if (loginMode === "m3u") {
     try { await connectDirectM3u(); }
-    catch (error) { setStatus("login-status", error.message || "No se pudo cargar la lista M3U.", "error"); }
+    catch (error) {
+      const message = sessionRestoreInProgress
+        ? "La sesión sigue guardada. No tienes que volver a escribir el enlace; revisa internet y la lista se reconectará al regresar a la app."
+        : error.message || "No se pudo cargar la lista M3U.";
+      setStatus("login-status", message, "error");
+    } finally { sessionRestoreInProgress = false; }
     return;
   }
   let connection;
@@ -768,7 +780,7 @@ $("login-form").addEventListener("submit", async event => {
     const info = auth && auth.user_info;
     if (!state.credentials.m3uMode && (!info || String(info.auth) !== "1")) throw new Error("El proveedor no autenticó esta cuenta o no ofrece una API Xtream compatible.");
     if (!state.credentials.m3uMode && info.status && !/^active$/i.test(String(info.status))) throw new Error("La cuenta aparece como " + info.status + ".");
-    const remember = $("remember").checked;
+    const remember = shouldPersistSession();
     const stored = bridge().saveCredentials(server, username, password, state.credentials.playlistUrl || "", remember);
     const storageResult = readAccount(stored);
     if (!storageResult.ok) throw new Error(storageResult.error || "No se pudieron guardar las credenciales.");
@@ -794,8 +806,11 @@ $("login-form").addEventListener("submit", async event => {
     showHome();
   } catch (error) {
     state.credentials = null;
-    setStatus("login-status", error.message || "No se pudo conectar. Revisa servidor, usuario y contraseña.", "error");
-  } finally { button.disabled = false; }
+    const message = sessionRestoreInProgress
+      ? "La sesión sigue guardada de forma cifrada. No vuelvas a escribir los datos; revisa la conexión y la app intentará reconectar al volver. " + (error.message || "")
+      : error.message || "No se pudo conectar. Revisa servidor, usuario y contraseña.";
+    setStatus("login-status", message, "error");
+  } finally { button.disabled = false; sessionRestoreInProgress = false; }
 });
 
 async function loadCategories(kind) {
@@ -1580,18 +1595,9 @@ $("logout").addEventListener("click", () => {
   $("catalog-view").hidden = true; $("logout").hidden = true; $("login-view").hidden = false;
   renderRecent();
   $("server").value = ""; $("username").value = ""; $("password").value = ""; $("m3u-url").value = "";
-  $("remember").checked = false; $("clear-saved").hidden = true; setHttpWarning();
+  $("remember").checked = shouldPersistSession(); $("clear-saved").hidden = true; setHttpWarning();
   setStatus("login-status", "Sesión cerrada y cuenta eliminada de este dispositivo."); $("server").focus();
 });
-$("clear-saved").addEventListener("click", () => {
-  if (bridge()) bridge().clearSavedCredentials();
-  savedPlaylistUrl = "";
-  $("server").value = ""; $("username").value = ""; $("password").value = "";
-  $("m3u-url").value = "";
-  $("remember").checked = false; $("clear-saved").hidden = true; setHttpWarning();
-  setStatus("login-status", "Cuenta guardada eliminada.");
-});
-
 window.yosHandleBack = () => {
   if ($("parental-dialog").open) { closeParentalDialog(); return true; }
   if ($("diagnostics-dialog").open) { $("diagnostics-dialog").close(); return true; }
@@ -1635,25 +1641,49 @@ try {
   localStorage.removeItem("yos-xtream-account-profiles-v1");
 } catch { /* El almacenamiento local puede estar desactivado. */ }
 
-try {
+function configurePersistentSessionOption() {
+  const native = bridge();
+  if (typeof native?.supportsPersistentSession !== "function" || !native.supportsPersistentSession()) return;
+  const remember = $("remember");
+  remember.checked = true;
+  remember.disabled = true;
+  const text = remember.closest("label")?.querySelector("span");
+  if (text) text.textContent = "Sesión cifrada hasta que pulses CERRAR SESIÓN";
+  $("clear-saved").hidden = true;
+}
+
+function restoreSavedSession() {
+  if (sessionRestoreInProgress) return false;
+  if (!$('catalog-view').hidden) return false;
   const saved = readAccount(bridge()?.getSavedCredentials());
-  if (saved.saved) {
-    savedPlaylistUrl = saved.playlistUrl || "";
-    if (savedPlaylistUrl && !saved.username && String(saved.server || "").startsWith("m3u:")) {
-      $("m3u-url").value = savedPlaylistUrl;
-      setLoginMode("m3u");
-    } else {
-      $("server").value = saved.server || "";
-      $("username").value = saved.username || "";
-      $("password").value = saved.password || "";
-    }
-    $("remember").checked = true;
-    $("clear-saved").hidden = false;
-    setHttpWarning();
-    setStatus("login-status", "Conectando con la cuenta recordada…");
-    setTimeout(() => $("login-form").dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })), 0);
+  if (!saved.saved) return false;
+  savedPlaylistUrl = saved.playlistUrl || "";
+  if (savedPlaylistUrl && !saved.username && String(saved.server || "").startsWith("m3u:")) {
+    $("m3u-url").value = savedPlaylistUrl;
+    setLoginMode("m3u");
+  } else {
+    $("server").value = saved.server || "";
+    $("username").value = saved.username || "";
+    $("password").value = saved.password || "";
   }
-} catch { /* La versión web sin puente nativo no restaura credenciales. */ }
+  $("remember").checked = true;
+  $("clear-saved").hidden = true;
+  setHttpWarning();
+  sessionRestoreInProgress = true;
+  setStatus("login-status", "Reconectando con tu sesión guardada…");
+  setTimeout(() => {
+    if (sessionRestoreInProgress) $("login-form").dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+  }, 0);
+  return true;
+}
+
+window.yosResumeSession = restoreSavedSession;
+window.addEventListener("online", restoreSavedSession);
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") restoreSavedSession();
+});
+configurePersistentSessionOption();
+restoreSavedSession();
 
 try {
   const nativeBridge = bridge();

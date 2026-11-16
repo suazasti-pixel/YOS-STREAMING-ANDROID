@@ -55,6 +55,7 @@ body.player-open { overflow: hidden; }
 .yos-lg-player header strong { font-size: 28px; }
 .yos-lg-player button { min-width: 190px; min-height: 64px; padding: 12px 22px; border: 2px solid #354858; border-radius: 14px; background: #111c25; color: #fff; font-size: 20px; font-weight: 800; }
 .yos-lg-player button:focus-visible { border-color: #ff5276; background: #3a1420; }
+.yos-lg-player button:focus { border-color: #ff5276; background: #3a1420; }
 .yos-lg-player #yos-lg-retry { min-width: 220px; border-color: #ff5276; }
 .yos-lg-player #yos-lg-retry[hidden] { display: none; }
 .yos-lg-player video { width: 100%; height: 100%; min-height: 0; background: #000; object-fit: contain; }
@@ -225,6 +226,16 @@ body.tv-remote .remote-focus {
   outline-offset: 5px !important;
   box-shadow: 0 0 0 9px #ff174d45, 0 0 34px #ff174d99 !important;
 }
+/* :focus fallback is required by Chromium 68 on webOS TV 5.x (2020). */
+body.tv-remote button:focus,
+body.tv-remote a:focus,
+body.tv-remote input:focus,
+body.tv-remote select:focus,
+body.tv-remote .remote-focus {
+  outline: 6px solid #ff5276 !important;
+  outline-offset: 5px !important;
+  box-shadow: 0 0 0 9px #ff174d45, 0 0 34px #ff174d99 !important;
+}
 body.tv-remote .yos-lg-player { grid-template-rows: 100px 1fr 104px; gap: 16px; padding: 28px 48px; }
 body.tv-remote .yos-lg-player header strong { font-size: 36px; }
 body.tv-remote .yos-lg-player button { min-width: 230px; min-height: 82px; font-size: 25px; }
@@ -278,4 +289,27 @@ body.tv-remote #catalog-view { padding-left: clamp(380px, 22vw, 480px); }
   body.tv-remote .tabs { left: 22px; width: 290px; }
   body.tv-remote .tab { min-height: 80px; padding-inline: 18px; font-size: 23px; }
   body.tv-remote #catalog-view { padding-left: 350px; }
+}
+
+@supports not (font-size: clamp(1px, 2px, 3px)) {
+  body.tv-remote { font-size: 24px; }
+  body.tv-remote main { width: 92vw; margin: 28px auto; }
+  body.tv-remote .login-card { width: 84vw; padding: 48px; }
+  body.tv-remote .login-card h1 { font-size: 58px; }
+  body.tv-remote .intro,
+  body.tv-remote .login-card form > label:not(.remember),
+  body.tv-remote .remember { font-size: 28px; }
+  body.tv-remote .login-card input:not([type="checkbox"]),
+  body.tv-remote .login-card .button { min-height: 94px; font-size: 27px; }
+  body.tv-remote .source-option { font-size: 25px; }
+  body.tv-remote .catalog-head h1 { font-size: 48px; }
+  body.tv-remote .catalog-head p,
+  body.tv-remote .account-summary { font-size: 23px; }
+  body.tv-remote .tabs { left: 22px; width: 290px; }
+  body.tv-remote .tab { min-height: 80px; padding: 18px; font-size: 23px; }
+  body.tv-remote #catalog-view { padding-left: 350px; }
+  body.tv-remote .content-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
+  body.tv-remote .content-card { min-height: 330px; }
+  body.tv-remote .search-box { width: 480px; }
+  body.tv-remote .filters select { min-width: 360px; }
 }

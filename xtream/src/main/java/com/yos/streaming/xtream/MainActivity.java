@@ -70,8 +70,11 @@ public class MainActivity extends Activity {
         "get_vod_streams", "get_vod_info", "get_series_categories", "get_series", "get_series_info", "get_short_epg"
     ));
     private final ExecutorService requests = Executors.newFixedThreadPool(3);
+    private final ExecutorService m3uRequests = Executors.newSingleThreadExecutor();
     private final ConcurrentHashMap<String, FutureTask<Void>> apiTasks = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, HttpURLConnection> apiConnections = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, FutureTask<Void>> m3uTasks = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, HttpURLConnection> m3uConnections = new ConcurrentHashMap<>();
     private WebView webView;
     private View customView;
     private WebChromeClient.CustomViewCallback customViewCallback;
@@ -191,7 +194,9 @@ public class MainActivity extends Activity {
 
     @Override protected void onDestroy() {
         cancelAllApiRequests();
+        cancelAllM3uRequests();
         requests.shutdownNow();
+        m3uRequests.shutdownNow();
         if (webView != null) { webView.removeJavascriptInterface("YOSXtream"); webView.destroy(); webView = null; }
         super.onDestroy();
     }
@@ -270,17 +275,40 @@ public class MainActivity extends Activity {
             getSharedPreferences(PREFS, MODE_PRIVATE).edit().remove("credentials").apply();
         }
 
-        @JavascriptInterface public String downloadM3u(String rawUrl) {
-            JSONObject result = new JSONObject();
-            try { result.put("ok", true).put("items", downloadM3uItems(rawUrl)); }
-            catch (Exception error) {
-                try { result.put("ok", false).put("error", error.getMessage() == null ? "No se pudo descargar la lista." : error.getMessage()); }
-                catch (Exception ignored) { return "{\"ok\":false,\"error\":\"Error de red.\"}"; }
-            }
-            return result.toString();
+        @JavascriptInterface public void downloadM3uAsync(String requestId, String rawUrl) {
+            if (requestId == null || requestId.isEmpty() || requestId.length() > 80) return;
+            FutureTask<Void> task = new FutureTask<>(() -> {
+                String response;
+                try {
+                    response = new JSONObject().put("ok", true).put("items", downloadM3uItems(rawUrl, requestId)).toString();
+                } catch (Exception error) {
+                    if (Thread.currentThread().isInterrupted()) return null;
+                    JSONObject result = new JSONObject();
+                    try { result.put("ok", false).put("error", error.getMessage() == null ? "No se pudo descargar la lista." : error.getMessage()); }
+                    catch (Exception ignored) { }
+                    response = result.toString();
+                } finally {
+                    m3uTasks.remove(requestId);
+                    HttpURLConnection connection = m3uConnections.remove(requestId);
+                    if (connection != null) connection.disconnect();
+                }
+                if (Thread.currentThread().isInterrupted()) return null;
+                String finalResponse = response;
+                runOnUiThread(() -> {
+                    if (webView != null) webView.evaluateJavascript("window.yosM3uResponse&&window.yosM3uResponse(" +
+                        JSONObject.quote(requestId) + "," + JSONObject.quote(finalResponse) + ")", null);
+                });
+                return null;
+            });
+            FutureTask<Void> previous = m3uTasks.put(requestId, task);
+            if (previous != null) previous.cancel(true);
+            try { m3uRequests.execute(task); }
+            catch (RuntimeException error) { m3uTasks.remove(requestId, task); task.cancel(true); }
         }
 
         @JavascriptInterface public void cancelApiRequests() { cancelAllApiRequests(); }
+        @JavascriptInterface public void cancelM3uRequests() { cancelAllM3uRequests(); }
+        @JavascriptInterface public void cancelM3uRequest(String requestId) { cancelM3uRequestInternal(requestId); }
 
         @JavascriptInterface public void requestApi(String requestId, String server, String username, String password,
                                                     String action, String categoryId, String itemId) {
@@ -342,19 +370,41 @@ public class MainActivity extends Activity {
         }
     }
 
+    private void cancelAllM3uRequests() {
+        for (String requestId : m3uTasks.keySet()) {
+            cancelM3uRequestInternal(requestId);
+        }
+    }
+
+    private void cancelM3uRequestInternal(String requestId) {
+        if (requestId == null) return;
+        FutureTask<Void> task = m3uTasks.remove(requestId);
+        if (task != null) task.cancel(true);
+        HttpURLConnection connection = m3uConnections.remove(requestId);
+        if (connection != null) connection.disconnect();
+    }
+
     private JSONArray downloadM3uItems(String rawUrl) throws Exception {
+        return downloadM3uItems(rawUrl, null);
+    }
+
+    private JSONArray downloadM3uItems(String rawUrl, String requestId) throws Exception {
+        if (Thread.currentThread().isInterrupted()) throw new IOException("La carga de la lista fue cancelada.");
         if (rawUrl == null || rawUrl.length() > 8192) throw new IOException("La URL de la lista no es válida.");
         URL url = new URL(rawUrl);
         String originalHost = url.getHost();
         for (int redirects = 0; redirects <= 4; redirects++) {
+            if (Thread.currentThread().isInterrupted()) throw new IOException("La carga de la lista fue cancelada.");
             validatePublicHttpUrl(url);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            if (requestId != null) m3uConnections.put(requestId, connection);
             connection.setConnectTimeout(12000);
             connection.setReadTimeout(25000);
             connection.setInstanceFollowRedirects(false);
             connection.setRequestProperty("Accept", "application/vnd.apple.mpegurl, audio/x-mpegurl, text/plain, */*");
-            connection.setRequestProperty("User-Agent", "YOS-Xtream-Android/2.14");
+            connection.setRequestProperty("User-Agent", "YOS-Xtream-Android/2.30");
             try {
+                if (Thread.currentThread().isInterrupted()) throw new IOException("La carga de la lista fue cancelada.");
                 int status = connection.getResponseCode();
                 if (status == 301 || status == 302 || status == 303 || status == 307 || status == 308) {
                     String location = connection.getHeaderField("Location");
@@ -377,6 +427,7 @@ public class MainActivity extends Activity {
                     long bytesRead = 0;
                     String line;
                     while ((line = reader.readLine()) != null) {
+                        if (Thread.currentThread().isInterrupted()) throw new IOException("La carga de la lista fue cancelada.");
                         bytesRead += line.getBytes(StandardCharsets.UTF_8).length + 1L;
                         if (bytesRead > MAX_M3U_BYTES) throw new IOException("La lista supera el límite de 50 MB.");
                         line = line.trim();
@@ -419,7 +470,10 @@ public class MainActivity extends Activity {
                     if (items.length() == 0) throw new IOException("La respuesta no contiene una lista M3U válida.");
                     return items;
                 }
-            } finally { connection.disconnect(); }
+            } finally {
+                if (requestId != null) m3uConnections.remove(requestId, connection);
+                connection.disconnect();
+            }
         }
         throw new IOException("No se pudo seguir la redirección de la lista.");
     }

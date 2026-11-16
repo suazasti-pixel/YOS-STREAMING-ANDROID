@@ -6,6 +6,7 @@ const PLAYBACK_QUEUE_LIMIT = 51;
 const LAST_CATEGORY_MAX_AGE = 14 * 24 * 60 * 60 * 1000;
 const ITEM_CACHE_LIMIT = 5;
 const ITEM_CACHE_ROW_LIMIT = 18000;
+const MAX_M3U_ITEMS = 20000;
 const state = { credentials: null, kind: "live", categories: [], items: [], localItems: [], localCategoryFallback: false, localFallbackCategory: "", filtered: [], limit: PAGE_SIZE, series: null, movie: null, showFavorites: false, globalSearch: false, sportsMode: false, parentalHash: "", parentalUnlocked: false, parentalMode: "setup", parentalFailures: 0, parentalBlockedUntil: 0, episodes: [] };
 const kinds = {
   live: { title: "Canales en vivo", categories: "get_live_categories", items: "get_live_streams", singular: "live" },
@@ -13,6 +14,7 @@ const kinds = {
   series: { title: "Series", categories: "get_series_categories", items: "get_series", singular: "series" }
 };
 let requestSequence = 0;
+let m3uRequestSequence = 0;
 let categoryRequestSequence = 0;
 let itemRequestSequence = 0;
 let searchTimer = 0;
@@ -20,6 +22,7 @@ let searchSequence = 0;
 let guideTimer = 0;
 let guideRequestSequence = 0;
 const pending = new Map();
+const pendingM3u = new Map();
 const categoryCache = new Map();
 const itemCache = new Map();
 const fallbackCatalogCache = new Map();
@@ -75,30 +78,50 @@ function classifyM3uItem(name, category, url) {
 }
 
 function parseM3uPlaylist(text) {
-  const items = [];
-  let current = null;
-  for (const line of String(text || "").replace(/^\uFEFF/, "").split(/\r?\n/).map(value => value.trim()).filter(Boolean)) {
-    if (line.startsWith("#EXTINF:")) {
-      const comma = line.indexOf(",");
-      const attributesText = comma >= 0 ? line.slice(0, comma) : line;
-      const attributes = {};
-      const matcher = /([\w-]+)="([^"]*)"/g;
-      let match;
-      while ((match = matcher.exec(attributesText))) attributes[match[1].toLowerCase()] = match[2];
-      const name = comma >= 0 ? line.slice(comma + 1).trim() : attributes["tvg-name"] || "Sin título";
-      const category = attributes["group-title"] || attributes.category || "General";
-      current = { name: name || attributes["tvg-name"] || "Sin título", category_name: category, stream_icon: attributes["tvg-logo"] || "", _kind: classifyM3uItem(name, category, ""), _m3u: true };
-    } else if (current && /^https?:\/\//i.test(line)) {
-      const id = String(items.length + 1);
-      let extension = "";
-      try { extension = new URL(line).pathname.split(".").pop().toLowerCase(); } catch { /* El enlace se valida al reproducir. */ }
-      if (!/^[a-z0-9]{1,8}$/i.test(extension)) extension = current._kind === "live" ? "m3u8" : "mp4";
-      const kind = classifyM3uItem(current.name, current.category_name, line);
-      items.push({ ...current, _kind: kind, stream_id: id, series_id: kind === "series" ? id : undefined, id, category_id: current.category_name, container_extension: extension, url: line });
-      current = null;
+  const source = String(text || "").replace(/^\uFEFF/, "");
+  return new Promise((resolve, reject) => {
+    const items = [];
+    let current = null;
+    let offset = 0;
+    function consumeSlice() {
+      const started = performance.now();
+      let processed = 0;
+      while (offset <= source.length && processed < 1200 && performance.now() - started < 10) {
+        const newline = source.indexOf("\n", offset);
+        const end = newline < 0 ? source.length : newline;
+        const line = source.slice(offset, end).trim();
+        offset = newline < 0 ? source.length + 1 : newline + 1;
+        processed++;
+        if (!line) continue;
+        if (line.startsWith("#EXTINF:")) {
+          const comma = line.indexOf(",");
+          const attributesText = comma >= 0 ? line.slice(0, comma) : line;
+          const attributes = {};
+          const matcher = /([\w-]+)="([^"]*)"/g;
+          let match;
+          while ((match = matcher.exec(attributesText))) attributes[match[1].toLowerCase()] = match[2];
+          const name = comma >= 0 ? line.slice(comma + 1).trim() : attributes["tvg-name"] || "Sin título";
+          const category = attributes["group-title"] || attributes.category || "General";
+          current = { name: name || attributes["tvg-name"] || "Sin título", category_name: category, stream_icon: attributes["tvg-logo"] || "", _kind: classifyM3uItem(name, category, ""), _m3u: true };
+        } else if (current && /^https?:\/\//i.test(line)) {
+          const id = String(items.length + 1);
+          let extension = "";
+          try { extension = new URL(line).pathname.split(".").pop().toLowerCase(); } catch { /* El enlace se valida al reproducir. */ }
+          if (!/^[a-z0-9]{1,8}$/i.test(extension)) extension = current._kind === "live" ? "m3u8" : "mp4";
+          const kind = classifyM3uItem(current.name, current.category_name, line);
+          items.push({ ...current, _kind: kind, stream_id: id, series_id: kind === "series" ? id : undefined, id, category_id: current.category_name, container_extension: extension, url: line });
+          current = null;
+          if (items.length > MAX_M3U_ITEMS) {
+            reject(new Error("La lista contiene más de 20.000 elementos; usa una lista filtrada o la conexión Xtream."));
+            return;
+          }
+        }
+      }
+      if (offset <= source.length) setTimeout(consumeSlice, 0);
+      else resolve(items);
     }
-  }
-  return items;
+    consumeSlice();
+  });
 }
 
 function makeM3uUrl(server, username, password, suppliedUrl = "") {
@@ -113,13 +136,27 @@ function makeM3uUrl(server, username, password, suppliedUrl = "") {
 
 function loadM3uUrl(url) {
   const native = bridge();
-  if (!native?.downloadM3u) return Promise.reject(new Error("Esta versión de YOS no tiene habilitada la carga de listas M3U."));
-  return Promise.resolve().then(() => native.downloadM3u(url)).then(raw => {
+  if (!native?.downloadM3uAsync && !native?.downloadM3u) return Promise.reject(new Error("Esta versión de YOS no tiene habilitada la carga de listas M3U."));
+  if (native.downloadM3uAsync) cancelPendingM3uRequests("Carga anterior sustituida por una lista nueva.");
+  const download = native.downloadM3uAsync
+    ? new Promise((resolve, reject) => {
+      const id = "m3u" + (++m3uRequestSequence);
+      const timer = setTimeout(() => {
+        pendingM3u.delete(id);
+        try { native.cancelM3uRequest?.(id); } catch { /* La solicitud también queda limitada por el timeout de red. */ }
+        reject(new Error("La lista M3U tardó demasiado en descargarse. Revisa la conexión o usa una lista más pequeña."));
+      }, 90000);
+      pendingM3u.set(id, { resolve, reject, timer });
+      try { native.downloadM3uAsync(id, url); }
+      catch (error) { clearTimeout(timer); pendingM3u.delete(id); reject(error); }
+    })
+    : Promise.resolve().then(() => native.downloadM3u(url));
+  return download.then(async raw => {
     const result = typeof raw === "string" ? JSON.parse(raw) : raw;
     if (!result.ok) return Promise.reject(new Error(result.error || "No se pudo descargar la lista M3U."));
     if (Array.isArray(result.items)) return result.items;
     if (!String(result.text || "").includes("#EXTINF:")) throw new Error("El servidor no devolvió una lista M3U válida.");
-    return parseM3uPlaylist(result.text);
+    return await parseM3uPlaylist(result.text);
   });
 }
 
@@ -223,12 +260,24 @@ async function switchToM3uMode() {
 function cancelPendingApiRequests() {
   const native = bridge();
   if (native?.cancelApiRequests) native.cancelApiRequests();
+  cancelPendingM3uRequests();
   for (const [id, job] of pending) {
     clearTimeout(job.timer);
     pending.delete(id);
     job.reject(new Error("Solicitud reemplazada por la navegación actual."));
   }
   guidePending.clear();
+}
+
+function cancelPendingM3uRequests(reason = "La carga M3U se canceló al cambiar de pantalla.") {
+  const native = bridge();
+  if (!pendingM3u.size) return;
+  try { native?.cancelM3uRequests?.(); } catch { /* La llamada nativa puede no existir en versiones anteriores. */ }
+  for (const [id, job] of pendingM3u) {
+    clearTimeout(job.timer);
+    pendingM3u.delete(id);
+    job.reject(new Error(reason));
+  }
 }
 
 function providerStoreKey() {
@@ -595,6 +644,14 @@ window.yosXtreamResponse = (id, raw) => {
     if (data && data._error) throw new Error(data._error);
     job.resolve(data);
   } catch (error) { job.reject(error); }
+};
+
+window.yosM3uResponse = (id, raw) => {
+  const job = pendingM3u.get(id);
+  if (!job) return;
+  clearTimeout(job.timer);
+  pendingM3u.delete(id);
+  job.resolve(raw);
 };
 
 window.yosVoiceSearchResult = text => {

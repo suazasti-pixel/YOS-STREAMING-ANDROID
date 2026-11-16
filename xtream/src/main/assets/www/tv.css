@@ -463,3 +463,212 @@ body.tv-remote .favorites-shortcut {
   body.tv-remote .tab { min-width: clamp(118px, 24vw, 160px); }
   body.tv-remote .filters select { min-width: min(62vw, 360px); }
 }
+
+/* Acabado premium para TV Box: márgenes seguros, jerarquía clara y controles
+   separados para que se lean desde el sofá y no compitan con el contenido. */
+body.tv-remote {
+  --tv-focus: #ff4168;
+  --tv-surface: #10171f;
+  --tv-surface-raised: #151f29;
+  --tv-edge: #2b3945;
+  background:
+    radial-gradient(ellipse at 82% 4%, #3c13253b 0, transparent 34%),
+    radial-gradient(ellipse at 18% 0%, #15283a55 0, transparent 38%),
+    #07090d;
+  color: #f7f9fc;
+}
+
+body.tv-remote .topbar {
+  height: clamp(66px, 5.2vw, 86px);
+  padding-inline: clamp(28px, 4.6vw, 76px);
+  border-bottom-color: #ffffff13;
+  background: linear-gradient(180deg, #090c11f5, #090c11e8);
+  backdrop-filter: blur(16px);
+}
+
+body.tv-remote main {
+  width: min(90.5vw, 1680px);
+  margin: clamp(18px, 2.1vw, 34px) auto;
+}
+
+body.tv-remote .login-wrap {
+  min-height: calc(100vh - clamp(98px, 8vw, 132px));
+  padding-block: clamp(10px, 2vh, 24px);
+}
+
+body.tv-remote .login-card {
+  position: relative;
+  width: min(700px, 74vw);
+  max-height: calc(100vh - 112px);
+  overflow: auto;
+  padding: clamp(30px, 3vw, 48px);
+  border: 1px solid #ffffff1a;
+  border-radius: 24px;
+  background: linear-gradient(145deg, #141c25f5, #0b1016f8 76%);
+  box-shadow: 0 28px 86px #0009, inset 0 1px #ffffff0b;
+  scrollbar-color: #3b4a57 transparent;
+}
+
+body.tv-remote .login-card::before {
+  position: absolute;
+  inset: 0 12% auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #ff416888, #91b7ff55, transparent);
+  content: "";
+  pointer-events: none;
+}
+
+body.tv-remote .login-card > .eyebrow { letter-spacing: .24em; }
+body.tv-remote .login-card h1,
+body.tv-remote .catalog-head h1 {
+  font-size: clamp(30px, 2.35vw, 42px);
+  letter-spacing: -.025em;
+}
+body.tv-remote .login-card .intro {
+  max-width: 54ch;
+  margin-bottom: clamp(18px, 1.9vw, 28px);
+  color: #b5c0cc;
+  line-height: 1.55;
+}
+
+body.tv-remote .source-switch {
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 6px;
+  border: 1px solid #ffffff14;
+  border-radius: 15px;
+  background: #080d12;
+}
+body.tv-remote .source-option {
+  min-height: clamp(54px, 4.3vw, 66px);
+  border-radius: 11px;
+  color: #aeb9c4;
+  font-size: clamp(14px, .95vw, 17px);
+  letter-spacing: .1em;
+  transition: background-color .16s ease, color .16s ease, border-color .16s ease, transform .16s ease;
+}
+body.tv-remote .source-option.active {
+  border-color: #ff416844;
+  background: linear-gradient(120deg, #55172c, #301322);
+  box-shadow: inset 0 1px #ffffff16;
+  color: #fff;
+}
+body.tv-remote .remote-source-help {
+  margin: 0 0 20px 4px;
+  color: #8f9daa;
+  font-size: clamp(12px, .78vw, 14px);
+}
+
+body.tv-remote .login-card form { gap: 12px; }
+body.tv-remote #xtream-fields,
+body.tv-remote #m3u-fields { gap: 10px; }
+body.tv-remote #xtream-fields > label,
+body.tv-remote #m3u-fields > label {
+  margin-top: 4px;
+  color: #e5eaf0;
+  font-size: clamp(14px, .95vw, 17px);
+}
+body.tv-remote .login-card input:not([type="checkbox"]) {
+  min-height: clamp(54px, 4.3vw, 64px);
+  border-color: #34424e;
+  border-radius: 12px;
+  background: #0c141c;
+  font-size: clamp(15px, 1vw, 19px);
+}
+body.tv-remote .login-card input:not([type="checkbox"]):focus {
+  border-color: #ff5276;
+  background: #101922;
+}
+body.tv-remote .login-card form > .fine-print,
+body.tv-remote #xtream-fields > .fine-print,
+body.tv-remote #m3u-fields > .fine-print {
+  color: #929eaa;
+  font-size: clamp(12px, .8vw, 14px);
+  line-height: 1.45;
+}
+body.tv-remote .login-card .remember {
+  min-height: 50px;
+  margin: 2px 0;
+  color: #bac4ce;
+}
+body.tv-remote .login-card .button.primary {
+  min-height: clamp(56px, 4.5vw, 68px);
+  border-radius: 13px;
+  background: linear-gradient(105deg, #ff2455, #d90a42);
+  box-shadow: 0 10px 26px #f5164c2e, inset 0 1px #ffffff26;
+  font-size: clamp(15px, 1vw, 18px);
+  letter-spacing: .035em;
+}
+body.tv-remote .login-card .status { min-height: 20px; }
+body.tv-remote .login-card > .fine-print {
+  margin-top: 14px;
+  color: #86939f;
+  line-height: 1.45;
+}
+
+body.tv-remote .tabs {
+  gap: clamp(8px, .9vw, 14px);
+  margin-inline: 0;
+  padding: 12px 0 16px;
+  border-block: 1px solid #ffffff12;
+  background: linear-gradient(180deg, #090c11f5, #090c11ed);
+  box-shadow: 0 10px 24px #0005;
+}
+body.tv-remote .tab {
+  min-width: clamp(138px, 10.6vw, 190px);
+  min-height: clamp(48px, 3.6vw, 60px);
+  border-color: #ffffff17;
+  border-radius: 12px;
+  background: #111820;
+  color: #c3cdd7;
+  font-size: clamp(13px, .86vw, 16px);
+  letter-spacing: .025em;
+  transition: background-color .16s ease, border-color .16s ease, transform .16s ease;
+}
+body.tv-remote .tab.active {
+  border-color: #ff416866;
+  background: linear-gradient(120deg, #401626, #25131c);
+  color: #fff;
+}
+body.tv-remote .filters { margin-block: 16px; }
+body.tv-remote .filters select {
+  min-height: clamp(50px, 3.8vw, 62px);
+  border-color: #34424e;
+  border-radius: 12px;
+  background-color: #0f171f;
+  font-size: clamp(14px, .92vw, 17px);
+}
+body.tv-remote .content-grid {
+  gap: clamp(12px, 1.1vw, 20px);
+}
+body.tv-remote .content-card {
+  border-color: #ffffff15;
+  border-radius: 16px;
+  background: linear-gradient(150deg, #141d26, #0d1218);
+  box-shadow: 0 10px 24px #0003;
+}
+body.tv-remote .content-card:focus-visible,
+body.tv-remote .content-card.remote-focus,
+body.tv-remote .tab:focus-visible,
+body.tv-remote .tab.remote-focus,
+body.tv-remote .source-option:focus,
+body.tv-remote .source-option:focus-visible,
+body.tv-remote .source-option.remote-focus {
+  outline: 3px solid #ff5c7c !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 6px #ff174d24, 0 12px 28px #0006 !important;
+  transform: scale(1.025);
+}
+
+@media (max-width: 760px) {
+  body.tv-remote main { width: 91vw; margin: 14px auto; }
+  body.tv-remote .login-wrap { min-height: calc(100vh - 86px); }
+  body.tv-remote .login-card {
+    width: min(620px, 88vw);
+    max-height: calc(100vh - 96px);
+    padding: 26px clamp(20px, 4vw, 32px);
+    border-radius: 20px;
+  }
+  body.tv-remote .catalog-head { gap: 14px; }
+  body.tv-remote .tabs { padding-block: 10px 14px; }
+}

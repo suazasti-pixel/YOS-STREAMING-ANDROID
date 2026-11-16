@@ -149,7 +149,12 @@ function setLoginMode(mode) {
   $("source-m3u").setAttribute("aria-pressed", String(useM3u));
   $("login-button").textContent = useM3u ? "CARGAR LISTA M3U" : "INICIAR SESIÓN";
   setStatus("login-status", useM3u ? "Lista M3U seleccionada. Pega el enlace completo." : "Modo Xtream seleccionado.");
-  if (useM3u) setTimeout(() => $("m3u-url").focus(), 0);
+  if (document.body.classList.contains("tv-remote")) {
+    const selected = useM3u ? $("source-m3u") : $("source-xtream");
+    requestAnimationFrame(() => selected.focus({ preventScroll: true }));
+  } else if (useM3u) {
+    setTimeout(() => $("m3u-url").focus(), 0);
+  }
 }
 
 function openConnectedCatalog(info, credentials) {
@@ -1600,6 +1605,27 @@ try {
   }
   if (nativeBridge) {
     document.addEventListener("keydown", event => {
+      const modeButton = event.target?.closest?.(".source-option");
+      if (document.body.classList.contains("tv-remote") && modeButton) {
+        const keyCode = event.keyCode || event.which;
+        const isLeft = event.key === "ArrowLeft" || event.key === "DPAD_LEFT" || keyCode === 21;
+        const isRight = event.key === "ArrowRight" || event.key === "DPAD_RIGHT" || keyCode === 22;
+        const isSelect = ["Enter", " ", "Spacebar", "Select", "DPAD_CENTER", "NumpadEnter"].includes(event.key) || [23, 62, 66, 160].includes(keyCode);
+        if (isLeft || isRight) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          const next = isRight ? $("source-m3u") : $("source-xtream");
+          next.focus({ preventScroll: true });
+          next.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
+          return;
+        }
+        if (isSelect) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          modeButton.click();
+          return;
+        }
+      }
       const direction = {
         ArrowLeft: [-1, 0], ArrowRight: [1, 0],
         ArrowUp: [0, -1], ArrowDown: [0, 1]
@@ -1663,3 +1689,11 @@ try {
     }, true);
   }
 } catch { /* No hay bridge nativo en navegador normal. */ }
+
+try {
+  const nativeBridge = bridge();
+  const savedAccount = readAccount(nativeBridge?.getSavedCredentials());
+  if (nativeBridge?.isTelevision() && !savedAccount.saved && !$('login-view').hidden) {
+    requestAnimationFrame(() => $("source-xtream").focus({ preventScroll: true }));
+  }
+} catch { /* El navegador puede no tener puente Android. */ }

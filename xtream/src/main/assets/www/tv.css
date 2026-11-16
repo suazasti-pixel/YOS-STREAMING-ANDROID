@@ -344,6 +344,22 @@ body.tv-remote .brand-wordmark{font-size:28px}
 body.tv-remote .brand-wordmark small{font-size:12px}
 body.tv-remote .source-switch{gap:12px;margin:22px 0}
 body.tv-remote .source-option{min-height:60px;font-size:17px;border-radius:12px}
+.remote-source-help{display:none}
+body.tv-remote .remote-source-help{display:block;margin:-12px 0 16px;color:#c0cbd3;font-size:clamp(12px,.78vw,15px)}
+body.tv-remote .source-option:focus,
+body.tv-remote .source-option:focus-visible,
+body.tv-remote .source-option.remote-focus {
+  color: #fff;
+  border-color: #ff5576;
+  outline: 4px solid #ff174d99;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 2px #101820, 0 0 22px #ff174d77;
+  transform: scale(1.025);
+}
+body.tv-remote .source-option.active:focus,
+body.tv-remote .source-option.active:focus-visible {
+  background: #3b101e;
+}
 
 /* Modo TV adaptable: evita que una TV Box con viewport CSS pequeño reciba
    el tratamiento móvil de dos columnas y botones sobredimensionados. */

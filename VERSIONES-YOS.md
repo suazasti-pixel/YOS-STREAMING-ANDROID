@@ -48,6 +48,12 @@
 - El descargador Android acepta listas de hasta 50 MB y las interpreta por líneas durante la descarga, evitando guardar otra copia de texto completa en memoria.
 - Para mantener ágil el catálogo, limita la lista a 20.000 elementos reproducibles. Android `versionCode 31`, `versionName 2.26`: `YOS-2.26-XTREAM-ANDROID-APK`.
 
+## YOS Xtream Android 2.27 — interfaz proporcionada para TV Box
+
+- Los tamaños del modo remoto se adaptan al ancho de pantalla y densidad CSS de la TV Box, evitando botones gigantes y paneles que dominan la pantalla en modelos de resolución baja.
+- El catálogo usa una cuadrícula fluida de tarjetas y la navegación superior mantiene desplazamiento horizontal sin apretar el resto de la interfaz. Los estilos de celular permanecen separados.
+- Android `versionCode 32`, `versionName 2.27`: `YOS-2.27-XTREAM-ANDROID-APK` para celular y TV Box.
+
 ## YOS Xtream LG 3.19 — perfiles más claros en TV
 
 - El panel de perfiles presenta sus acciones en una columna y con botones grandes para evitar el orden cruzado y facilitar la selección con Magic Remote. Usuario y contraseña siguen apilados dentro del formulario de conexión.
@@ -84,13 +90,13 @@ Estas son las tres ediciones principales que vamos a mantener y actualizar por s
 | Edición | Dispositivo | Instalador en GitHub Actions | Proyecto |
 |---|---|---|---|
 | **1.1** | Celular Android | `YOS-1.1-CELULAR-APK` | YOS Streaming, listas M3U |
-| **2.26** | Celular Android y Android TV Box | `YOS-2.26-XTREAM-ANDROID-APK` | YOS Xtream Android |
+| **2.27** | Celular Android y Android TV Box | `YOS-2.27-XTREAM-ANDROID-APK` | YOS Xtream Android |
 | **3.21** | Televisor LG webOS | `YOS-3.21-LG-webOS-IPK` | YOS Xtream para webOS, selector M3U reparado y controles grandes para LG de 65 pulgadas |
 | **3.15** | Televisor LG webOS | `YOS-3.15-LG-webOS-IPK` | YOS Xtream para webOS |
 
 ## Regla de numeración
 
-Cada edición avanza por separado: celular **1.1 → 1.2 → 1.3**, Xtream Android **2.1 → 2.2 → 2.3 → 2.4 → 2.5 → 2.6 → 2.7 → 2.8 → 2.9 → 2.10 → 2.11 → 2.12 → 2.13 → 2.14 → 2.15 → 2.16 → 2.17 → 2.18 → 2.19 → 2.20 → 2.21 → 2.22 → 2.23 → 2.24 → 2.25 → 2.26** y LG webOS **3.1 → 3.2 → 3.3 → 3.4 → 3.5 → 3.6 → 3.7 → 3.8 → 3.9 → 3.10 → 3.11 → 3.12 → 3.13 → 3.14 → 3.15 → 3.16 → 3.17 → 3.18 → 3.19 → 3.20 → 3.21**. Cuando un cambio afecte varias ediciones, incrementaremos la serie de cada una de ellas. Así cada instalador y sus notas de cambios indicarán qué versión recibió la mejora.
+Cada edición avanza por separado: celular **1.1 → 1.2 → 1.3**, Xtream Android **2.1 → 2.2 → 2.3 → 2.4 → 2.5 → 2.6 → 2.7 → 2.8 → 2.9 → 2.10 → 2.11 → 2.12 → 2.13 → 2.14 → 2.15 → 2.16 → 2.17 → 2.18 → 2.19 → 2.20 → 2.21 → 2.22 → 2.23 → 2.24 → 2.25 → 2.26 → 2.27** y LG webOS **3.1 → 3.2 → 3.3 → 3.4 → 3.5 → 3.6 → 3.7 → 3.8 → 3.9 → 3.10 → 3.11 → 3.12 → 3.13 → 3.14 → 3.15 → 3.16 → 3.17 → 3.18 → 3.19 → 3.20 → 3.21**. Cuando un cambio afecte varias ediciones, incrementaremos la serie de cada una de ellas. Así cada instalador y sus notas de cambios indicarán qué versión recibió la mejora.
 
 ## YOS Xtream LG 3.16 — controles grandes para Magic Remote
 

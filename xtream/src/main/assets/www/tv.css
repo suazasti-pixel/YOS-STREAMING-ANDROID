@@ -344,3 +344,106 @@ body.tv-remote .brand-wordmark{font-size:28px}
 body.tv-remote .brand-wordmark small{font-size:12px}
 body.tv-remote .source-switch{gap:12px;margin:22px 0}
 body.tv-remote .source-option{min-height:60px;font-size:17px;border-radius:12px}
+
+/* Modo TV adaptable: evita que una TV Box con viewport CSS pequeño reciba
+   el tratamiento móvil de dos columnas y botones sobredimensionados. */
+body.tv-remote {
+  font-size: clamp(14px, 0.95vw, 18px);
+  line-height: 1.45;
+}
+body.tv-remote .topbar {
+  height: clamp(64px, 4.3vw, 82px);
+  gap: clamp(8px, 1.15vw, 22px);
+  padding-inline: clamp(14px, 3vw, 52px);
+}
+body.tv-remote .topbar .button {
+  min-height: clamp(42px, 3vw, 58px);
+  padding-inline: clamp(10px, 1.2vw, 20px);
+  font-size: clamp(12px, .9vw, 17px);
+}
+body.tv-remote .brand { min-width: clamp(138px, 10vw, 190px); }
+body.tv-remote .brand-logo-window {
+  flex-basis: clamp(48px, 3.55vw, 68px);
+  width: clamp(48px, 3.55vw, 68px);
+  height: clamp(46px, 3.35vw, 64px);
+}
+body.tv-remote .brand-wordmark { font-size: clamp(20px, 1.45vw, 28px); }
+body.tv-remote .brand-wordmark small { font-size: clamp(8px, .62vw, 12px); }
+body.tv-remote main {
+  width: min(94vw, 1680px);
+  margin: clamp(14px, 1.4vw, 26px) auto;
+}
+body.tv-remote .login-card {
+  width: min(620px, 76vw);
+  padding: clamp(22px, 2vw, 38px) clamp(22px, 2.3vw, 44px);
+}
+body.tv-remote .login-card h1,
+body.tv-remote .catalog-head h1 { font-size: clamp(26px, 2vw, 38px); }
+body.tv-remote .login-card input:not([type="checkbox"]) {
+  min-height: clamp(48px, 3.25vw, 62px);
+  font-size: clamp(15px, 1vw, 19px);
+}
+body.tv-remote .button.primary { min-height: clamp(48px, 3.25vw, 62px); }
+body.tv-remote .tabs {
+  top: clamp(64px, 4.3vw, 82px);
+  gap: clamp(6px, .7vw, 12px);
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+body.tv-remote .tab {
+  min-width: clamp(120px, 10vw, 190px);
+  min-height: clamp(46px, 3vw, 58px);
+  padding-inline: clamp(10px, 1.25vw, 24px);
+  font-size: clamp(12px, .85vw, 16px);
+}
+body.tv-remote .filters select {
+  min-width: min(34vw, 420px);
+  min-height: clamp(46px, 3vw, 58px);
+}
+body.tv-remote .content-grid {
+  grid-template-columns: repeat(auto-fill, minmax(clamp(150px, 13vw, 250px), 1fr));
+  gap: clamp(9px, .95vw, 18px);
+}
+body.tv-remote .card-title { font-size: clamp(14px, .9vw, 17px); }
+body.tv-remote .card-body { padding: clamp(9px, .8vw, 15px); }
+body.tv-remote .shortcut {
+  min-height: clamp(62px, 4.1vw, 78px);
+  grid-template-columns: clamp(38px, 2.5vw, 48px) 1fr;
+  padding: clamp(9px, .65vw, 12px) clamp(10px, .85vw, 16px);
+}
+body.tv-remote .shortcut>span {
+  width: clamp(36px, 2.4vw, 46px);
+  height: clamp(36px, 2.4vw, 46px);
+  font-size: clamp(18px, 1.25vw, 24px);
+}
+body.tv-remote .shortcut b { font-size: clamp(14px, .9vw, 17px); }
+body.tv-remote .shortcut small { font-size: clamp(11px, .68vw, 13px); }
+body.tv-remote .catalog-actions { gap: clamp(8px, .85vw, 16px); }
+body.tv-remote .search-box {
+  flex: 0 1 min(38vw, 560px);
+  width: min(38vw, 560px);
+  min-width: min(240px, 42vw);
+}
+body.tv-remote .search-box input { min-height: clamp(46px, 3vw, 56px); }
+body.tv-remote .favorites-shortcut {
+  min-width: clamp(150px, 13vw, 205px);
+  min-height: clamp(52px, 3.75vw, 72px);
+  padding-inline: clamp(12px, 1.15vw, 22px);
+  font-size: clamp(14px, .95vw, 18px);
+}
+
+@media (max-width: 760px) {
+  body.tv-remote .topbar { min-height: 64px; }
+  body.tv-remote .header-caption { display: none; }
+  body.tv-remote main { width: 94vw; margin: 14px auto; }
+  body.tv-remote .login-card { width: min(620px, 88vw); }
+  body.tv-remote .catalog-head { align-items: stretch; gap: 12px; }
+  body.tv-remote .catalog-actions { width: 100%; flex-wrap: wrap; }
+  body.tv-remote .search-box { flex: 1 1 240px; width: 100%; min-width: 0; }
+  body.tv-remote .content-grid {
+    grid-template-columns: repeat(auto-fill, minmax(clamp(145px, 27vw, 205px), 1fr));
+    gap: 10px;
+  }
+  body.tv-remote .tab { min-width: clamp(118px, 24vw, 160px); }
+  body.tv-remote .filters select { min-width: min(62vw, 360px); }
+}

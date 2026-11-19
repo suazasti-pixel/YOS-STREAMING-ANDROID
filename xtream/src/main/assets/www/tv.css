@@ -672,3 +672,16 @@ body.tv-remote .source-option.remote-focus {
   body.tv-remote .catalog-head { gap: 14px; }
   body.tv-remote .tabs { padding-block: 10px 14px; }
 }
+
+body.tv-remote .theme-dialog{width:min(860px,82vw);padding:32px}
+body.tv-remote .theme-dialog h2{font-size:30px}
+body.tv-remote .theme-dialog>.muted{font-size:18px}
+body.tv-remote .theme-choice{min-height:82px;grid-template-columns:64px 1fr 32px;font-size:19px}
+body.tv-remote .theme-choice small{font-size:15px}
+body.tv-remote .theme-swatch{width:52px;height:52px}
+body.tv-remote[data-yos-theme] :focus{outline-color:var(--pink)!important}
+body.tv-remote[data-yos-theme] .source-option:focus,
+body.tv-remote[data-yos-theme] .source-option:focus-visible,
+body.tv-remote[data-yos-theme] .source-option.remote-focus{border-color:var(--pink);outline-color:var(--pink)!important;box-shadow:0 0 0 2px #101820,0 0 22px var(--accent-shadow)}
+body.tv-remote[data-yos-theme] .source-option.active:focus,
+body.tv-remote[data-yos-theme] .source-option.active:focus-visible{background:var(--accent-panel)}

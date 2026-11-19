@@ -82,6 +82,15 @@ body.player-open { overflow: hidden; }
   .content-card { min-height: 410px; }
 }
 
+/* La selección de tema también actualiza el foco grande del Magic Remote. */
+body.tv-remote[data-yos-theme] :focus-visible,
+body.tv-remote[data-yos-theme] .remote-focus{outline-color:var(--pink)!important;box-shadow:0 0 0 9px var(--accent-shadow),0 0 32px var(--accent-shadow)!important}
+body.tv-remote[data-yos-theme] :focus{outline-color:var(--pink)}
+body.tv-remote[data-yos-theme] .source-option.active{background:var(--accent-panel);border-color:var(--pink);box-shadow:inset 0 0 0 2px var(--accent-shadow),0 0 22px var(--accent-shadow)}
+body.tv-remote[data-yos-theme] .yos-lg-player button:focus,
+body.tv-remote[data-yos-theme] .yos-lg-player button:focus-visible{border-color:var(--pink);background:var(--accent-panel)}
+body.tv-remote[data-yos-theme] .yos-lg-player #yos-lg-retry{border-color:var(--pink)}
+
 /* LG usa también las reglas genéricas de TV Box; esta capa de mayor
    especificidad garantiza que el diseño de salón no vuelva a quedar pequeño. */
 body.tv-remote { font-size: 24px; line-height: 1.45; }

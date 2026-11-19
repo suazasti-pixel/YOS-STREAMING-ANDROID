@@ -33,6 +33,20 @@ let lastPlaybackFocus = null;
 let savedPlaylistUrl = "";
 let loginMode = "xtream";
 let sessionRestoreInProgress = false;
+const YOS_THEME_KEY = "yos-xtream-theme-v1";
+
+function applyYosTheme(theme) {
+  const safeTheme = ["yos", "ocean", "amber"].includes(theme) ? theme : "yos";
+  document.body.dataset.yosTheme = safeTheme;
+  document.querySelectorAll("[data-theme-choice]").forEach(button => {
+    button.setAttribute("aria-pressed", String(button.dataset.themeChoice === safeTheme));
+  });
+}
+
+function readYosTheme() {
+  try { return localStorage.getItem(YOS_THEME_KEY) || "yos"; }
+  catch { return "yos"; }
+}
 
 function cacheItems(key, rows) {
   if (rows.length > ITEM_CACHE_ROW_LIMIT) return;
@@ -1510,6 +1524,17 @@ $("voice-search").addEventListener("click", () => {
   else setStatus("catalog-status", "La búsqueda por voz requiere la app Android YOS Xtream y un servicio de reconocimiento instalado.");
 });
 $("diagnostics-open").addEventListener("click", () => { $("diagnostics-dialog").showModal(); runDiagnostics(); });
+applyYosTheme(readYosTheme());
+$("theme-open").addEventListener("click", () => {
+  $("theme-dialog").showModal();
+  requestAnimationFrame(() => document.querySelector('[data-theme-choice][aria-pressed="true"]')?.focus());
+});
+$("theme-close").addEventListener("click", () => $("theme-dialog").close());
+$("theme-dialog").addEventListener("click", event => { if (event.target === $("theme-dialog")) $("theme-dialog").close(); });
+document.querySelectorAll("[data-theme-choice]").forEach(button => button.addEventListener("click", () => {
+  applyYosTheme(button.dataset.themeChoice);
+  try { localStorage.setItem(YOS_THEME_KEY, button.dataset.themeChoice); } catch { /* La apariencia también funciona sin almacenamiento local. */ }
+}));
 $("diagnostics-close").addEventListener("click", () => $("diagnostics-dialog").close());
 $("diagnostics-run").addEventListener("click", runDiagnostics);
 $("diagnostics-dialog").addEventListener("click", event => { if (event.target === $("diagnostics-dialog")) $("diagnostics-dialog").close(); });
@@ -1599,6 +1624,7 @@ $("logout").addEventListener("click", () => {
   setStatus("login-status", "Sesión cerrada y cuenta eliminada de este dispositivo."); $("server").focus();
 });
 window.yosHandleBack = () => {
+  if ($("theme-dialog").open) { $("theme-dialog").close(); return true; }
   if ($("parental-dialog").open) { closeParentalDialog(); return true; }
   if ($("diagnostics-dialog").open) { $("diagnostics-dialog").close(); return true; }
   if ($("movie-dialog").open) { $("movie-dialog").close(); return true; }

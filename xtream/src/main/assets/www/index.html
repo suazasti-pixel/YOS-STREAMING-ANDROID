@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#07090d">
   <title>YOS Xtream</title>
-  <link rel="stylesheet" href="styles.css?v=30">
-  <link rel="stylesheet" href="tv.css?v=33">
+  <link rel="stylesheet" href="styles.css?v=31">
+  <link rel="stylesheet" href="tv.css?v=34">
 </head>
 <body>
   <header class="topbar">
@@ -15,6 +15,7 @@
     </a>
     <span class="header-caption">TU CONTENIDO, EN UN SOLO LUGAR</span>
     <button id="diagnostics-open" class="button subtle" type="button" aria-label="Diagnóstico de conexión">DIAGNÓSTICO</button>
+    <button id="theme-open" class="button subtle theme-open" type="button" aria-label="Cambiar apariencia">◐ <span>TEMA</span></button>
     <button id="parental-control" class="button subtle" type="button" hidden>🔒 CONTROL PARENTAL</button>
     <button id="logout" class="button subtle" hidden>CERRAR SESIÓN</button>
   </header>
@@ -105,6 +106,16 @@
     </section>
   </main>
 
+  <dialog id="theme-dialog" class="theme-dialog">
+    <div class="dialog-head"><div><span class="eyebrow">PERSONALIZACIÓN YOS</span><h2>Apariencia</h2></div><button id="theme-close" class="icon-button" type="button" aria-label="Cerrar apariencia">×</button></div>
+    <p class="muted">Elige un color para resaltar controles y navegación. Se guarda en este dispositivo.</p>
+    <div class="theme-options" role="group" aria-label="Temas de color">
+      <button class="theme-choice" type="button" data-theme-choice="yos" aria-pressed="false"><span class="theme-swatch theme-swatch-yos"></span><span><b>YOS clásico</b><small>Magenta YOS</small></span><span class="theme-check" aria-hidden="true">✓</span></button>
+      <button class="theme-choice" type="button" data-theme-choice="ocean" aria-pressed="false"><span class="theme-swatch theme-swatch-ocean"></span><span><b>Océano</b><small>Azul turquesa</small></span><span class="theme-check" aria-hidden="true">✓</span></button>
+      <button class="theme-choice" type="button" data-theme-choice="amber" aria-pressed="false"><span class="theme-swatch theme-swatch-amber"></span><span><b>Ámbar</b><small>Dorado cálido</small></span><span class="theme-check" aria-hidden="true">✓</span></button>
+    </div>
+  </dialog>
+
   <dialog id="episodes-dialog" class="episodes-dialog">
     <div class="dialog-head"><div><span class="eyebrow">SERIE</span><h2 id="episodes-title">Episodios</h2></div><button id="close-episodes" class="icon-button" aria-label="Cerrar">×</button></div>
     <label id="season-picker-label" class="season-picker-label" for="season-picker">Temporada <select id="season-picker"></select></label>
@@ -134,6 +145,6 @@
     <div id="diagnostics-result" class="diagnostics-result" role="status" aria-live="polite">Pulsa para revisar la conexión.</div>
     <button id="diagnostics-run" class="button primary" type="button">REVISAR CONEXIÓN</button>
   </dialog>
-  <script src="app.js?v=31"></script>
+  <script src="app.js?v=32"></script>
 </body>
 </html>

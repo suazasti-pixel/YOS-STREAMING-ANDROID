@@ -1,5 +1,11 @@
 # Versiones principales de YOS
 
+## YOS Xtream Android 2.32 y LG 3.24 — apariencias adaptables
+
+- Se agregan tres paletas propias —YOS clásico, Océano y Ámbar— con selector grande y manejable con control remoto. La preferencia se guarda localmente en Android y webOS.
+- Las paletas cambian acentos de navegación, controles y foco sin cambiar logos ni almacenar datos de la cuenta. YOS conserva su comportamiento de inicio de sesión y no introduce actualizaciones obligatorias.
+- Android `versionCode 37`, `versionName 2.32`: `YOS-2.32-XTREAM-ANDROID-APK` para celular y Android TV Box. LG `version 3.24.0`: `YOS-3.24-LG-webOS-IPK` y `YOS-3.24-LG-Instalador-Windows`.
+
 ## YOS Xtream Android 2.31 y LG 3.23 — sesión persistente y reconexión
 
 - Android mantiene usuario, contraseña y M3U cifrados con Android Keystore al salir, minimizar o apagar el dispositivo; la sesión solo se borra al pulsar **CERRAR SESIÓN**.
@@ -116,11 +122,13 @@ Estas son las tres ediciones principales que vamos a mantener y actualizar por s
 | Edición | Dispositivo | Instalador en GitHub Actions | Proyecto |
 |---|---|---|---|
 | **1.1** | Celular Android | `YOS-1.1-CELULAR-APK` | YOS Streaming, listas M3U |
+| **2.32** | Celular Android y Android TV Box | `YOS-2.32-XTREAM-ANDROID-APK` | YOS Xtream Android, paletas propias adaptables para móvil y TV |
 | **2.31** | Celular Android y Android TV Box | `YOS-2.31-XTREAM-ANDROID-APK` | YOS Xtream Android, sesión cifrada persistente y reconexión automática |
 | **2.30** | Celular Android y Android TV Box | `YOS-2.30-XTREAM-ANDROID-APK` | YOS Xtream Android, carga de listas en segundo plano |
 | **2.29** | Celular Android y Android TV Box | `YOS-2.29-XTREAM-ANDROID-APK` | YOS Xtream Android, interfaz premium adaptable a TV Box |
 | **2.28** | Celular Android y Android TV Box | `YOS-2.28-XTREAM-ANDROID-APK` | YOS Xtream Android, selector manejable con control remoto |
 | **2.27** | Celular Android y Android TV Box | `YOS-2.27-XTREAM-ANDROID-APK` | YOS Xtream Android |
+| **3.24** | Televisor LG webOS | `YOS-3.24-LG-webOS-IPK` | YOS Xtream para webOS, paletas propias adaptables y selección por control Magic |
 | **3.23** | Televisor LG webOS | `YOS-3.23-LG-webOS-IPK` | YOS Xtream para webOS, nueva base de reconexión compatible con la política local de no guardar credenciales |
 | **3.22** | Televisor LG webOS | `YOS-3.22-LG-webOS-IPK` | YOS Xtream para webOS, procesamiento M3U gradual para mantener ágil la interfaz |
 | **3.21** | Televisor LG webOS | `YOS-3.21-LG-webOS-IPK` | YOS Xtream para webOS, selector M3U reparado y controles grandes para LG de 65 pulgadas |
@@ -128,7 +136,7 @@ Estas son las tres ediciones principales que vamos a mantener y actualizar por s
 
 ## Regla de numeración
 
-Cada edición avanza por separado: celular **1.1 → 1.2 → 1.3**, Xtream Android **2.1 → 2.2 → 2.3 → 2.4 → 2.5 → 2.6 → 2.7 → 2.8 → 2.9 → 2.10 → 2.11 → 2.12 → 2.13 → 2.14 → 2.15 → 2.16 → 2.17 → 2.18 → 2.19 → 2.20 → 2.21 → 2.22 → 2.23 → 2.24 → 2.25 → 2.26 → 2.27 → 2.28 → 2.29 → 2.30 → 2.31** y LG webOS **3.1 → 3.2 → 3.3 → 3.4 → 3.5 → 3.6 → 3.7 → 3.8 → 3.9 → 3.10 → 3.11 → 3.12 → 3.13 → 3.14 → 3.15 → 3.16 → 3.17 → 3.18 → 3.19 → 3.20 → 3.21 → 3.22 → 3.23**. Cuando un cambio afecte varias ediciones, incrementaremos la serie de cada una de ellas. Así cada instalador y sus notas de cambios indicarán qué versión recibió la mejora.
+Cada edición avanza por separado: celular **1.1 → 1.2 → 1.3**, Xtream Android **2.1 → 2.2 → 2.3 → 2.4 → 2.5 → 2.6 → 2.7 → 2.8 → 2.9 → 2.10 → 2.11 → 2.12 → 2.13 → 2.14 → 2.15 → 2.16 → 2.17 → 2.18 → 2.19 → 2.20 → 2.21 → 2.22 → 2.23 → 2.24 → 2.25 → 2.26 → 2.27 → 2.28 → 2.29 → 2.30 → 2.31 → 2.32** y LG webOS **3.1 → 3.2 → 3.3 → 3.4 → 3.5 → 3.6 → 3.7 → 3.8 → 3.9 → 3.10 → 3.11 → 3.12 → 3.13 → 3.14 → 3.15 → 3.16 → 3.17 → 3.18 → 3.19 → 3.20 → 3.21 → 3.22 → 3.23 → 3.24**. Cuando un cambio afecte varias ediciones, incrementaremos la serie de cada una de ellas. Así cada instalador y sus notas de cambios indicarán qué versión recibió la mejora.
 
 ## YOS Xtream LG 3.16 — controles grandes para Magic Remote
 

@@ -7,6 +7,8 @@
   var progressLastAt = 0;
   var progressLastPosition = -1;
   var playerControlsTimer = 0;
+  var playerRecoveryTimer = 0;
+  var playerRecoveryAttempts = 0;
   var PLAYER_CONTROLS_TIMEOUT_MS = 4000;
 
   function hidePlayerControls(overlay) {
@@ -21,6 +23,22 @@
     playerControlsTimer = window.setTimeout(function () {
       hidePlayerControls(overlay);
     }, PLAYER_CONTROLS_TIMEOUT_MS);
+  }
+
+  function clearPlayerRecovery() {
+    window.clearTimeout(playerRecoveryTimer);
+    playerRecoveryTimer = 0;
+  }
+
+  function schedulePlayerRecovery(overlay, video, allowPaused) {
+    if (!overlay || overlay.hidden || !video || (!allowPaused && video.paused) || playerRecoveryAttempts >= 2 || playerRecoveryTimer) return false;
+    playerRecoveryAttempts += 1;
+    overlay.querySelector("#yos-lg-state").textContent = "Recuperando transmisión (" + playerRecoveryAttempts + "/2)…";
+    playerRecoveryTimer = window.setTimeout(function () {
+      playerRecoveryTimer = 0;
+      if (!overlay.hidden && !video.paused) playCurrent(video.currentTime || 0, true);
+    }, 1600 * playerRecoveryAttempts);
+    return true;
   }
 
   function apiRequest(requestId, server, username, password, action, categoryId, itemId) {
@@ -104,7 +122,7 @@
     overlay.id = "yos-lg-player";
     overlay.className = "yos-lg-player";
     overlay.setAttribute("aria-label", "Reproductor");
-    overlay.innerHTML = '<header><strong id="yos-lg-title"></strong><button id="yos-lg-close" type="button">CERRAR <span>✕</span></button></header><video id="yos-lg-video" controls autoplay playsinline></video><footer><button id="yos-lg-prev" type="button">◀ ANTERIOR</button><span id="yos-lg-state">Conectando…</span><button id="yos-lg-retry" type="button" hidden>REINTENTAR</button><button id="yos-lg-next" type="button">SIGUIENTE ▶</button></footer>';
+    overlay.innerHTML = '<header><strong id="yos-lg-title"></strong><button id="yos-lg-close" type="button">CERRAR <span>✕</span></button></header><video id="yos-lg-video" controls autoplay playsinline preload="auto"></video><footer><button id="yos-lg-prev" type="button">◀ ANTERIOR</button><span id="yos-lg-state">Conectando…</span><button id="yos-lg-retry" type="button" hidden>REINTENTAR</button><button id="yos-lg-next" type="button">SIGUIENTE ▶</button></footer>';
     document.body.appendChild(overlay);
     ["mousemove", "mousedown", "touchstart", "click", "keydown"].forEach(function (eventName) {
       overlay.addEventListener(eventName, function () { showPlayerControls(overlay); }, true);
@@ -127,8 +145,17 @@
       }
       resumeAt = 0;
     });
-    video.addEventListener("waiting", function () { overlay.querySelector("#yos-lg-state").textContent = "Cargando transmisión…"; });
+    video.addEventListener("waiting", function () {
+      overlay.querySelector("#yos-lg-state").textContent = "Cargando transmisión…";
+      clearPlayerRecovery();
+      playerRecoveryTimer = window.setTimeout(function () {
+        playerRecoveryTimer = 0;
+        schedulePlayerRecovery(overlay, video);
+      }, 12000);
+    });
     video.addEventListener("playing", function () {
+      clearPlayerRecovery();
+      playerRecoveryAttempts = 0;
       overlay.querySelector("#yos-lg-state").textContent = "Reproduciendo";
       overlay.querySelector("#yos-lg-retry").hidden = true;
       reportPlayback(true);
@@ -144,7 +171,9 @@
       retry.hidden = false;
       retry.focus();
     });
+    video.addEventListener("stalled", function () { schedulePlayerRecovery(overlay, video); });
     video.addEventListener("error", function () {
+      if (schedulePlayerRecovery(overlay, video, true)) return;
       overlay.querySelector("#yos-lg-state").textContent = "No se pudo reproducir este formato o transmisión.";
       var retry = overlay.querySelector("#yos-lg-retry");
       retry.textContent = "REINTENTAR";
@@ -180,6 +209,7 @@
     if (!overlay) return;
     var video = overlay.querySelector("video");
     window.clearTimeout(playerControlsTimer);
+    clearPlayerRecovery();
     reportPlayback(true);
     video.pause();
     video.removeAttribute("src");
@@ -197,11 +227,13 @@
     playCurrent(0);
   }
 
-  function playCurrent(resumeSeconds) {
+  function playCurrent(resumeSeconds, keepRecoveryAttempts) {
     var overlay = ensurePlayer();
     var item = window.YOSXtream.queue[window.YOSXtream.index];
     if (!item) return;
     resumeAt = Math.max(0, Number(resumeSeconds) || 0);
+    if (!keepRecoveryAttempts) playerRecoveryAttempts = 0;
+    clearPlayerRecovery();
     progressLastAt = 0;
     progressLastPosition = -1;
     overlay.hidden = false;

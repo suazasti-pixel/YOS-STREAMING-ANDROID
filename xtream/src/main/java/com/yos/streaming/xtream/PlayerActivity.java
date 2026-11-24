@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
@@ -28,6 +30,9 @@ import androidx.media3.common.Tracks;
 import androidx.media3.common.util.UnstableApi;
 import androidx.media3.exoplayer.DefaultLoadControl;
 import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
+import androidx.media3.exoplayer.upstream.DefaultLoadErrorHandlingPolicy;
+import androidx.media3.datasource.DefaultHttpDataSource;
 import androidx.media3.ui.PlayerView;
 import androidx.media3.ui.TrackSelectionDialogBuilder;
 
@@ -58,6 +63,9 @@ public final class PlayerActivity extends Activity {
     private int startIndex;
     private String selectedUrl;
     private String selectedTitle;
+    private final Handler recoveryHandler = new Handler(Looper.getMainLooper());
+    private int automaticRetryAttempts;
+    private Runnable recoveryTask;
 
     @Override
     protected void onCreate(@Nullable Bundle state) {
@@ -150,17 +158,31 @@ public final class PlayerActivity extends Activity {
         selectedUrl = getIntent().getStringExtra(EXTRA_URL);
         selectedTitle = getIntent().getStringExtra(EXTRA_TITLE);
         DefaultLoadControl loadControl = new DefaultLoadControl.Builder()
-            // Start sooner on live channels, while keeping a useful buffer after playback begins.
-            .setBufferDurationsMs(20000, 60000, 1000, 3000)
+            // A deeper buffer absorbs short Wi-Fi and provider hiccups, especially on live TV.
+            .setBufferDurationsMs(30000, 90000, 1800, 3500)
             .setPrioritizeTimeOverSizeThresholds(true)
             .build();
-        player = new ExoPlayer.Builder(this).setLoadControl(loadControl).build();
+        DefaultHttpDataSource.Factory dataSource = new DefaultHttpDataSource.Factory()
+            .setConnectTimeoutMs(12000)
+            .setReadTimeoutMs(25000)
+            .setAllowCrossProtocolRedirects(true)
+            .setUserAgent("YOS-Xtream/2.34");
+        DefaultMediaSourceFactory mediaSourceFactory = new DefaultMediaSourceFactory(dataSource)
+            .setLoadErrorHandlingPolicy(new DefaultLoadErrorHandlingPolicy(4));
+        player = new ExoPlayer.Builder(this)
+            .setLoadControl(loadControl)
+            .setMediaSourceFactory(mediaSourceFactory)
+            .build();
         playerView.setPlayer(player);
         player.addListener(new Player.Listener() {
             @Override public void onIsPlayingChanged(boolean isPlaying) { updatePauseButton(isPlaying); }
 
             @Override public void onPlaybackStateChanged(int playbackState) {
-                if (playbackState == Player.STATE_READY) errorPanel.setVisibility(View.GONE);
+                if (playbackState == Player.STATE_READY) {
+                    automaticRetryAttempts = 0;
+                    cancelAutomaticRecovery();
+                    errorPanel.setVisibility(View.GONE);
+                }
             }
 
             @Override public void onMediaItemTransition(@Nullable MediaItem item, int reason) {
@@ -171,6 +193,7 @@ public final class PlayerActivity extends Activity {
             }
 
             @Override public void onPlayerError(PlaybackException error) {
+                if (scheduleAutomaticRecovery(error)) return;
                 errorPanel.setVisibility(View.VISIBLE);
                 errorText.setText(playbackErrorMessage(error));
                 retryButton.requestFocus();
@@ -224,9 +247,39 @@ public final class PlayerActivity extends Activity {
 
     private void retry() {
         if (player == null) return;
+        automaticRetryAttempts = 0;
+        cancelAutomaticRecovery();
         if (errorPanel != null) errorPanel.setVisibility(View.GONE);
         player.prepare();
         player.play();
+    }
+
+    private boolean scheduleAutomaticRecovery(PlaybackException error) {
+        if (player == null || !isRecoverableNetworkError(error) || automaticRetryAttempts >= 3) return false;
+        automaticRetryAttempts++;
+        long delay = 1200L * automaticRetryAttempts;
+        if (errorPanel != null) errorPanel.setVisibility(View.GONE);
+        Toast.makeText(this, "Reconectando transmisión (" + automaticRetryAttempts + "/3)…", Toast.LENGTH_SHORT).show();
+        cancelAutomaticRecovery();
+        recoveryTask = () -> {
+            if (player == null || isFinishing() || isDestroyed()) return;
+            if (player.isCurrentMediaItemLive()) player.seekToDefaultPosition();
+            player.prepare();
+            player.play();
+        };
+        recoveryHandler.postDelayed(recoveryTask, delay);
+        return true;
+    }
+
+    private boolean isRecoverableNetworkError(PlaybackException error) {
+        if (error == null) return false;
+        String code = error.getErrorCodeName();
+        return code != null && (code.contains("NETWORK") || code.contains("TIMEOUT") || code.contains("IO_UNSPECIFIED"));
+    }
+
+    private void cancelAutomaticRecovery() {
+        if (recoveryTask != null) recoveryHandler.removeCallbacks(recoveryTask);
+        recoveryTask = null;
     }
 
     private void togglePlayback() {
@@ -362,6 +415,7 @@ public final class PlayerActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        cancelAutomaticRecovery();
         if (playerView != null) playerView.setPlayer(null);
         if (player != null) { player.release(); player = null; }
         super.onDestroy();

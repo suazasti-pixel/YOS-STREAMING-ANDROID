@@ -1,5 +1,11 @@
 # Versiones principales de YOS
 
+## YOS Xtream Android 2.34 y LG 3.26 — reproducción más estable
+
+- Android conserva hasta 90 segundos de búfer, adapta la carga ante cortes cortos y reintenta automáticamente hasta tres veces los errores transitorios de red. Los canales en vivo vuelven al punto en directo al reconectar.
+- En webOS, el reproductor prepara la señal antes de iniciar y recupera hasta dos veces una transmisión que permanezca detenida. Si el servidor sigue sin responder, muestra el botón de reintento.
+- Android `versionCode 39`, `versionName 2.34`: `YOS-2.34-XTREAM-ANDROID-APK`. LG `version 3.26.0`: `YOS-3.26-LG-webOS-IPK` y `YOS-3.26-LG-Instalador-Windows`.
+
 ## YOS Xtream Android 2.33 y LG 3.25 — experiencia de sala adaptable
 
 - Se agrega **Vista**: Compacta, Equilibrada o Grande. El tamaño elegido se guarda en el dispositivo para corregir TV Box con escalado irregular y televisores LG de 55 a 65 pulgadas.

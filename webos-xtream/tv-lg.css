@@ -2,6 +2,16 @@
 html, body { min-width: 960px; min-height: 100%; }
 body { font-size: clamp(23px, 1.35vw, 30px); line-height: 1.42; }
 .topbar { min-height: 104px; padding-inline: 4vw; gap: 30px; }
+
+/* Ajuste persistente de escala para una TV LG de sala y el Magic Remote. */
+body[data-yos-density="compact"] .topbar { min-height: 88px; }
+body[data-yos-density="compact"] main { width: 94vw; }
+body[data-yos-density="compact"] .content-grid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+body[data-yos-density="large"] .topbar { min-height: 124px; }
+body[data-yos-density="large"] main { width: 90vw; max-width: 2200px; }
+body[data-yos-density="large"] .content-grid { grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 26px; }
+body[data-yos-density="large"] .tab { min-height: 94px; font-size: 26px; }
+body[data-yos-density="large"] .content-card { border-radius: 20px; }
 .brand { min-width: 280px; gap: 16px; }
 .brand-logo-window { width: 78px; height: 78px; flex-basis: 78px; }
 .brand-mark { width: 74px; height: 74px; object-fit: contain; }

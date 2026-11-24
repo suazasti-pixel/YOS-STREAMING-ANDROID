@@ -685,3 +685,21 @@ body.tv-remote[data-yos-theme] .source-option:focus-visible,
 body.tv-remote[data-yos-theme] .source-option.remote-focus{border-color:var(--pink);outline-color:var(--pink)!important;box-shadow:0 0 0 2px #101820,0 0 22px var(--accent-shadow)}
 body.tv-remote[data-yos-theme] .source-option.active:focus,
 body.tv-remote[data-yos-theme] .source-option.active:focus-visible{background:var(--accent-panel)}
+
+/* Escala elegida por el usuario: corrige equipos Android TV con densidad reportada de forma irregular. */
+body.tv-remote[data-yos-density="compact"] { font-size: 16px; }
+body.tv-remote[data-yos-density="compact"] .topbar { height: 72px; gap: 14px; }
+body.tv-remote[data-yos-density="compact"] main { width: 94vw; margin-block: 18px; }
+body.tv-remote[data-yos-density="compact"] .content-grid { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 13px; }
+body.tv-remote[data-yos-density="compact"] .content-card { border-radius: 13px; }
+body.tv-remote[data-yos-density="compact"] .tab { min-width: 154px; min-height: 50px; font-size: 14px; }
+body.tv-remote[data-yos-density="compact"] .topbar .button { min-height: 48px; font-size: 14px; }
+
+body.tv-remote[data-yos-density="large"] { font-size: 20px; }
+body.tv-remote[data-yos-density="large"] .topbar { height: 96px; gap: 28px; }
+body.tv-remote[data-yos-density="large"] main { width: 90vw; max-width: 1960px; margin-block: 32px; }
+body.tv-remote[data-yos-density="large"] .content-grid { grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 22px; }
+body.tv-remote[data-yos-density="large"] .content-card { border-radius: 18px; }
+body.tv-remote[data-yos-density="large"] .tab { min-width: 205px; min-height: 68px; font-size: 18px; }
+body.tv-remote[data-yos-density="large"] .topbar .button { min-height: 64px; font-size: 17px; }
+body.tv-remote[data-yos-density="large"] .search-box { width: min(650px, 43vw); }

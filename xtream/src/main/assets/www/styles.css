@@ -28,6 +28,8 @@ body[data-yos-theme] .text-button{color:var(--accent-soft)}
 .theme-swatch-amber{background:linear-gradient(135deg,#f3b83f 0 50%,#bd7517 50%)}
 .theme-check{display:none;color:var(--pink);font-size:22px;font-weight:900}.theme-choice[aria-pressed="true"] .theme-check{display:block}
 @media(max-width:650px){.topbar #theme-open{width:38px;min-width:38px;min-height:38px;padding:0;font-size:18px}.theme-open span{display:none}.theme-dialog{padding:18px}}
+.density-swatch-compact,.density-swatch-balanced,.density-swatch-large{display:grid;place-items:center;font-weight:900;color:#fff;background:#1a2834}.density-swatch-compact{font-size:16px}.density-swatch-balanced{font-size:22px;background:#283b4a}.density-swatch-large{font-size:28px;background:var(--pink)}
+@media(max-width:650px){.topbar #density-open{width:38px;min-width:38px;min-height:38px;padding:0;font-size:18px}.density-open span{display:none}}
 .poster-placeholder { background: radial-gradient(circle at 50% 25%, #2a3542, #121820 70%); color: #ff5276; letter-spacing: 1px; }
 .content-card-wrap { position: relative; min-width: 0; }
 .content-card-wrap .content-card { width: 100%; height: 100%; }

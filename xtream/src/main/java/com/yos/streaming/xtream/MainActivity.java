@@ -142,13 +142,30 @@ public class MainActivity extends Activity {
     }
 
     @Override public boolean dispatchKeyEvent(KeyEvent event) {
-        if (event.getAction() == KeyEvent.ACTION_DOWN && webView != null &&
-            (event.getKeyCode() == KeyEvent.KEYCODE_CHANNEL_UP || event.getKeyCode() == KeyEvent.KEYCODE_CHANNEL_DOWN)) {
-            String key = event.getKeyCode() == KeyEvent.KEYCODE_CHANNEL_UP ? "ChannelUp" : "ChannelDown";
-            webView.evaluateJavascript("document.dispatchEvent(new KeyboardEvent('keydown',{key:'" + key + "',bubbles:true,cancelable:true}))", null);
-            return true;
+        if (event.getAction() == KeyEvent.ACTION_DOWN && webView != null) {
+            int code = event.getKeyCode();
+            String key = null;
+            if (code == KeyEvent.KEYCODE_CHANNEL_UP) key = "ChannelUp";
+            else if (code == KeyEvent.KEYCODE_CHANNEL_DOWN) key = "ChannelDown";
+            else if (isTelevisionDevice()) {
+                if (code == KeyEvent.KEYCODE_DPAD_UP) key = "ArrowUp";
+                else if (code == KeyEvent.KEYCODE_DPAD_DOWN) key = "ArrowDown";
+                else if (code == KeyEvent.KEYCODE_DPAD_LEFT) key = "ArrowLeft";
+                else if (code == KeyEvent.KEYCODE_DPAD_RIGHT) key = "ArrowRight";
+            }
+            if (key != null) {
+                webView.evaluateJavascript("document.dispatchEvent(new KeyboardEvent('keydown',{key:'" + key + "',keyCode:" + code + ",which:" + code + ",bubbles:true,cancelable:true}))", null);
+                return true;
+            }
         }
         return super.dispatchKeyEvent(event);
+    }
+
+    private boolean isTelevisionDevice() {
+        boolean leanback = getPackageManager().hasSystemFeature("android.software.leanback");
+        boolean televisionMode = (getResources().getConfiguration().uiMode & Configuration.UI_MODE_TYPE_MASK) == Configuration.UI_MODE_TYPE_TELEVISION;
+        boolean noTouchscreen = !getPackageManager().hasSystemFeature("android.hardware.touchscreen");
+        return leanback || televisionMode || noTouchscreen;
     }
 
     @Override public void onBackPressed() {
@@ -212,10 +229,7 @@ public class MainActivity extends Activity {
         @JavascriptInterface public boolean supportsPersistentSession() { return true; }
 
         @JavascriptInterface public boolean isTelevision() {
-            boolean leanback = getPackageManager().hasSystemFeature("android.software.leanback");
-            boolean televisionMode = (getResources().getConfiguration().uiMode & Configuration.UI_MODE_TYPE_MASK) == Configuration.UI_MODE_TYPE_TELEVISION;
-            boolean noTouchscreen = !getPackageManager().hasSystemFeature("android.hardware.touchscreen");
-            return leanback || televisionMode || noTouchscreen;
+            return isTelevisionDevice();
         }
 
         @JavascriptInterface public void startVoiceSearch() {

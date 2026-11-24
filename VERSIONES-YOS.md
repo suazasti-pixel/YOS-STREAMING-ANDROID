@@ -1,5 +1,11 @@
 # Versiones principales de YOS
 
+## YOS Xtream Android 2.33 y LG 3.25 — experiencia de sala adaptable
+
+- Se agrega **Vista**: Compacta, Equilibrada o Grande. El tamaño elegido se guarda en el dispositivo para corregir TV Box con escalado irregular y televisores LG de 55 a 65 pulgadas.
+- Android TV ahora traduce de forma uniforme las flechas D-pad físicas a la navegación de YOS. Los cambios entre tarjetas, pestañas y el selector Xtream/M3U mantienen foco visible.
+- Android `versionCode 38`, `versionName 2.33`: `YOS-2.33-XTREAM-ANDROID-APK`. LG `version 3.25.0`: `YOS-3.25-LG-webOS-IPK` y `YOS-3.25-LG-Instalador-Windows`.
+
 ## YOS Xtream Android 2.32 y LG 3.24 — apariencias adaptables
 
 - Se agregan tres paletas propias —YOS clásico, Océano y Ámbar— con selector grande y manejable con control remoto. La preferencia se guarda localmente en Android y webOS.

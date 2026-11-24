@@ -34,6 +34,7 @@ let savedPlaylistUrl = "";
 let loginMode = "xtream";
 let sessionRestoreInProgress = false;
 const YOS_THEME_KEY = "yos-xtream-theme-v1";
+const YOS_DENSITY_KEY = "yos-xtream-density-v1";
 
 function applyYosTheme(theme) {
   const safeTheme = ["yos", "ocean", "amber"].includes(theme) ? theme : "yos";
@@ -46,6 +47,19 @@ function applyYosTheme(theme) {
 function readYosTheme() {
   try { return localStorage.getItem(YOS_THEME_KEY) || "yos"; }
   catch { return "yos"; }
+}
+
+function applyYosDensity(density) {
+  const safeDensity = ["compact", "balanced", "large"].includes(density) ? density : "balanced";
+  document.body.dataset.yosDensity = safeDensity;
+  document.querySelectorAll("[data-density-choice]").forEach(button => {
+    button.setAttribute("aria-pressed", String(button.dataset.densityChoice === safeDensity));
+  });
+}
+
+function readYosDensity() {
+  try { return localStorage.getItem(YOS_DENSITY_KEY) || "balanced"; }
+  catch { return "balanced"; }
 }
 
 function cacheItems(key, rows) {
@@ -1525,6 +1539,7 @@ $("voice-search").addEventListener("click", () => {
 });
 $("diagnostics-open").addEventListener("click", () => { $("diagnostics-dialog").showModal(); runDiagnostics(); });
 applyYosTheme(readYosTheme());
+applyYosDensity(readYosDensity());
 $("theme-open").addEventListener("click", () => {
   $("theme-dialog").showModal();
   requestAnimationFrame(() => document.querySelector('[data-theme-choice][aria-pressed="true"]')?.focus());
@@ -1534,6 +1549,16 @@ $("theme-dialog").addEventListener("click", event => { if (event.target === $("t
 document.querySelectorAll("[data-theme-choice]").forEach(button => button.addEventListener("click", () => {
   applyYosTheme(button.dataset.themeChoice);
   try { localStorage.setItem(YOS_THEME_KEY, button.dataset.themeChoice); } catch { /* La apariencia también funciona sin almacenamiento local. */ }
+}));
+$("density-open").addEventListener("click", () => {
+  $("density-dialog").showModal();
+  requestAnimationFrame(() => document.querySelector('[data-density-choice][aria-pressed="true"]')?.focus());
+});
+$("density-close").addEventListener("click", () => $("density-dialog").close());
+$("density-dialog").addEventListener("click", event => { if (event.target === $("density-dialog")) $("density-dialog").close(); });
+document.querySelectorAll("[data-density-choice]").forEach(button => button.addEventListener("click", () => {
+  applyYosDensity(button.dataset.densityChoice);
+  try { localStorage.setItem(YOS_DENSITY_KEY, button.dataset.densityChoice); } catch { /* El tamaño también funciona sin almacenamiento local. */ }
 }));
 $("diagnostics-close").addEventListener("click", () => $("diagnostics-dialog").close());
 $("diagnostics-run").addEventListener("click", runDiagnostics);
@@ -1625,6 +1650,7 @@ $("logout").addEventListener("click", () => {
 });
 window.yosHandleBack = () => {
   if ($("theme-dialog").open) { $("theme-dialog").close(); return true; }
+  if ($("density-dialog").open) { $("density-dialog").close(); return true; }
   if ($("parental-dialog").open) { closeParentalDialog(); return true; }
   if ($("diagnostics-dialog").open) { $("diagnostics-dialog").close(); return true; }
   if ($("movie-dialog").open) { $("movie-dialog").close(); return true; }
@@ -1739,10 +1765,12 @@ try {
           return;
         }
       }
+      const keyCode = event.keyCode || event.which;
+      const remoteKey = ({ 19: "ArrowUp", 20: "ArrowDown", 21: "ArrowLeft", 22: "ArrowRight" }[keyCode] || event.key);
       const direction = {
         ArrowLeft: [-1, 0], ArrowRight: [1, 0],
         ArrowUp: [0, -1], ArrowDown: [0, 1]
-      }[event.key];
+      }[remoteKey];
       const active = document.activeElement;
       const editing = active && (/^(INPUT|TEXTAREA|SELECT)$/.test(active.tagName) || active.isContentEditable);
       if (!document.body.classList.contains("tv-remote")) return;
